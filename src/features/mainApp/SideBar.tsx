@@ -3,55 +3,80 @@ import styles from "./styles.module.css";
 import ErrorBox from "../../ui/ErrorBox/ErrorBox";
 import FileTree from "../fileTree/FileTree";
 import useAppSelector from "../../hooks/useAppSelector";
-import { selectFileSystemRootFolder, setSelectedFilePath } from "../fileSystem/fileSystemSlice";
+import { setErrorMessage, setSelectedFilePath } from "../fileSystem/fileSystemSlice";
 import useAppDispatch from "../../hooks/useAppDispatch";
+import { selectFileSelectedFilePath, selectFileSystemError, selectFileSystemRootFolder } from "../fileSystem/selectors";
+import renameFile from "../../utils/renameFile";
+import { deleteFile, deleteFolder, moveFile, updateFileName } from "../fileSystem/actions";
 
 interface IProps {
     saveFile: () => Promise<void>,
     onSelectedFileDelete: () => void,
     onFileClick: () => void,
-    onFileModification: () => Promise<void>,
 }
 
 // TODO: expand/hide sidebar
 function SideBar({
-    saveFile, onSelectedFileDelete, onFileClick, onFileModification
-    }: IProps) {
+    saveFile,
+    onSelectedFileDelete,
+    onFileClick,
+}: IProps) {
 
     const rootFolder = useAppSelector(selectFileSystemRootFolder);
-
     const [searchText, setSearchText] = useState("");
-    const [errorMessage, setErrorMessage] = useState("");
+    const selectedFile = useAppSelector(selectFileSelectedFilePath);
+    const errorMessage = useAppSelector(selectFileSystemError);
     const dispatch = useAppDispatch();
-    // TODO:
-    // const selectedFile = searchParams.get(selectedFileQueryStringParameter);
-    const selectedFile = "";
 
     const setSelectedFile = async (filePath: string | null, saveCurrentFile = false) => {
         onFileClick();
+        if (filePath === selectedFile) {
+            return;
+        } else if (filePath) {
+            if (saveCurrentFile) {
+                await saveFile();
+            }
+        }
         dispatch(setSelectedFilePath(filePath ?? ""));
-            // TODO:
-        // if (filePath === searchParams.get(selectedFileQueryStringParameter)) {
-        //     return;
-        // } else if (filePath) {
-        //     if (saveCurrentFile) {
-        //         await saveFile();
-        //     }
-        //     setSearchParams({
-        //         [selectedFileQueryStringParameter]: filePath,
-        //     });
-        // } else {
-        //     searchParams.delete(selectedFileQueryStringParameter);
-        //     setSearchParams(searchParams);
-        // }
+    };
+
+    const handleFileRename = async (path: string, newName: string) => {
+        if (!newName.trim()) {
+            dispatch(setErrorMessage("Please enter a non empty name!"));
+            return;
+        }
+
+        if (selectedFile === path) {
+            await saveFile();
+        }
+        const newFullPath = renameFile(path, newName);
+        await dispatch(updateFileName(path, newFullPath));
+        if (selectedFile === path) {
+            await setSelectedFile(newFullPath);
+        }
     };
 
     const isCurrentFileInFolder = (folderName: string) =>
-        selectedFile?.startsWith(folderName);
+        selectedFile.startsWith(folderName);
+    
+    const handleFolderDelete = async (path: string) => {
+        await dispatch(deleteFolder(path));
 
-    const handleFolderRename =
-        async (path: string, newName: string) => {
-        //
+        if (isCurrentFileInFolder(path)) {
+            onSelectedFileDelete();
+            await setSelectedFile(null);
+        }
+    }
+
+    const handleFileDelete = async (path: string) => {
+        await dispatch(deleteFile(path));
+        if (path === selectedFile) {
+            onSelectedFileDelete();
+            await setSelectedFile(null);
+        }
+    }
+
+    const handleFolderRename = async (path: string, newName: string) => {
         // if (isCurrentFileInFolder(path)) {
         //     await saveFile();
         // }
@@ -69,25 +94,16 @@ function SideBar({
     };
 
     const handleFileMove = async (filePath: string, destinationFolder: string) => {
-        // if (selectedFile === filePath) {
-        //     await saveFile();
-        // }
-        // const fileName = getFileName(filePath);
-        // const newPath = destinationFolder === ""
-        //     ? fileName
-        //     : `${destinationFolder}/${fileName}`;
-        // const success = await sendFileModificationCall(backendApi.renameFile({
-        //     oldPath: filePath,
-        //     newPath,
-        // }));
-        // if (success && selectedFile === filePath) {
-        //     await setSelectedFile(newPath);
-        // }
+        if (selectedFile === filePath) {
+            await saveFile();
+        }
+        const newPath = await dispatch(moveFile(filePath, destinationFolder)) as unknown as string;
+        if (selectedFile === filePath) {
+            await setSelectedFile(newPath);
+        }
     };
 
-    const handleFolderMove =
-        async (folderPath: string, destinationFolder: string) => {
-        //
+    const handleFolderMove = async (folderPath: string, destinationFolder: string) => {
         // if (isCurrentFileInFolder(folderPath)) {
         //     await saveFile();
         // }
@@ -106,12 +122,6 @@ function SideBar({
         // }
     };
 
-    const handleRootClick = () => {
-        // searchParams.delete(selectedFileQueryStringParameter);
-        // setSearchParams({ ...searchParams });
-        setSelectedFile(null, true);
-    };
-
     // const filteredFiles = userFiles.filter(file =>
     //     file.name!.toLowerCase().includes(searchText.toLowerCase()));
 
@@ -125,16 +135,19 @@ function SideBar({
                 </div>
 
                 {errorMessage && <ErrorBox message={errorMessage}
-                    onClose={() => setErrorMessage("")} /> }
+                    onClose={() => dispatch(setErrorMessage(""))} /> }
 
                 <FileTree folder={rootFolder} forceExpand={searchText !== ""}
-                    fullPath="" name=""
+                    name=""
+                    fullPath=""
                     onFileClick={async filePath => await setSelectedFile(filePath, true)}
-                    selectedFile={selectedFile ?? ""}
                     onFolderRename={handleFolderRename}
                     onFileMove={handleFileMove}
                     onFolderMove={handleFolderMove}
-                    onRootClick={handleRootClick} />
+                    onFileRename={handleFileRename}
+                    onFolderDelete={handleFolderDelete}
+                    onFileDelete={handleFileDelete}
+                    onRootClick={() => void setSelectedFile(null, true)} />
             </div>
         </div>
     );

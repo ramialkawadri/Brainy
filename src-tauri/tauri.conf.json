@@ -14,7 +14,8 @@
       {
         "title": "Brainy",
         "width": 1200,
-        "height": 800
+        "height": 1000,
+        "dragDropEnabled": false
       }
     ],
     "security": {

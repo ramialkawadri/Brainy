@@ -1,20 +1,20 @@
 import Editor from "../editor/Editor";
 import SideBar from "./SideBar";
 import styles from "./styles.module.css";
-import getFileName from "../../utils/getFileName";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { autoSaveDelay, backendApi, } from "../../constants";
+import { autoSaveDelay } from "../../constants";
 import useGlobalKey from "../../hooks/useGlobalKey";
 import ErrorBox from "../../ui/ErrorBox/ErrorBox";
-import { CellInfoDto, CellRepetitionCountsDto, CellRepetitionDto, FileInfoDto, ProblemDetails } from "../../services/backendApi";
+import { CellInfoDto, CellRepetitionCountsDto, CellRepetitionDto } from "../../services/backendApi";
 import Spinner from "../../ui/Spinner/Spinner";
 import Reviewer from "../reviewer/Reviewer";
 import Home from "../home/Home";
 import useBeforeUnload from "../../hooks/useBeforeUnload";
 import useAppDispatch from "../../hooks/useAppDispatch";
-import { fetchFiles, selectFileSystemError, selectFileSystemIsLoading, selectFileSystemRootFolder } from "../fileSystem/fileSystemSlice";
+import { fetchFiles, } from "../fileSystem/actions.ts";
 import useAppSelector from "../../hooks/useAppSelector";
 import { useSelector } from "react-redux";
+import { selectFileSystemIsLoading, selectFileSystemRootFolder } from "../fileSystem/selectors.ts";
 
 // TODO: add shortcut to start study, shortcut to insert new cell
 function MainAppPage() {
@@ -26,7 +26,8 @@ function MainAppPage() {
     const [isSaving, setIsSaving] = useState(false);
     const [isReviewing, setIsReviewing] = useState(false);;
     const isLoading = useSelector(selectFileSystemIsLoading);
-    const errorMessage = useAppSelector(selectFileSystemError);
+    // TODO:
+    const errorMessage = "";
     const rootFolder = useAppSelector(selectFileSystemRootFolder);
     const saveTimeoutId = useRef(-1);
     const dispatch = useAppDispatch();
@@ -35,8 +36,6 @@ function MainAppPage() {
     // const currentFileName = getFileName(
     //     searchParams.get(selectedFileQueryStringParameter) ?? "");
     const currentFileName = "";
-
-    const fetchUserFiles = useCallback(() => dispatch(fetchFiles()), [dispatch]);
 
     const updateRepetitionCounts = useCallback(async () => {
         if (!currentFileName) {
@@ -56,7 +55,7 @@ function MainAppPage() {
             //     setErrorMessage(problemDetails.detail ?? "");
             // }
         } catch (e) {
-            setErrorMessage("An error has happened while getting the cell repetition counts.");
+            // setErrorMessage("An error has happened while getting the cell repetition counts.");
             console.error(e);
         }
     }, [currentFileName]);
@@ -85,13 +84,12 @@ function MainAppPage() {
             // }
             // await updateRepetitionCounts();
         } catch (e) {
-            setErrorMessage("An error has happened.");
+            // setErrorMessage("An error has happened.");
             console.error(e);
         } finally {
             setIsSaving(false);
         }
-    }, [cells, setIsSaving,
-        saveTimeoutId, updateRepetitionCounts, stopAutoSave]);
+    }, [setIsSaving, saveTimeoutId]);
 
     const handleBeforeUnload = useCallback(async (e: BeforeUnloadEvent) => {
         if (saveTimeoutId.current !== -1 || isSaving) {
@@ -101,7 +99,8 @@ function MainAppPage() {
             }
         }
     }, [isSaving, saveFile]);
-    useBeforeUnload(handleBeforeUnload);
+
+    useBeforeUnload((e) => void handleBeforeUnload(e));
 
     useEffect(() => {
         const updateFileContent = async () => {
@@ -109,7 +108,7 @@ function MainAppPage() {
                 return;
             }
 
-            setIsLoading(true);
+            // setIsLoading(true);
             try {
                 // TODO:
                 // const response = await api(backendApi.getFileContent({
@@ -128,10 +127,10 @@ function MainAppPage() {
                 // }
             } catch (e) {
                 setCells([]);
-                setErrorMessage("An error has happened while fetching file content.");
+                // setErrorMessage("An error has happened while fetching file content.");
                 console.error(e);
             } finally {
-                setIsLoading(false);
+                // setIsLoading(false);
             }
         };
 
@@ -141,8 +140,8 @@ function MainAppPage() {
     }, [currentFileName, updateRepetitionCounts]);
 
     useEffect(() => {
-        void fetchUserFiles();
-    }, [fetchUserFiles])
+        void dispatch(fetchFiles());
+    }, [dispatch])
 
     const startAutoSaveTimer = useCallback(() => {
         if (saveTimeoutId.current !== -1) {
@@ -215,7 +214,6 @@ function MainAppPage() {
                 </div>}
 
             <SideBar
-                onFileModification={fetchUserFiles}
                 saveFile={saveFile}
                 onFileClick={() => setIsReviewing(false)}
                 onSelectedFileDelete={stopAutoSave} />

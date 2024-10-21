@@ -12,23 +12,27 @@ import ActionsMenu, { IAction } from "./ActionsMenu";
 import getFolderPath from "../../utils/getFolderPath";
 import ConfirmationDialog from "../../ui/ConfirmationDialog/ConfirmationDialog";
 import useAppDispatch from "../../hooks/useAppDispatch";
-import { createFile, createFolder, deleteFile, deleteFolder, selectFileSelectedFilePath, updateFileName } from "../fileSystem/fileSystemSlice";
-import IFolder from "../fileSystem/Folder";
+import { createFile, createFolder } from "../fileSystem/actions.ts";
+import IFolder from "../fileSystem/folder";
 import useAppSelector from "../../hooks/useAppSelector";
+import { selectFileSelectedFilePath } from "../fileSystem/selectors.ts";
 
-const dragFormatForFolder = "folderPath";
-const dragFormatForFile = "filePath";
+const dragFormatForFolder = "brainy/folderpath";
+const dragFormatForFile = "brainy/filepath";
 
 interface IProps {
     folder?: IFolder,
     name: string,
     forceExpand: boolean,
     fullPath: string,
-    onFileClick?: (path: string) => Promise<void>,
-    onFolderRename?: (path: string, newName: string) => Promise<void>,
-    onFileMove?: (filePath: string, destinationFolder: string) => Promise<void>,
-    onFolderMove?: (folderPath: string, destinationFolder: string) => Promise<void>,
+    onFileClick: (path: string) => Promise<void>,
+    onFolderRename: (path: string, newName: string) => Promise<void>,
+    onFileMove: (filePath: string, destinationFolder: string) => Promise<void>,
+    onFolderMove: (folderPath: string, destinationFolder: string) => Promise<void>,
+    onFileRename: (path: string, newName: string) => Promise<void>,
+    onFileDelete: (path: string) => Promise<void>,
     onRootClick: () => void,
+    onFolderDelete: (path: string) => Promise<void>,
 }
 
 // TODO: force save when clicking on files like when changing file!
@@ -40,7 +44,12 @@ function FileTree({
     folder, name, forceExpand = false,
     fullPath, onFileClick,
     onFolderRename,
-    onFileMove, onFolderMove, onRootClick
+    onFileRename,
+    onFileMove,
+    onFolderMove,
+    onRootClick,
+    onFileDelete,
+    onFolderDelete,
 }: IProps) {
     const isRoot = fullPath === "";
     const selectedFile = useAppSelector(selectFileSelectedFilePath);
@@ -87,12 +96,8 @@ function FileTree({
         );
     }
 
-    // TODO: refactor
     const onFileCreate = (path: string) => dispatch(createFile(path));
     const onFolderCreate = (path: string) => dispatch(createFolder(path));
-    const onFileDelete = (path: string) => dispatch(deleteFile(path));
-    const onFolderDelete =  (path: string) => dispatch(deleteFolder(path));
-    const onFileRename =  (path: string, newName: string) => dispatch(updateFileName(path, newName));
 
     if (!isRoot) {
         actions.push(
@@ -140,9 +145,7 @@ function FileTree({
                 setIsOpen(!isOpen);
             }
         } else {
-            if (onFileClick) {
-                await onFileClick(fullPath);
-            }
+            await onFileClick(fullPath);
         }
     };
 
@@ -156,26 +159,18 @@ function FileTree({
         setRenaming(false);
 
         if (folder) {
-            if (onFolderRename) {
-                await onFolderRename(fullPath, newName);
-            }
+            await onFolderRename(fullPath, newName);
         }
         else {
-            if (onFileRename) {
-                await onFileRename(fullPath, newName);
-            }
+            await onFileRename(fullPath, newName);
         }
     };
 
     const handleDelete = async () => {
         if (folder) {
-            if (onFolderDelete) {
-                await onFolderDelete(fullPath);
-            }
+            await onFolderDelete(fullPath);
         } else {
-            if (onFileDelete) {
-                await onFileDelete(fullPath);
-            }
+            await onFileDelete(fullPath);
         }
     };
 
@@ -194,13 +189,9 @@ function FileTree({
         e.preventDefault();
         const newItemPath = isRoot ? newItemName : fullPath + "/" + newItemName;
         if (creatingNewFolder) {
-            if (onFolderCreate) {
-                await onFolderCreate(newItemPath);
-            }
+            await onFolderCreate(newItemPath);
         } else if (creatingNewFile) {
-            if (onFileCreate) {
-                await onFileCreate(newItemPath);
-            }
+            await onFileCreate(newItemPath);
         }
         setNewItemName("");
         setCreatingNewFolder(false);
@@ -218,8 +209,8 @@ function FileTree({
 
     const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
         if (!folder ||
-            (!e.dataTransfer.getData(dragFormatForFile)
-                && !e.dataTransfer.getData(dragFormatForFolder))) {
+            (!e.dataTransfer.types.includes(dragFormatForFile)
+                && !e.dataTransfer.types.includes(dragFormatForFolder))) {
             return;
         }
         e.preventDefault();
@@ -249,13 +240,9 @@ function FileTree({
             return;
         }
         if (filePath) {
-            if (onFileMove) {
-                await onFileMove(filePath, fullPath);
-            }
+            await onFileMove(filePath, fullPath);
         } else if (folderPath) {
-            if (onFolderMove) {
-                await onFolderMove(folderPath, fullPath);
-            }
+            await onFolderMove(folderPath, fullPath);
         }
     };
 
@@ -350,11 +337,14 @@ function FileTree({
                                 forceExpand={forceExpand}
                                 name={subFolder.name}
                                 folder={subFolder}
+                                onFileRename={onFileRename}
                                 fullPath={getChildFullPath(fullPath, subFolder.name)}
                                 onFileClick={onFileClick} 
                                 onFolderRename={onFolderRename}
                                 onFileMove={onFileMove}
                                 onFolderMove={onFolderMove}
+                                onFolderDelete={onFolderDelete}
+                                onFileDelete={onFileDelete}
                                 onRootClick={onRootClick} /> )}
 
                         {folder.files.map(file =>
@@ -363,10 +353,13 @@ function FileTree({
                                 forceExpand={forceExpand}
                                 name={file.name}
                                 fullPath={getChildFullPath(fullPath, file.name)}
+                                onFileRename={onFileRename}
                                 onFileClick={onFileClick}
                                 onFolderRename={onFolderRename}
                                 onFileMove={onFileMove}
                                 onFolderMove={onFolderMove}
+                                onFolderDelete={onFolderDelete}
+                                onFileDelete={onFileDelete}
                                 onRootClick={onRootClick} /> )}
                     </div>
                 }

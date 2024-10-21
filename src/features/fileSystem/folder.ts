@@ -1,5 +1,4 @@
-import { CellRepetitionCountsDto } from "../../services/backendApi";
-import IFile from "./File";
+import IFile from "./file";
 
 export default interface IFolder {
     id: string,

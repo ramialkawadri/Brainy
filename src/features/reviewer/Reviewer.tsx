@@ -1,11 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import styles from "./styles.module.css";
-import { CellInfoDto, CellRepetitionDto, State, Rating as DtoRating, ProblemDetails } from "../../services/backendApi";
+import { CellInfoDto, CellRepetitionDto, State, Rating as DtoRating, } from "../../services/backendApi";
 import ReviewerCell from "../reviewerCell/ReviewerCell";
 import Icon from "@mdi/react";
 import { mdiClockOutline, mdiPencilOutline } from "@mdi/js";
-import { FSRS, Rating } from "ts-fsrs";
-import { backendApi, FSRSParameters } from "../../constants";
+import { FSRS, generatorParameters, Rating } from "ts-fsrs";
 import createCardFromCellRepetitionDto from "../../utils/createCardFromCellRepetitionDto";
 import durationToString from "../../utils/durationToString";
 import useGlobalKey from "../../hooks/useGlobalKey";
@@ -19,7 +18,9 @@ interface IProps {
     onError: (message: string) => void,
 }
 
-const fsrs = new FSRS(FSRSParameters);
+// TODO: params
+const params = generatorParameters({ enable_fuzz: true, enable_short_term: false });
+const fsrs = new FSRS(params);
 
 function Reviewer({
     cellRepetitions, cells, filePath, onEditButtonClick, onError, onReviewEnd
@@ -29,7 +30,6 @@ function Reviewer({
     const [currentCellIndex, setCurrentCellIndex] = useState(0);
     const [isSendingRequest, setIsSendingRequest] = useState(false);
     const [timerTime, setTimerTime] = useState(0);
-    const api = useApi();
     const now = useRef(new Date());
     useEffect(() => {
         const intervalId = setInterval(() => setTimerTime(timerTime + 1), 1000);
@@ -42,17 +42,17 @@ function Reviewer({
         }
         setIsSendingRequest(true);
         try {
-            const response = await api(backendApi.registerCellRepetitionReview({
-                filePath,
-                cellId: dueToday[currentCellIndex].cellId,
-                rating: rating,
-            }));
-
-            if (response.status !== 200) {
-                const errorMessage = getErrorFromAxiosResponse<ProblemDetails>(
-                    response).detail;
-                onError(errorMessage ?? "An error happened!");
-            }
+            // const response = await api(backendApi.registerCellRepetitionReview({
+            //     filePath,
+            //     cellId: dueToday[currentCellIndex].cellId,
+            //     rating: rating,
+            // }));
+            //
+            // if (response.status !== 200) {
+            //     const errorMessage = getErrorFromAxiosResponse<ProblemDetails>(
+            //         response).detail;
+            //     onError(errorMessage ?? "An error happened!");
+            // }
         } catch (e) {
             onError("An error happened!");
             console.error(e);

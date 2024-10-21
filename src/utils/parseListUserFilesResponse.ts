@@ -1,5 +1,5 @@
-import { IUserFileEntity } from "../features/fileSystem/fileSystemSlice";
-import IFolder from "../features/fileSystem/Folder";
+import IUserFileEntity from "../entities/userFileEntity";
+import IFolder from "../features/fileSystem/folder";
 
 function parseListUserFilesResponse(entities: IUserFileEntity[]): IFolder {
     return parseListUserFilesResponseHelper(entities, "", "root");
