@@ -1,0 +1,21 @@
+.errorBox {
+	background-color: var(--red-color);
+	color: #fff;
+	padding: var(--default-padding) var(--large-padding);
+	border-radius: var(--default-border-radius);
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	flex-direction: row !important;
+}
+
+.errorBox * {
+	color: #fff;
+}
+
+.errorBox button {
+	color: #fff;
+	font-weight: 700;
+	padding: 0 var(--default-border-radius);
+    margin-left: 4px;
+}

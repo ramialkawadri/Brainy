@@ -1,0 +1,28 @@
+.box {
+    padding: var(--xl-padding);
+    background: var(--grey-background-color);
+	border-radius: var(--default-border-radius);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 1.2rem;
+    min-width: 42rem;
+    box-shadow: var(--default-box-shadow);
+}
+
+.box hr {
+    border-color: var(--border-color);
+}
+
+.title-bar {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 2.4rem;
+}
+
+.buttons-row {
+    display: flex;
+    justify-content: end;
+    gap: 6px;
+}

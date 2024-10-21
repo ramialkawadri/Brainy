@@ -1,0 +1,221 @@
+@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap");
+
+:root {
+	/* Colors */
+	--primary-color: #4A90E2;
+	--primary-color-shade-10: #4382cb;
+	--primary-color-shade-50: #254871;
+	--secondary-color: #E29C4A;
+	--red-color: #d52726;
+
+	--text-color: #333333;
+	--border-color: #E0E0E0;
+	--hover-border-color: #b3b3b3;
+	--link-color: #387ADF;
+	--link-color-shade-10: #27559c;
+	--grey-background-color: #F2F2F2;
+	--grey-background-color-shade-10: #dadada;
+	--grey-background-color-shade-20: #c2c2c2;
+
+    --default-background-color: #fff;
+
+    --new-color: var(--primary-color-shade-50);
+    --learning-color: var(--red-color);
+    --review-color: green;
+
+	/* Spaces */
+	--default-border-radius: 4px;
+	--small-padding: 4px;
+	--default-padding: 6px;
+	--medium-padding: 10px;
+	--large-padding: 12px;
+	--xl-padding: 16px;
+	--xxl-padding: 20px;
+
+	/* Sizes */
+	--default-border-width: 2px;
+
+	/* Other */
+	--default-transition-time: 0.1s;
+	--light-box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.07);
+	--default-box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.1);
+	--dark-box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.15);
+	--darker-box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.2);
+}
+
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+	color: var(--text-color);
+}
+
+html {
+	/* 10px = 1rem */
+	font-size: 62.5%;
+}
+
+@media (max-width: 768px)
+{
+	html {
+	/* 8px */
+	    font-size: 50%;
+	}
+}
+
+body {
+	font-size: 1.6rem;
+	line-height: 1.5;
+	font-family: "Roboto", sans-serif;
+	font-weight: 300;
+	font-style: normal;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2.4rem;
+}
+
+a,
+a:visited{
+	color: var(--link-color);
+	transition: var(--default-transition-time);
+}
+
+a:hover {
+	color: var(--link-color-shade-10);
+}
+
+input {
+	border-radius: var(--default-border-radius);
+	outline: none;
+	padding: var(--small-padding) var(--default-padding);
+	border: var(--default-border-width) solid var(--border-color);
+	transition: var(--default-transition-time);
+}
+
+input:hover {
+	border-color: var(--hover-border-color);
+}
+
+input:focus {
+	border-color: var(--primary-color);
+}
+
+button {
+	border-radius: var(--default-border-radius);
+	padding: var(--default-padding);
+	outline: none;
+	cursor: pointer;
+	transition: var(--default-transition-time);
+	font-weight: 400;
+	background-color: transparent;
+	border: 1px solid transparent;
+}
+
+button:not(:disabled):hover {
+	opacity: 0.9;
+}
+
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+button.primary {
+	color: #fff;
+	background-color: var(--primary-color);
+	border-color: var(--primary-color);
+}
+
+button.primary * {
+	color: #fff;
+}
+
+button.primary:not(:disabled):focus {
+	box-shadow: 0px 2px 12px rgba(0, 0, 0, 0.3);
+}
+
+button.primary:active {
+	background-color: var(--primary-color-shade-10);
+}
+
+button.transparent:not(:disabled):hover {
+	background-color: var(--grey-background-color);
+}
+
+button.transparent:not(:disabled):focus {
+	border-color: var(--link-color);
+}
+
+button.transparent:not(:disabled):active {
+	background-color: var(--grey-background-color-shade-10);
+}
+
+button.grey-button {
+    background-color: var(--grey-background-color-shade-10);
+}
+
+button.grey-button:active {
+    background-color: var(--grey-background-color-shade-20);
+}
+
+button.grey-button:focus {
+	border-color: var(--link-color);
+}
+
+button.column-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+h1 {
+	font-weight: 300;
+}
+
+.dimmed {
+	color: dimgray;
+}
+
+.overlay {
+	position: fixed;
+	width: 100%;
+	height: 100%;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-color: rgba(0,0,0,0.2);
+	z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+.row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.new-color {
+    color: var(--new-color);
+}
+
+.learning-color {
+    color: var(--learning-color);
+}
+
+.review-color {
+    color: var(--review-color);
+}

@@ -1,0 +1,120 @@
+.file-tree {
+	width: 100%;
+	font-size: 1.2rem;
+	transition: var(--default-transition-time);
+	border-radius: var(--default-border-radius);
+	position: relative;
+}
+
+.file-tree form {
+    width: 100%;
+}
+
+.file-tree-new-item-row,
+.file-tree div {
+	display: flex;
+	align-items: center;
+	gap: 0.4rem;
+}
+
+.file-tree-new-item-row {
+    padding: var(--default-padding);
+}
+
+.file-tree-new-item-row input {
+    width: 100%;
+	padding: 2px var(--default-padding);
+    border-width: 1px;
+}
+
+.file-tree-button {
+	width: 100%;
+
+    & p {
+        width: 80%;
+        text-align: left;
+        text-overflow: ellipsis;
+        overflow: hidden;
+    }
+}
+
+.file-tree-dots {
+	position: absolute;
+	width: fit-content;
+	right: var(--small-padding);
+	top: 50%;
+	transform: translateY(-50%);
+	border: 1px solid transparent;
+	border-radius: var(--default-border-radius);
+}
+
+.file-tree-dots:active,
+.file-tree-dots:focus {
+	border-color: var(--primary-color);
+}
+
+.file-tree-dots-selected * {
+	color: #fff;
+}
+
+.file-tree-dots-selected:active,
+.file-tree-dots-selected:focus {
+	border-color: var(--primary-color-shade-50);
+}
+
+.file-tree-rename-input {
+	padding: 2px var(--default-padding);
+	color: var(--text-color) !important;
+	border-width: 1px;
+	width: 100%;
+}
+
+.file-tree-children {
+	margin-left: var(--default-padding);
+	padding-left: var(--default-padding);
+    border-left: 1px solid var(--border-color);
+	transition: var(--default-transition-time);
+}
+
+.file-tree-children:hover {
+	border-left-color: var(--hover-border-color);
+}
+
+.outer-container {
+    padding: 1px;
+    border: 2px solid transparent;
+    border-radius: var(--default-border-radius);
+}
+
+.outer-container-drag-over {
+    border-color: var(--primary-color);
+}
+
+.actions-menu {
+	position: absolute;
+	top: 100%;
+	right: 0;
+	padding: var(--default-padding);
+	border-radius: var(--default-border-radius);
+    background-color: var(--default-background-color);
+	box-shadow: var(--default-box-shadow);
+	min-width: 18rem;
+	display: grid;
+	flex-direction: column;
+	z-index: 1;
+}
+
+.actions-menu button {
+	width: 100%;
+	text-align: left;
+	display: grid;
+    grid-template-columns: 1fr 7fr 3.6rem;
+	gap: var(--small-padding);
+    align-items: center;
+}
+
+.actions-menu button * {
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
