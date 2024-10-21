@@ -1,82 +1,96 @@
-import { CellRepetitionCountsDto, FileInfoDto } from "../services/backendApi";
-import IFolder from "../types/Folder";
+import { IUserFileEntity } from "../features/fileSystem/fileSystemSlice";
+import IFolder from "../features/fileSystem/Folder";
 
-function parseListUserFilesResponse(files: FileInfoDto[]): IFolder {
-    return parseListUserFilesResponseHelper(files, "");
+function parseListUserFilesResponse(entities: IUserFileEntity[]): IFolder {
+    return parseListUserFilesResponseHelper(entities, "", "root");
 }
 
 function parseListUserFilesResponseHelper(
-    files: FileInfoDto[], folderName: string) {
+    entities: IUserFileEntity[], folderName: string, id: string) {
 
-    /* Contains folder names as keys, and a list of
+    /* Contains sub folder names as keys, and a list of
      * their files as values.
      */
-    const subFoldersFiles: Record<string, FileInfoDto[]> = {};
+    const subFolders: Record<string, IUserFileEntity[]> = {};
+    const subFoldersIds: Record<string, string> = {};
     const folder: IFolder = {
-        id: "",
+        id,
         name: folderName,
         subFolders: [],
         files: [],
-        repetitionCounts: {
-            new: 0,
-            learning: 0,
-            relearning: 0,
-            review: 0,
-        },
+        // repetitionCounts: {
+        //     new: 0,
+        //     learning: 0,
+        //     relearning: 0,
+        //     review: 0,
+        // },
     };
 
-    for (const fileInfo of files) {
-        if (fileInfo.name!.includes("/")) {
-            const index = fileInfo.name!.indexOf("/");
-            const folderName = fileInfo.name!.substring(0, index);
-            const rest = fileInfo.name!.substring(index + 1);
-            const newFileInfo: FileInfoDto = {
-                name: rest,
-                id: fileInfo.id,
-                repetitionCounts: fileInfo.repetitionCounts!,
+    // TODO: repetition counts
+    for (const entity of entities) {
+        if (entity.path.includes("/")) {
+            const index = entity.path.indexOf("/");
+            const folderName = entity.path.substring(0, index);
+            const rest = entity.path.substring(index + 1);
+            const newEntity: IUserFileEntity = {
+                path: rest,
+                id: entity.id,
+                isFolder: entity.isFolder,
+                // repetitionCounts: fileInfo.repetitionCounts!,
             };
 
-            if (folderName in subFoldersFiles) {
-                subFoldersFiles[folderName].push(newFileInfo);
+            if (folderName in subFolders) {
+                subFolders[folderName].push(newEntity);
             } else {
-                subFoldersFiles[folderName] = [newFileInfo];
+                subFolders[folderName] = [newEntity];
             }
-        } else if (fileInfo.name === ".hidden") {
-            folder.id = fileInfo.id!;
+        } else if (entity.isFolder === 1) {
+            subFoldersIds[entity.path] = entity.id;
         } else {
             folder.files.push({
-                id: fileInfo.id!,
-                name: fileInfo.name!,
-                repetitionCounts: fileInfo.repetitionCounts!,
+                id: entity.id,
+                name: entity.path,
+                // repetitionCounts: fileInfo.repetitionCounts!,
             });
-            folder.repetitionCounts = addRepetitionCounts(
-                folder.repetitionCounts, fileInfo.repetitionCounts!
-            );
+            // folder.repetitionCounts = addRepetitionCounts(
+            //     folder.repetitionCounts, fileInfo.repetitionCounts!
+            // );
         }
     }
 
-    for (const subFolderName in subFoldersFiles) {
+    for (const subFolderName in subFolders) {
         const subFolder = parseListUserFilesResponseHelper(
-            subFoldersFiles[subFolderName], subFolderName);
-        folder.repetitionCounts = addRepetitionCounts(
-            folder.repetitionCounts, subFolder.repetitionCounts
-        );
+            subFolders[subFolderName], subFolderName, subFoldersIds[subFolderName]);
+        // folder.repetitionCounts = addRepetitionCounts(
+        //     folder.repetitionCounts, subFolder.repetitionCounts
+        // );
         folder.subFolders.push(subFolder);
+    }
+
+    for (const subFolderName in subFoldersIds) {
+        if (!(subFolderName in subFolders)) {
+            folder.subFolders.push({
+                id: subFoldersIds[subFolderName],
+                name: subFolderName,
+                files: [],
+                subFolders: [],
+            });
+        }
     }
 
     return folder;
 }
 
-function addRepetitionCounts(
-    counts1: CellRepetitionCountsDto,
-    counts2: CellRepetitionCountsDto): CellRepetitionCountsDto {
-    
-    return {
-        new: counts1.new! + counts2.new!,
-        learning: counts1.learning! + counts2.learning!,
-        relearning: counts1.relearning! + counts2.relearning!,
-        review: counts1.review! + counts2.review!,
-    };
-}
+// function addRepetitionCounts(
+//     counts1: CellRepetitionCountsDto,
+//     counts2: CellRepetitionCountsDto): CellRepetitionCountsDto {
+//     
+//     return {
+//         new: counts1.new! + counts2.new!,
+//         learning: counts1.learning! + counts2.learning!,
+//         relearning: counts1.relearning! + counts2.relearning!,
+//         review: counts1.review! + counts2.review!,
+//     };
+// }
 
 export default parseListUserFilesResponse;

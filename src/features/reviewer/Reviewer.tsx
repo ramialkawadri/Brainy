@@ -8,7 +8,6 @@ import { FSRS, Rating } from "ts-fsrs";
 import { backendApi, FSRSParameters } from "../../constants";
 import createCardFromCellRepetitionDto from "../../utils/createCardFromCellRepetitionDto";
 import durationToString from "../../utils/durationToString";
-import getErrorFromAxiosResponse from "../../utils/getErrorFromAxiosResponse";
 import useGlobalKey from "../../hooks/useGlobalKey";
 
 interface IProps {

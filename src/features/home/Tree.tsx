@@ -1,9 +1,7 @@
 import { useState } from "react";
-import IFolder from "../../types/Folder";
 import styles from "./styles.module.css";
 import Icon from "@mdi/react";
 import { mdiMinus, mdiPlus } from "@mdi/js";
-import IFile from "../../types/File";
 
 interface IProps {
     folder?: IFolder,
@@ -14,19 +12,20 @@ interface IProps {
 
 function Tree({ name, folder, file, depthLevel }: IProps) {
     const [isExpanded, setIsExpanded] = useState(!name);
-    const newCount = file
-        ? file.repetitionCounts.new
-        : folder!.repetitionCounts.new;
-    const learningCount = file
-        ? (file.repetitionCounts.learning! + file.repetitionCounts.relearning!)
-        : (folder!.repetitionCounts.learning! + folder!.repetitionCounts.relearning!);
-    const reviewCount = file
-        ? file.repetitionCounts.review
-        : folder!.repetitionCounts.review;
-
+    // const newCount = file
+    //     ? file.repetitionCounts.new
+    //     : folder!.repetitionCounts.new;
+    // const learningCount = file
+    //     ? (file.repetitionCounts.learning! + file.repetitionCounts.relearning!)
+    //     : (folder!.repetitionCounts.learning! + folder!.repetitionCounts.relearning!);
+    // const reviewCount = file
+    //     ? file.repetitionCounts.review
+    //     : folder!.repetitionCounts.review;
+    //
     // TODO: the row css class must be each own component
     return (
         <div className={name && styles.tree}>
+            {/*TODO: 
             {name &&
                 <div className={styles.row + " " + styles.treeRow}>
                     <div className={styles.buttons} style={{ paddingLeft: `${depthLevel * 12}px` }}>
@@ -54,6 +53,7 @@ function Tree({ name, folder, file, depthLevel }: IProps) {
 
             {isExpanded && folder?.files.map(f => 
                 <Tree key={f.id} name={f.name} depthLevel={depthLevel + 1} file={f} />)}
+            */}
         </div>
     );
 }

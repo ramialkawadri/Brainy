@@ -3,15 +3,18 @@ import SideBar from "./SideBar";
 import styles from "./styles.module.css";
 import getFileName from "../../utils/getFileName";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { autoSaveDelay, backendApi, selectedFileQueryStringParameter } from "../../constants";
+import { autoSaveDelay, backendApi, } from "../../constants";
 import useGlobalKey from "../../hooks/useGlobalKey";
 import ErrorBox from "../../ui/ErrorBox/ErrorBox";
-import getErrorFromAxiosResponse from "../../utils/getErrorFromAxiosResponse";
 import { CellInfoDto, CellRepetitionCountsDto, CellRepetitionDto, FileInfoDto, ProblemDetails } from "../../services/backendApi";
 import Spinner from "../../ui/Spinner/Spinner";
 import Reviewer from "../reviewer/Reviewer";
 import Home from "../home/Home";
 import useBeforeUnload from "../../hooks/useBeforeUnload";
+import useAppDispatch from "../../hooks/useAppDispatch";
+import { fetchFiles, selectFileSystemError, selectFileSystemIsLoading, selectFileSystemRootFolder } from "../fileSystem/fileSystemSlice";
+import useAppSelector from "../../hooks/useAppSelector";
+import { useSelector } from "react-redux";
 
 // TODO: add shortcut to start study, shortcut to insert new cell
 function MainAppPage() {
@@ -19,35 +22,21 @@ function MainAppPage() {
     const [cellRepetitions, setCellRepetitions] = useState<CellRepetitionDto[]>([]);
     const [repetitionCounts, setRepetitionCounts] =
         useState<CellRepetitionCountsDto>({});
-    const [errorMessage, setErrorMessage] = useState("");
-    const [isLoading, setIsLoading] = useState(false);
     const [isExistingFile, setIsExistingFile] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [isReviewing, setIsReviewing] = useState(false);;
-    const [userFiles, setUserFiles] = useState<FileInfoDto[]>([]);
+    const isLoading = useSelector(selectFileSystemIsLoading);
+    const errorMessage = useAppSelector(selectFileSystemError);
+    const rootFolder = useAppSelector(selectFileSystemRootFolder);
     const saveTimeoutId = useRef(-1);
+    const dispatch = useAppDispatch();
     useGlobalKey(handleKeyDown, "keydown");
     // TODO:
     // const currentFileName = getFileName(
     //     searchParams.get(selectedFileQueryStringParameter) ?? "");
     const currentFileName = "";
 
-    const fetchUserFiles = useCallback(async () => {
-        try {
-            // TODO:
-            // const response = await api(backendApi.listUserFiles());
-            // if (response.status === 200) {
-            //     setUserFiles(response.data);
-            // } else {
-            //     const problemDetails =
-            //         getErrorFromAxiosResponse<ProblemDetails>(response);
-            //     setErrorMessage(problemDetails.detail ?? "");
-            // }
-        } catch (e) {
-            setErrorMessage("An error happened while fetching user files.");
-            console.error(e);
-        }
-    }, []);
+    const fetchUserFiles = useCallback(() => dispatch(fetchFiles()), [dispatch]);
 
     const updateRepetitionCounts = useCallback(async () => {
         if (!currentFileName) {
@@ -101,7 +90,7 @@ function MainAppPage() {
         } finally {
             setIsSaving(false);
         }
-    }, [cells, setIsSaving, setErrorMessage,
+    }, [cells, setIsSaving,
         saveTimeoutId, updateRepetitionCounts, stopAutoSave]);
 
     const handleBeforeUnload = useCallback(async (e: BeforeUnloadEvent) => {
@@ -146,7 +135,7 @@ function MainAppPage() {
             }
         };
 
-        setErrorMessage("");
+        // setErrorMessage("");
         void updateFileContent();
         void updateRepetitionCounts();
     }, [currentFileName, updateRepetitionCounts]);
@@ -222,11 +211,10 @@ function MainAppPage() {
                 <div className={styles.errorDialog}>
                     <ErrorBox
                         message={errorMessage}
-                        onClose={() => setErrorMessage("")} />
+                        onClose={() => {/*TODO:*/}} />
                 </div>}
 
             <SideBar
-                userFiles={userFiles}
                 onFileModification={fetchUserFiles}
                 saveFile={saveFile}
                 onFileClick={() => setIsReviewing(false)}
@@ -239,7 +227,7 @@ function MainAppPage() {
                     </div>}
 
                 {!isLoading && !currentFileName &&
-                    <Home userFiles={userFiles} />}
+                    <Home rootFolder={rootFolder} />}
 
                 {currentFileName && isExistingFile && !isLoading && !isReviewing &&
                     <Editor cells={cells} title={currentFileName}
@@ -258,7 +246,7 @@ function MainAppPage() {
                         filePath=""
                         onEditButtonClick={() => setIsReviewing(false)}
                         onReviewEnd={() => void handleEndReview()}
-                        onError={setErrorMessage} />}
+                        onError={() => {/*TODO:*/}} />}
             </div>
         </div>
     );

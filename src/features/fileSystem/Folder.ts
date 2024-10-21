@@ -1,4 +1,4 @@
-import { CellRepetitionCountsDto } from "../services/backendApi";
+import { CellRepetitionCountsDto } from "../../services/backendApi";
 import IFile from "./File";
 
 export default interface IFolder {
@@ -6,5 +6,5 @@ export default interface IFolder {
     name: string,
     subFolders: IFolder[],
     files: IFile[],
-    repetitionCounts: CellRepetitionCountsDto,
+    // repetitionCounts: CellRepetitionCountsDto,
 }

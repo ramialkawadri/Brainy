@@ -1,16 +1,12 @@
-import { useMemo } from "react";
 import styles from "./styles.module.css";
-import { FileInfoDto } from "../../services/backendApi";
-import parseListUserFilesResponse from "../../utils/parseListUserFilesResponse";
 import Tree from "./Tree";
+import IFolder from "../fileSystem/Folder";
 
 interface IProps {
-    userFiles: FileInfoDto[],
+    rootFolder: IFolder,
 }
 
-function Home({ userFiles }: IProps) {
-    const rootFolder = useMemo(
-        () => parseListUserFilesResponse(userFiles), [userFiles]);
+function Home({ rootFolder }: IProps) {
 
     // TODO: spinner on loading
     return (

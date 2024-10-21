@@ -1,5 +1,6 @@
 import { generatorParameters } from "ts-fsrs";
 import { BrainyBackendApi } from "./services/backendApi";
+import Database from "@tauri-apps/plugin-sql";
 
 const backendApi = new BrainyBackendApi({
     baseURL: import.meta.env.VITE_API_URL,
@@ -7,7 +8,6 @@ const backendApi = new BrainyBackendApi({
     withCredentials: true,
 }).api;
 
-const selectedFileQueryStringParameter = "file";
 const autoSaveDelay = 5000;
 const FSRSParameters = generatorParameters({
     w: [
@@ -33,4 +33,24 @@ const FSRSParameters = generatorParameters({
     request_retention: 0.9,
 });
 
-export { backendApi, selectedFileQueryStringParameter, autoSaveDelay, FSRSParameters };
+let database: Database | null = null;
+
+const createTablesCommand = `
+CREATE TABLE IF NOT EXISTS user_files (
+    id          TEXT        PRIMARY KEY,
+    path        TEXT        NOT NULL,
+    isFolder    INTEGER     NOT NULL,
+    UNIQUE(path, isFolder)
+);
+
+`;
+
+export async function getDatabase() {
+    if (database === null) {
+        database = await Database.load('sqlite:test.db');
+        await database.execute(createTablesCommand);
+    }
+    return database;
+}
+
+export { backendApi, autoSaveDelay, FSRSParameters };
