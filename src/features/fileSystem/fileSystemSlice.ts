@@ -32,8 +32,8 @@ export const fileSystemSlice = createSlice({
             state.isLoading = false;
             state.error = payload.payload;
         },
-        setSelectedFilePath: (state, payload: PayloadAction<string>) => {
-            state.selectedFilePath = payload.payload;
+        setSelectedFilePath: (state, payload: PayloadAction<string | null>) => {
+            state.selectedFilePath = payload.payload ?? "";
         },
         setErrorMessage: (state, payload: PayloadAction<string>) => {
             state.error = payload.payload;

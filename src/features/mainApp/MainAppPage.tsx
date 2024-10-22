@@ -213,10 +213,7 @@ function MainAppPage() {
                         onClose={() => {/*TODO:*/}} />
                 </div>}
 
-            <SideBar
-                saveFile={saveFile}
-                onFileClick={() => setIsReviewing(false)}
-                onSelectedFileDelete={stopAutoSave} />
+            <SideBar />
 
             <div className={`${styles.workarea}`}>
                 {isLoading &&

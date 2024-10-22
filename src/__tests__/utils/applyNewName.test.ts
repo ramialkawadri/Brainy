@@ -1,6 +1,6 @@
-import renameFile from "../../utils/renameFile";
+import applyNewName from "../../utils/applyNewName";
 
-describe(renameFile, () => {
+describe(applyNewName, () => {
     it("Handles file in a directory", () => {
         // Arrange
 
@@ -8,7 +8,7 @@ describe(renameFile, () => {
 
         // Act
         
-        const actual = renameFile(path, "file 2");
+        const actual = applyNewName(path, "file 2");
 
         // Assert
 
@@ -22,7 +22,7 @@ describe(renameFile, () => {
 
         // Act
         
-        const actual = renameFile(path, "file 2");
+        const actual = applyNewName(path, "file 2");
 
         // Assert
 
