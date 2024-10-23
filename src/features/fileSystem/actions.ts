@@ -10,6 +10,8 @@ import getFileName from "../../utils/getFileName";
 import { selectFileSelectedFilePath } from "./selectors";
 import applyNewName from "../../utils/applyNewName";
 
+// TODO: refactoring, writing unit tests and using UPDATE instead of DELETE some places
+
 export function fetchFiles() {
     return executeRequest(getUserFiles);
 }
@@ -114,7 +116,6 @@ export function renameFile(path: string, newName: string) {
     });
 }
 
-// TODO: this might be the same as moving a folder
 export function renameFolder(path: string, newName: string) {
     return executeRequest(async (dispatch, state) => {
         if (!newName.trim()) {
@@ -128,7 +129,6 @@ export function renameFolder(path: string, newName: string) {
         }
 
         await createFolderRecursively(db, newPath);
-        console.log("here");
         await db.execute(
             "DELETE FROM user_files WHERE path = $1 AND isFolder = 1",
             [path]);
@@ -140,7 +140,6 @@ export function renameFolder(path: string, newName: string) {
 
         for (const existingEntity of existingEntities) {
             const newEntityPath = newPath + existingEntity.path.substring(path.length);
-            console.log(newEntityPath);
             await db.execute(
                 "UPDATE user_files SET path = $1 WHERE id = $2",
                 [newEntityPath, existingEntity.id]);
@@ -155,6 +154,42 @@ export function renameFolder(path: string, newName: string) {
     });
 }
 
+export function moveFolder(path: string, destinationFolder: string) {
+    return executeRequest(async (dispatch, state) => {
+        const folderName = getFileName(path);
+        const newPath = destinationFolder === ""
+            ? folderName
+            : `${destinationFolder}/${folderName}`;
+        const db = await getDatabase();
+        if (await entityExists(db, newPath, true)) {
+            throw Error("Another folder with the same name already exists");
+        }
+
+        await createFolderRecursively(db, newPath);
+        await db.execute(
+            "DELETE FROM user_files WHERE path = $1 AND isFolder = 1",
+            [path]);
+
+        const existingEntities: {id: string, path: string}[] = await db.select(
+            "SELECT id, path FROM user_files WHERE path LIKE concat($1, '/%')",
+            [path]
+        );
+
+        for (const existingEntity of existingEntities) {
+            const newEntityPath = newPath + existingEntity.path.substring(path.length);
+            await db.execute(
+                "UPDATE user_files SET path = $1 WHERE id = $2",
+                [newEntityPath, existingEntity.id]);
+        }
+    
+        const selectedFile = selectFileSelectedFilePath(state);
+        if (selectedFile.startsWith(path)) {
+            const newFilePath = newPath + "/" +
+                selectedFile.substring(path.length + 1);
+            dispatch(setSelectedFilePath(newFilePath));
+        }
+    });
+}
 
 async function entityExists(db: Database, path: string, isFolder: boolean) {
     interface IResultType {

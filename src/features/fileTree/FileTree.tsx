@@ -12,7 +12,7 @@ import ActionsMenu, { IAction } from "./ActionsMenu";
 import getFolderPath from "../../utils/getFolderPath";
 import ConfirmationDialog from "../../ui/ConfirmationDialog/ConfirmationDialog";
 import useAppDispatch from "../../hooks/useAppDispatch";
-import { createFile, createFolder, deleteFile, deleteFolder, moveFile, renameFile, renameFolder } from "../fileSystem/actions.ts";
+import { createFile, createFolder, deleteFile, deleteFolder, moveFile, moveFolder, renameFile, renameFolder } from "../fileSystem/actions.ts";
 import IFolder from "../fileSystem/folder";
 import useAppSelector from "../../hooks/useAppSelector";
 import { selectFileSelectedFilePath } from "../fileSystem/selectors.ts";
@@ -26,7 +26,6 @@ interface IProps {
     name: string,
     forceExpand: boolean,
     fullPath: string,
-    onFolderMove: (folderPath: string, destinationFolder: string) => Promise<void>,
 }
 
 /**
@@ -34,14 +33,9 @@ interface IProps {
  * or not.
  */
 function FileTree({
-    folder, name, forceExpand = false,
-    fullPath,
-    onFolderMove,
+    folder, name, forceExpand = false, fullPath,
 }: IProps) {
     const isRoot = fullPath === "";
-    const selectedFile = useAppSelector(selectFileSelectedFilePath);
-    const [isOpen, setIsOpen] = useState(
-        isRoot || getFolderPath(selectedFile).startsWith(fullPath));
     const [showActions, setShowActions] = useState(false);
     const [renaming, setRenaming] = useState(false);
     const [newName, setNewName] = useState("");
@@ -51,6 +45,9 @@ function FileTree({
     // Creating new folder or file share the same controlled input.
     const [newItemName, setNewItemName] = useState("");
     const [isDragOver, setIsDragOver] = useState(false);
+    const selectedFile = useAppSelector(selectFileSelectedFilePath);
+    const [isOpen, setIsOpen] = useState(
+        isRoot || getFolderPath(selectedFile).startsWith(fullPath));
     const dispatch = useAppDispatch();
 
     const isExpanded = forceExpand || isOpen;
@@ -229,7 +226,7 @@ function FileTree({
         if (filePath) {
             await dispatch(moveFile(filePath, fullPath));
         } else if (folderPath) {
-            await onFolderMove(folderPath, fullPath);
+            await dispatch(moveFolder(folderPath, fullPath));
         }
     };
 
@@ -241,7 +238,6 @@ function FileTree({
                 onConfirm={() => void handleDelete()} />
             }
 
-            {/* The tree name */}
             <div
                 className={`${styles.outerContainer}
                 ${isDragOver ? styles.outerContainerDragOver : ""}`}
@@ -324,18 +320,14 @@ function FileTree({
                                 forceExpand={forceExpand}
                                 name={subFolder.name}
                                 folder={subFolder}
-                                fullPath={getChildFullPath(fullPath, subFolder.name)}
-                                onFolderMove={onFolderMove}
-                                /> )}
+                                fullPath={getChildFullPath(fullPath, subFolder.name)} /> )}
 
                         {folder.files.map(file =>
                             <FileTree
                                 key={file.id}
                                 forceExpand={forceExpand}
                                 name={file.name}
-                                fullPath={getChildFullPath(fullPath, file.name)}
-                                onFolderMove={onFolderMove}
-                                /> )}
+                                fullPath={getChildFullPath(fullPath, file.name)} /> )}
                     </div>
                 }
             </div>

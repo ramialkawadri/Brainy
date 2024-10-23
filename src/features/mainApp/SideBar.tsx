@@ -10,32 +10,11 @@ import { selectFileSystemError, selectFileSystemRootFolder } from "../fileSystem
 // TODO: expand/hide sidebar
 function SideBar() {
 
-    const rootFolder = useAppSelector(selectFileSystemRootFolder);
     const [searchText, setSearchText] = useState("");
+    const rootFolder = useAppSelector(selectFileSystemRootFolder);
     const errorMessage = useAppSelector(selectFileSystemError);
     const dispatch = useAppDispatch();
-
-    const handleFolderMove = async (folderPath: string, destinationFolder: string) => {
-        // if (isCurrentFileInFolder(folderPath)) {
-        //     await saveFile();
-        // }
-        // const folderName = getFileName(folderPath);
-        // const newPath = destinationFolder === ""
-        //     ? folderName
-        //     : `${destinationFolder}/${folderName}`;
-        // const succes = await sendFileModificationCall(backendApi.renameFolder({
-        //     oldPath: folderPath,
-        //     newPath
-        // }));
-        // if (succes && isCurrentFileInFolder(folderPath)) {
-        //     const newFilePath = newPath + "/" +
-        //         selectedFile!.substring(folderPath.length + 1);
-        //     await setSelectedFile(newFilePath);
-        // }
-    };
-
-    // const filteredFiles = userFiles.filter(file =>
-    //     file.name!.toLowerCase().includes(searchText.toLowerCase()));
+    // TODO: fix search
 
     return (
         <div className={`${styles.sideBar}`}>
@@ -51,9 +30,7 @@ function SideBar() {
 
                 <FileTree folder={rootFolder} forceExpand={searchText !== ""}
                     name=""
-                    fullPath=""
-                    onFolderMove={handleFolderMove}
-                    />
+                    fullPath="" />
             </div>
         </div>
     );
