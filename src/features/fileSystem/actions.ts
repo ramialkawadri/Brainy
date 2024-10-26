@@ -7,7 +7,7 @@ import Database from "@tauri-apps/plugin-sql";
 import IUserFileEntity from "../../entities/userFileEntity";
 import getFolderPath from "../../utils/getFolderPath";
 import getFileName from "../../utils/getFileName";
-import { selectFileSelectedFilePath } from "./selectors";
+import { selectFileSystemSelectedFilePath } from "./selectors";
 import applyNewName from "../../utils/applyNewName";
 
 // TODO: refactoring, writing unit tests and using UPDATE instead of DELETE some places, don't allow to rename/move to the same place
@@ -52,7 +52,7 @@ export function deleteFile(path: string) {
             "DELETE FROM user_files WHERE path = $1",
             [path]);
 
-        if (selectFileSelectedFilePath(state) === path) {
+        if (selectFileSystemSelectedFilePath(state) === path) {
             dispatch(setSelectedFilePath(null));
         }
     });
@@ -68,7 +68,7 @@ export function deleteFolder(path: string) {
             "DELETE FROM user_files WHERE path = $1 AND isFolder = 1",
             [path]);
 
-        if (selectFileSelectedFilePath(state).startsWith(path)) {
+        if (selectFileSystemSelectedFilePath(state).startsWith(path)) {
             dispatch(setSelectedFilePath(null));
         }
     });
@@ -89,7 +89,7 @@ export function moveFile(path: string, destinationFolder: string) {
             "UPDATE user_files SET path = $1 WHERE path = $2 AND isFolder = 0",
             [newPath, path]);
 
-        if (selectFileSelectedFilePath(state) === path) {
+        if (selectFileSystemSelectedFilePath(state) === path) {
             dispatch(setSelectedFilePath(newPath));
         }
     });
@@ -110,7 +110,7 @@ export function renameFile(path: string, newName: string) {
             [newPath, path]);
 
 
-        if (selectFileSelectedFilePath(state) === path) {
+        if (selectFileSystemSelectedFilePath(state) === path) {
             dispatch(setSelectedFilePath(newPath));
         }
     });
@@ -145,7 +145,7 @@ export function renameFolder(path: string, newName: string) {
                 [newEntityPath, existingEntity.id]);
         }
 
-        const selectedFile = selectFileSelectedFilePath(state);
+        const selectedFile = selectFileSystemSelectedFilePath(state);
         if (selectedFile.startsWith(path)) {
             const newSelectedFilePath =
                 newPath + "/" + selectedFile.substring(path.length + 1);
@@ -182,7 +182,7 @@ export function moveFolder(path: string, destinationFolder: string) {
                 [newEntityPath, existingEntity.id]);
         }
     
-        const selectedFile = selectFileSelectedFilePath(state);
+        const selectedFile = selectFileSystemSelectedFilePath(state);
         if (selectedFile.startsWith(path)) {
             const newFilePath = newPath + "/" +
                 selectedFile.substring(path.length + 1);

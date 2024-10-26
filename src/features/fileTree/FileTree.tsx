@@ -15,7 +15,7 @@ import useAppDispatch from "../../hooks/useAppDispatch";
 import { createFile, createFolder, deleteFile, deleteFolder, moveFile, moveFolder, renameFile, renameFolder } from "../fileSystem/actions.ts";
 import IFolder from "../fileSystem/folder";
 import useAppSelector from "../../hooks/useAppSelector";
-import { selectFileSelectedFilePath, selectFileSystemSearchText } from "../fileSystem/selectors.ts";
+import { selectFileSystemSelectedFilePath, selectFileSystemSearchText } from "../fileSystem/selectors.ts";
 import { setSelectedFilePath } from "../fileSystem/fileSystemSlice.ts";
 
 const dragFormatForFolder = "brainy/folderpath";
@@ -44,7 +44,7 @@ function FileTree({
     // Creating new folder or file share the same controlled input.
     const [newItemName, setNewItemName] = useState("");
     const [isDragOver, setIsDragOver] = useState(false);
-    const selectedFile = useAppSelector(selectFileSelectedFilePath);
+    const selectedFile = useAppSelector(selectFileSystemSelectedFilePath);
     const [isOpen, setIsOpen] = useState(
         isRoot || getFolderPath(selectedFile).startsWith(fullPath));
     const dispatch = useAppDispatch();

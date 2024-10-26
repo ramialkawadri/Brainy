@@ -5,7 +5,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { autoSaveDelay } from "../../constants";
 import useGlobalKey from "../../hooks/useGlobalKey";
 import ErrorBox from "../../ui/errorBox/ErrorBox";
-import { CellInfoDto, CellRepetitionCountsDto, CellRepetitionDto } from "../../services/backendApi";
 import Spinner from "../../ui/spinner/Spinner";
 import Reviewer from "../reviewer/Reviewer";
 import Home from "../home/Home";
@@ -14,7 +13,7 @@ import useAppDispatch from "../../hooks/useAppDispatch";
 import { fetchFiles, } from "../fileSystem/actions.ts";
 import useAppSelector from "../../hooks/useAppSelector";
 import { useSelector } from "react-redux";
-import { selectFileSelectedFilePath, selectFileSystemIsLoading, selectFileSystemRootFolder } from "../fileSystem/selectors.ts";
+import { selectFileSystemSelectedFilePath, selectFileSystemIsLoading, selectFileSystemRootFolder } from "../fileSystem/selectors.ts";
 
 // TODO: add shortcut to start study, shortcut to insert new cell
 function MainAppPage() {
@@ -32,7 +31,7 @@ function MainAppPage() {
     const saveTimeoutId = useRef(-1);
     const dispatch = useAppDispatch();
     useGlobalKey(handleKeyDown, "keydown");
-    const selectedFile = useAppSelector(selectFileSelectedFilePath);
+    const selectedFile = useAppSelector(selectFileSystemSelectedFilePath);
 
     const updateRepetitionCounts = useCallback(async () => {
         if (!selectedFile) {

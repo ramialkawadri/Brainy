@@ -9,7 +9,7 @@ interface IFileSystemState {
     searchText: string,
 }
 
-const initialState: IFileSystemState = {
+export const initialState: IFileSystemState = {
     isLoading: false,
     error: null,
     rootFolder: { id: "", files: [], name: "", subFolders: [] },

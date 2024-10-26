@@ -9,7 +9,7 @@ export const selectFileSystemError = (state: RootState) =>
 export const selectFileSystemRootFolder = (state: RootState) =>
     state.fileSystem.rootFolder;
 
-export const selectFileSelectedFilePath = (state: RootState) =>
+export const selectFileSystemSelectedFilePath = (state: RootState) =>
     state.fileSystem.selectedFilePath;
 
 export const selectFileSystemSearchText = (state: RootState) =>
