@@ -1,5 +1,4 @@
 import { forwardRef, useState } from "react";
-import { CellType } from "../../services/backendApi";
 import styles from "./styles.module.css";
 import Icon from "@mdi/react";
 import getCellIcon from "../../utils/getCellIcon";

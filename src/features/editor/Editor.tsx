@@ -3,8 +3,6 @@ import Icon from "@mdi/react";
 import { useCallback, useRef, useState } from "react";
 import useGlobalKey from "../../hooks/useGlobalKey";
 import useOutsideClick from "../../hooks/useOutsideClick";
-import { CellInfoDto, CellRepetitionCountsDto, CellType } from "../../services/backendApi";
-import ConfirmationDialog from "../../ui/ConfirmationDialog/ConfirmationDialog";
 import createDefaultCell from "../../utils/createDefaultCell";
 import getCellIcon from "../../utils/getCellIcon";
 import FocusTools from "./FocusTools";
@@ -12,6 +10,7 @@ import NewCellTypeSelector from "./NewCellTypeSelector";
 import TitleBar from "./TitleBar";
 import styles from "./styles.module.css";
 import EditorCell from "../editorCell/EditorCell";
+import ConfirmationDialog from "../../ui/confirmationDialog/ConfirmationDialog";
 
 interface IProps {
     title: string,

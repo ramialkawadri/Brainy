@@ -29,6 +29,7 @@
 
 .file-tree-button {
 	width: 100%;
+    padding: 8px;
 
     & p {
         width: 80%;

@@ -1,4 +1,3 @@
-import { CellInfoDto, CellType } from "../../services/backendApi";
 import FlashCard from "./FlashCard";
 
 interface IProps {

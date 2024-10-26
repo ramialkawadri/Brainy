@@ -1,5 +1,4 @@
 import { Card, createEmptyCard, State } from "ts-fsrs";
-import { CellRepetitionDto, State as DtoState } from "../services/backendApi";
 
 function createCardFromCellRepetitionDto(dto: CellRepetitionDto): Card {
     const card = createEmptyCard();

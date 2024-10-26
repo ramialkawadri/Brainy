@@ -1,5 +1,5 @@
 import { act, render, screen, waitFor } from "@testing-library/react";
-import ErrorBox from "../../ui/ErrorBox/ErrorBox";
+import ErrorBox from "../../ui/errorBox/ErrorBox";
 
 describe(ErrorBox, () => {
     it("Calls function on close", async () => {

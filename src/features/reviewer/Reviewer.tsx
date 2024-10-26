@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import styles from "./styles.module.css";
-import { CellInfoDto, CellRepetitionDto, State, Rating as DtoRating, } from "../../services/backendApi";
 import ReviewerCell from "../reviewerCell/ReviewerCell";
 import Icon from "@mdi/react";
 import { mdiClockOutline, mdiPencilOutline } from "@mdi/js";

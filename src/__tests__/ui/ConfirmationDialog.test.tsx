@@ -1,5 +1,5 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import ConfirmationDialog from "../../ui/ConfirmationDialog/ConfirmationDialog";
+import ConfirmationDialog from "../../ui/confirmationDialog/ConfirmationDialog";
 
 describe(ConfirmationDialog, () => {
     it("Calls on cancel on 'Escape' press", async () => {

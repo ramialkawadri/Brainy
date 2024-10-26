@@ -10,12 +10,12 @@ import { mdiDeleteOutline, mdiDotsHorizontal, mdiFileDocumentOutline,
 import React, { useState } from "react";
 import ActionsMenu, { IAction } from "./ActionsMenu";
 import getFolderPath from "../../utils/getFolderPath";
-import ConfirmationDialog from "../../ui/ConfirmationDialog/ConfirmationDialog";
+import ConfirmationDialog from "../../ui/confirmationDialog/ConfirmationDialog";
 import useAppDispatch from "../../hooks/useAppDispatch";
 import { createFile, createFolder, deleteFile, deleteFolder, moveFile, moveFolder, renameFile, renameFolder } from "../fileSystem/actions.ts";
 import IFolder from "../fileSystem/folder";
 import useAppSelector from "../../hooks/useAppSelector";
-import { selectFileSelectedFilePath } from "../fileSystem/selectors.ts";
+import { selectFileSelectedFilePath, selectFileSystemSearchText } from "../fileSystem/selectors.ts";
 import { setSelectedFilePath } from "../fileSystem/fileSystemSlice.ts";
 
 const dragFormatForFolder = "brainy/folderpath";
@@ -23,9 +23,8 @@ const dragFormatForFile = "brainy/filepath";
 
 interface IProps {
     folder?: IFolder,
-    name: string,
-    forceExpand: boolean,
-    fullPath: string,
+    name?: string,
+    fullPath?: string,
 }
 
 /**
@@ -33,7 +32,7 @@ interface IProps {
  * or not.
  */
 function FileTree({
-    folder, name, forceExpand = false, fullPath,
+    folder, name = "", fullPath = "",
 }: IProps) {
     const isRoot = fullPath === "";
     const [showActions, setShowActions] = useState(false);
@@ -49,8 +48,9 @@ function FileTree({
     const [isOpen, setIsOpen] = useState(
         isRoot || getFolderPath(selectedFile).startsWith(fullPath));
     const dispatch = useAppDispatch();
+    const searchText = useAppSelector(selectFileSystemSearchText);
 
-    const isExpanded = forceExpand || isOpen;
+    const isExpanded = searchText || isOpen;
     const isSelected = selectedFile === fullPath && !isRoot;
 
     const actions: IAction[] = [];
@@ -313,11 +313,14 @@ function FileTree({
                                         setCreatingNewFile(false);
                                     }} />
                             </form>}
+
+                        {folder.subFolders.length + folder.files.length === 0 &&
+                            !creatingNewFolder && !creatingNewFile &&
+                            <p>This folder is empty, create a file</p>}
                         
                         {folder.subFolders.map(subFolder =>
                             <FileTree
                                 key={subFolder.id}
-                                forceExpand={forceExpand}
                                 name={subFolder.name}
                                 folder={subFolder}
                                 fullPath={getChildFullPath(fullPath, subFolder.name)} /> )}
@@ -325,7 +328,6 @@ function FileTree({
                         {folder.files.map(file =>
                             <FileTree
                                 key={file.id}
-                                forceExpand={forceExpand}
                                 name={file.name}
                                 fullPath={getChildFullPath(fullPath, file.name)} /> )}
                     </div>

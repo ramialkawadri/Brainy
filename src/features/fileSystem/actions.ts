@@ -10,7 +10,7 @@ import getFileName from "../../utils/getFileName";
 import { selectFileSelectedFilePath } from "./selectors";
 import applyNewName from "../../utils/applyNewName";
 
-// TODO: refactoring, writing unit tests and using UPDATE instead of DELETE some places
+// TODO: refactoring, writing unit tests and using UPDATE instead of DELETE some places, don't allow to rename/move to the same place
 
 export function fetchFiles() {
     return executeRequest(getUserFiles);
@@ -242,5 +242,4 @@ async function createFolderRecursively(db: Database, path: string) {
             "INSERT INTO user_files(id, path, isFolder) VALUES ($1, $2, 1)",
             [uuidv4(), currentPath]);
     }
-    console.log("end");
 }

@@ -1,13 +1,12 @@
 .workspace {
 	display: grid;
-	grid-template-columns: minmax(32rem, 1fr) 9fr;
+	grid-template-columns: minmax(36rem, 1fr) 9fr;
 	height: 100vh;
 }
 
 .workarea {
     width: 100%;
     max-height: 100vh;
-    background-color: var(--grey-background-color);
 }
 
 .workspace > * {
@@ -30,6 +29,11 @@
 	flex-direction: column;
 	justify-content: space-between;
     border-right: 1px solid var(--border-color);
+    background-color: #f4f6f8;
+
+    & * {
+        font-size: 1.6rem;
+    }
 }
 
 .side-bar-search {

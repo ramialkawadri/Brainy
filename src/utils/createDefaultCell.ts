@@ -1,6 +1,4 @@
-import { CellInfoDto, CellType } from "../services/backendApi";
 import { v4 as uuidv4 } from "uuid";
-import IFlashCard from "../types/cells/FlashCard";
 
 function createDefaultCell(cellType: CellType) {
     const cellInfo: CellInfoDto = {
