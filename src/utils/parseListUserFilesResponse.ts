@@ -2,17 +2,17 @@ import IUserFileEntity from "../entities/userFileEntity";
 import IFolder from "../features/fileSystem/folder";
 
 function parseListUserFilesResponse(entities: IUserFileEntity[]): IFolder {
-    return parseListUserFilesResponseHelper(entities, "", "root");
+    return parseListUserFilesResponseHelper(entities, "", -1);
 }
 
 function parseListUserFilesResponseHelper(
-    entities: IUserFileEntity[], folderName: string, id: string) {
+    entities: IUserFileEntity[], folderName: string, id: number) {
 
     /* Contains sub folder names as keys, and a list of
      * their files as values.
      */
     const subFolders: Record<string, IUserFileEntity[]> = {};
-    const subFoldersIds: Record<string, string> = {};
+    const subFoldersIds: Record<string, number> = {};
     const folder: IFolder = {
         id,
         name: folderName,
@@ -35,7 +35,7 @@ function parseListUserFilesResponseHelper(
             const newEntity: IUserFileEntity = {
                 path: rest,
                 id: entity.id,
-                isFolder: entity.isFolder,
+                is_folder: entity.is_folder,
                 // repetitionCounts: fileInfo.repetitionCounts!,
             };
 
@@ -44,7 +44,7 @@ function parseListUserFilesResponseHelper(
             } else {
                 subFolders[folderName] = [newEntity];
             }
-        } else if (entity.isFolder === 1) {
+        } else if (entity.is_folder) {
             subFoldersIds[entity.path] = entity.id;
         } else {
             folder.files.push({

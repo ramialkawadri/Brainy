@@ -1,7 +1,5 @@
-import { CellRepetitionCountsDto } from "../../services/backendApi";
-
 export default interface IFile {
-    id: string,
+    id: number,
     name: string,
     // repetitionCounts: CellRepetitionCountsDto,
 }

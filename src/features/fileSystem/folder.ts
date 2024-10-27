@@ -1,7 +1,7 @@
 import IFile from "./file";
 
 export default interface IFolder {
-    id: string,
+    id: number,
     name: string,
     subFolders: IFolder[],
     files: IFile[],

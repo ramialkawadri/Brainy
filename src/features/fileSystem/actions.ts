@@ -1,14 +1,13 @@
-import { getDatabase } from "../../constants";
 import { v4 as uuidv4 } from "uuid";
 import parseListUserFilesResponse from "../../utils/parseListUserFilesResponse";
 import { AppDispatch, RootState } from "../../store";
 import { requestFailure, requestStart, requestSuccess, setSelectedFilePath } from "./fileSystemSlice";
-import Database from "@tauri-apps/plugin-sql";
 import IUserFileEntity from "../../entities/userFileEntity";
 import getFolderPath from "../../utils/getFolderPath";
 import getFileName from "../../utils/getFileName";
 import { selectFileSystemSelectedFilePath } from "./selectors";
 import applyNewName from "../../utils/applyNewName";
+import { invoke } from "@tauri-apps/api/core";
 
 // TODO: refactoring, writing unit tests and using UPDATE instead of DELETE some places, don't allow to rename/move to the same place
 
@@ -34,14 +33,14 @@ export function createFile(path: string) {
 }
 
 export function createFolder(path: string) {
-    return executeRequest(async () => {
-        if (!path.trim()) throw Error("Name cannot be empty");
+    return executeRequest(() => {
+        return invoke("create_folder", { path });
 
-        const db = await getDatabase();
-        if (await entityExists(db, path, true)) {
-            throw Error("Folder already exists!");
-        }
-        await createFolderRecursively(db, path);
+        // const db = await getDatabase();
+        // if (await entityExists(db, path, true)) {
+        //     throw Error("");
+        // }
+        // await createFolderRecursively(db, path);
     });
 }
 
@@ -211,20 +210,19 @@ function executeRequest<T>(cb: (dispatch: AppDispatch, state: RootState) => Prom
         } catch (e) {
             console.error(e);
             if (e instanceof Error) {
-                dispatch(requestFailure(e.message));
                 console.error(e.stack);
             }
+            dispatch(requestFailure(e as string));
         }
     }
 }
 
 async function getUserFiles() {
-    const db = await getDatabase();
-    const result: IUserFileEntity[] = await db.select(
-        "SELECT id, path, isFolder FROM user_files");
+    // TODO: better typescript
+    const result: IUserFileEntity[] = await invoke("get_files");
     console.log(result);
     const folder = parseListUserFilesResponse(result);
-    return folder
+    return folder;
 }
 
 async function createFolderRecursively(db: Database, path: string) {
