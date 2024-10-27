@@ -2,7 +2,7 @@ import IUserFileEntity from "../entities/userFileEntity";
 import IFolder from "../features/fileSystem/folder";
 
 function parseListUserFilesResponse(entities: IUserFileEntity[]): IFolder {
-    return parseListUserFilesResponseHelper(entities, "", -1);
+    return parseListUserFilesResponseHelper(entities, "", 0);
 }
 
 function parseListUserFilesResponseHelper(

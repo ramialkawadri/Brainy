@@ -1,8 +1,5 @@
 import { RootState } from "../../store";
 
-export const selectFileSystemIsLoading = (state: RootState) =>
-    state.fileSystem.isLoading;
-
 export const selectFileSystemError = (state: RootState) =>
     state.fileSystem.error;
 

@@ -13,7 +13,7 @@ import useAppDispatch from "../../hooks/useAppDispatch";
 import { fetchFiles, } from "../fileSystem/actions.ts";
 import useAppSelector from "../../hooks/useAppSelector";
 import { useSelector } from "react-redux";
-import { selectFileSystemSelectedFilePath, selectFileSystemIsLoading, selectFileSystemRootFolder } from "../fileSystem/selectors.ts";
+import { selectFileSystemSelectedFilePath, selectFileSystemRootFolder } from "../fileSystem/selectors.ts";
 
 // TODO: add shortcut to start study, shortcut to insert new cell
 function MainAppPage() {
@@ -24,7 +24,7 @@ function MainAppPage() {
     const [isExistingFile, setIsExistingFile] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [isReviewing, setIsReviewing] = useState(false);;
-    const isLoading = useSelector(selectFileSystemIsLoading);
+    const isLoading = false;
     // TODO:
     const errorMessage = "";
     const rootFolder = useAppSelector(selectFileSystemRootFolder);

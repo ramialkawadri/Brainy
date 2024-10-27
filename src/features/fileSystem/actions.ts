@@ -1,9 +1,9 @@
+// TODO: remove uuidv4
 import { v4 as uuidv4 } from "uuid";
 import parseListUserFilesResponse from "../../utils/parseListUserFilesResponse";
 import { AppDispatch, RootState } from "../../store";
 import { requestFailure, requestStart, requestSuccess, setSelectedFilePath } from "./fileSystemSlice";
 import IUserFileEntity from "../../entities/userFileEntity";
-import getFolderPath from "../../utils/getFolderPath";
 import getFileName from "../../utils/getFileName";
 import { selectFileSystemSelectedFilePath } from "./selectors";
 import applyNewName from "../../utils/applyNewName";
@@ -17,30 +17,13 @@ export function fetchFiles() {
 
 export function createFile(path: string) {
     return executeRequest(async () => {
-        if (!path.trim()) throw Error("Name cannot be empty");
-
-        const db = await getDatabase();
-        if (await entityExists(db, path, false)) {
-            throw Error("File already exists!");
-        }
-        if (path.includes("/")) {
-            await createFolderRecursively(db, getFolderPath(path));
-        }
-        await db.execute(
-            "INSERT INTO user_files(id, path, isFolder) VALUES ($1, $2, $3)",
-            [uuidv4(), path, 0]);
+        return invoke("create_file", { path });
     });
 }
 
 export function createFolder(path: string) {
     return executeRequest(() => {
         return invoke("create_folder", { path });
-
-        // const db = await getDatabase();
-        // if (await entityExists(db, path, true)) {
-        //     throw Error("");
-        // }
-        // await createFolderRecursively(db, path);
     });
 }
 
@@ -223,21 +206,4 @@ async function getUserFiles() {
     console.log(result);
     const folder = parseListUserFilesResponse(result);
     return folder;
-}
-
-async function createFolderRecursively(db: Database, path: string) {
-    const folderNames = path.split("/");
-    let currentPath = "";
-
-    for (const folderName of folderNames) {
-        if (currentPath.length > 0) currentPath += "/";
-
-        currentPath += folderName;
-        if (await entityExists(db, currentPath, true)) {
-            continue;
-        }
-        await db.execute(
-            "INSERT INTO user_files(id, path, isFolder) VALUES ($1, $2, 1)",
-            [uuidv4(), currentPath]);
-    }
 }

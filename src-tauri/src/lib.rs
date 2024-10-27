@@ -1,12 +1,13 @@
-mod commands;
+mod api;
 mod entity;
 mod migration;
+mod service;
 
 use sea_orm::{Database, DatabaseConnection, DbErr};
 use tauri::Manager;
 use tokio::sync::Mutex;
 
-use commands::*;
+use api::*;
 
 const DATABASE_URL: &str = "sqlite:///home/ramikw/brainy/rami.db?mode=rwc";
 
@@ -24,7 +25,6 @@ pub async fn run() -> Result<(), DbErr> {
             app.manage(Mutex::new(AppState { connection: conn }));
             Ok(())
         })
-        .plugin(tauri_plugin_shell::init())
         .invoke_handler(tauri::generate_handler![
             get_files,
             create_folder,
