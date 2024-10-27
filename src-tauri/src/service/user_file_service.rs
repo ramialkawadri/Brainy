@@ -5,8 +5,6 @@ use prelude::Expr;
 use sea_orm::DatabaseConnection;
 use sea_orm::{entity::*, query::*};
 
-// TODO: check that everything from the backend is moved here
-
 pub async fn get_user_files(db: &DatabaseConnection) -> Result<Vec<user_file::Model>, String> {
     let result = UserFile::find().all(db).await;
     match result {
@@ -91,7 +89,9 @@ pub async fn move_file(
     destination: String,
 ) -> Result<String, String> {
     // TODO: test: remember to test with folder name equivalent to file name
-    // TODO: check destination is equal current path
+    if destination == get_folder_path(&path) {
+        return Ok(path);
+    }
     let file_name = get_file_name(&path);
     let new_path = if destination.is_empty() {
         file_name
@@ -105,7 +105,7 @@ pub async fn move_file(
 
     let result = UserFile::update_many()
         .col_expr(user_file::Column::Path, Expr::value(new_path.clone()))
-        .filter(user_file::Column::Path.starts_with(path))
+        .filter(user_file::Column::Path.eq(path))
         .filter(user_file::Column::IsFolder.eq(false))
         .exec(db)
         .await;
@@ -134,15 +134,31 @@ pub async fn move_folder(
     path: String,
     destination: String,
 ) -> Result<String, String> {
-    // TODO: check destination is equal current path
-    // TODO: test: remember to test with file name equivalent to folder name
+    if destination == get_folder_path(&path) {
+        return Ok(path);
+    }
     let folder_name = get_file_name(&path);
     let new_path = if destination.is_empty() {
         folder_name
     } else {
         destination + "/" + folder_name.as_str()
     };
-    create_folder_recursively(db, &new_path, true).await?;
+
+    if folder_exists(db, &new_path).await? {
+        return Err("Another folder with the same name exists".into());
+    }
+
+    let result = UserFile::update_many()
+        .col_expr(user_file::Column::Path, Expr::value(new_path.clone()))
+        .filter(user_file::Column::Path.eq(path.clone()))
+        .filter(user_file::Column::IsFolder.eq(true))
+        .exec(db)
+        .await;
+    if let Err(err) = result {
+        return Err(err.to_string());
+    }
+
+    create_folder_recursively(db, &new_path, false).await?;
 
     let result = UserFile::find()
         .filter(user_file::Column::Path.starts_with(path.clone() + "/"))
@@ -170,21 +186,11 @@ pub async fn move_folder(
         }
     }
 
-    let result = UserFile::update_many()
-        .col_expr(user_file::Column::Path, Expr::value(new_path.clone()))
-        .filter(user_file::Column::Path.starts_with(path))
-        .filter(user_file::Column::IsFolder.eq(true))
-        .exec(db)
-        .await;
-    if let Err(err) = result {
-        return Err(err.to_string());
-    }
-
     Ok(new_path)
 }
 
 fn get_file_name(path: &String) -> String {
-    let index = path.find("/");
+    let index = path.rfind("/");
     match index {
         Some(index) => path.chars().skip(index + 1).collect(),
         None => path.clone(),
@@ -205,22 +211,12 @@ async fn create_folder_recursively(
         }
         current_path.push_str(name);
 
-        let folder_counts = UserFile::find()
-            .filter(user_file::Column::Path.eq(current_path.clone()))
-            .filter(user_file::Column::IsFolder.eq(true))
-            .count(db)
-            .await;
-        match folder_counts {
-            Ok(folder_counts) => {
-                if folder_counts > 0 {
-                    if check_existense && &current_path == path {
-                        return Err("Folder already exists!".into());
-                    } else {
-                        continue;
-                    }
-                }
+        if folder_exists(db, &current_path).await? {
+            if check_existense && &current_path == path {
+                return Err("Folder already exists!".into());
+            } else {
+                continue;
             }
-            Err(err) => return Err(err.to_string()),
         }
 
         let active_model = user_file::ActiveModel {
@@ -237,6 +233,19 @@ async fn create_folder_recursively(
     }
 
     Ok(())
+}
+
+async fn folder_exists(db: &DatabaseConnection, path: &String) -> Result<bool, String> {
+    let result = UserFile::find()
+        .filter(user_file::Column::Path.eq(path.clone()))
+        .filter(user_file::Column::IsFolder.eq(true))
+        .count(db)
+        .await;
+
+    match result {
+        Ok(result) => Ok(result > 0),
+        Err(err) => return Err(err.to_string()),
+    }
 }
 
 #[cfg(test)]
@@ -418,5 +427,69 @@ mod tests {
 
         let actual = get_user_files(&db).await.unwrap();
         assert_eq!(actual.len(), 1);
+    }
+
+    #[tokio::test]
+    async fn move_file_valid_input_moved_folder() {
+        // Arrange
+
+        let db = get_db().await;
+        create_folder(&db, "test/folder 1/folder 2".into())
+            .await
+            .unwrap();
+        create_file(&db, "test/folder 1/folder 2/file".into())
+            .await
+            .unwrap();
+        create_folder(&db, "test 2".into()).await.unwrap();
+        create_file(&db, "test".into()).await.unwrap();
+
+        // Act
+
+        move_folder(&db, "test".into(), "test 2".into())
+            .await
+            .unwrap();
+
+        // Assert
+
+        let actual = get_user_files(&db).await.unwrap();
+        assert_eq!(actual.len(), 6);
+        assert!(actual
+            .iter()
+            .any(|item| item.path == "test" && !item.is_folder));
+        assert!(actual
+            .iter()
+            .any(|item| item.path == "test 2" && item.is_folder));
+        assert!(actual
+            .iter()
+            .any(|item| item.path == "test 2/test" && item.is_folder));
+        assert!(actual
+            .iter()
+            .any(|item| item.path == "test 2/test/folder 1" && item.is_folder));
+        assert!(actual
+            .iter()
+            .any(|item| item.path == "test 2/test/folder 1/folder 2" && item.is_folder));
+        assert!(actual
+            .iter()
+            .any(|item| item.path == "test 2/test/folder 1/folder 2/file" && !item.is_folder));
+    }
+
+    #[tokio::test]
+    async fn move_file_existing_folder_error_returned() {
+        // Arrange
+
+        let db = get_db().await;
+        create_folder(&db, "test".into()).await.unwrap();
+        create_folder(&db, "test 2/test".into()).await.unwrap();
+
+        // Act
+
+        let actual = move_folder(&db, "test".into(), "test 2".into()).await;
+
+        // Assert
+
+        assert_eq!(
+            actual,
+            Err("Another folder with the same name exists".to_string())
+        );
     }
 }
