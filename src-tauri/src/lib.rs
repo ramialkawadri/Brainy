@@ -27,10 +27,12 @@ pub async fn run() -> Result<(), DbErr> {
         })
         .invoke_handler(tauri::generate_handler![
             get_files,
-            create_folder,
             create_file,
+            create_folder,
             delete_file,
             delete_folder,
+            move_file,
+            move_folder,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
