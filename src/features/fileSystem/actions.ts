@@ -1,5 +1,3 @@
-// TODO: remove uuidv4
-import { v4 as uuidv4 } from "uuid";
 import parseListUserFilesResponse from "../../utils/parseListUserFilesResponse";
 import { AppDispatch, RootState } from "../../store";
 import { requestFailure, requestStart, requestSuccess, setSelectedFilePath } from "./fileSystemSlice";
@@ -29,10 +27,7 @@ export function createFolder(path: string) {
 
 export function deleteFile(path: string) {
     return executeRequest(async (dispatch, state) => {
-        const db = await getDatabase();
-        await db.execute(
-            "DELETE FROM user_files WHERE path = $1",
-            [path]);
+        await invoke("delete_file", { path });
 
         if (selectFileSystemSelectedFilePath(state) === path) {
             dispatch(setSelectedFilePath(null));
@@ -42,13 +37,7 @@ export function deleteFile(path: string) {
 
 export function deleteFolder(path: string) {
     return executeRequest(async (dispatch, state) => {
-        const db = await getDatabase();
-        await db.execute(
-            "DELETE FROM user_files WHERE path LIKE concat($1, '/%')",
-            [path]);
-        await db.execute(
-            "DELETE FROM user_files WHERE path = $1 AND isFolder = 1",
-            [path]);
+        await invoke("delete_folder", { path });
 
         if (selectFileSystemSelectedFilePath(state).startsWith(path)) {
             dispatch(setSelectedFilePath(null));

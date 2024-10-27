@@ -12,7 +12,6 @@ pub async fn get_files(state: State<'_, Mutex<AppState>>) -> Result<Vec<user_fil
 
 #[tauri::command]
 pub async fn create_folder(state: State<'_, Mutex<AppState>>, path: String) -> Result<(), String> {
-    // TODO: create recusively
     let state = state.lock().await;
     return user_file_service::create_folder(&state.connection, path).await;
 }
@@ -21,4 +20,16 @@ pub async fn create_folder(state: State<'_, Mutex<AppState>>, path: String) -> R
 pub async fn create_file(state: State<'_, Mutex<AppState>>, path: String) -> Result<(), String> {
     let state = state.lock().await;
     return user_file_service::create_file(&state.connection, path).await;
+}
+
+#[tauri::command]
+pub async fn delete_file(state: State<'_, Mutex<AppState>>, path: String) -> Result<(), String> {
+    let state = state.lock().await;
+    return user_file_service::delete_file(&state.connection, path).await;
+}
+
+#[tauri::command]
+pub async fn delete_folder(state: State<'_, Mutex<AppState>>, path: String) -> Result<(), String> {
+    let state = state.lock().await;
+    return user_file_service::delete_folder(&state.connection, path).await;
 }

@@ -22,7 +22,9 @@ pub async fn create_folder(db: &DatabaseConnection, path: String) -> Result<(), 
 }
 
 pub async fn create_file(db: &DatabaseConnection, path: String) -> Result<(), String> {
-    // TODO: test
+    if path.trim().is_empty() {
+        return Err("Name cannot be empty!".into());
+    }
     if path.contains("/") {
         create_folder_recursively(db, get_folder_path(&path), false).await?;
     }
@@ -76,8 +78,12 @@ async fn create_folder_recursively(
             .await;
         match result {
             Ok(result) => {
-                if result > 0 && current_path == path && check_existense {
-                    return Err("Folder already exists!".into());
+                if result > 0 {
+                    if current_path == path && check_existense {
+                        return Err("Folder already exists!".into());
+                    } else {
+                        continue;
+                    }
                 }
             }
             Err(err) => return Err(err.to_string()),
@@ -94,6 +100,52 @@ async fn create_folder_recursively(
             Err(err) => return Err(err.to_string()),
             _ => (),
         };
+    }
+
+    Ok(())
+}
+
+pub async fn delete_file(db: &DatabaseConnection, path: String) -> Result<(), String> {
+    let result = UserFile::delete_many()
+        .filter(user_file::Column::Path.eq(path))
+        .exec(db)
+        .await;
+
+    match result {
+        Err(err) => return Err(err.to_string()),
+        _ => Ok(()),
+    }
+}
+
+pub async fn delete_folder(db: &DatabaseConnection, path: String) -> Result<(), String> {
+    let result = UserFile::delete_many()
+        .filter(user_file::Column::Path.starts_with(path + "/"))
+        .exec(db)
+        .await;
+
+    match result {
+        Err(err) => return Err(err.to_string()),
+        _ => Ok(()),
+    }
+}
+
+pub async fn move_folder(
+    db: &DatabaseConnection,
+    path: String,
+    destination: String,
+) -> Result<(), String> {
+    let result = UserFile::find()
+        .filter(user_file::Column::Path.starts_with(path + "/"))
+        .all(db)
+        .await;
+
+    if let Err(err) = result {
+        return Err(err.to_string());
+    }
+
+    // TODO: continue
+    let result = result.unwrap();
+    for row in result {
     }
 
     Ok(())
@@ -148,9 +200,15 @@ mod tests {
 
         let actual = get_user_files(&db).await.unwrap();
         assert_eq!(actual.len(), 3);
-        assert!(actual.iter().any(|item| item.path == "folder 1"));
-        assert!(actual.iter().any(|item| item.path == "folder 1/folder 2"));
-        assert!(actual.iter().any(|item| item.path == "folder 1/folder 3"));
+        assert!(actual
+            .iter()
+            .any(|item| item.path == "folder 1" && item.is_folder));
+        assert!(actual
+            .iter()
+            .any(|item| item.path == "folder 1/folder 2" && item.is_folder));
+        assert!(actual
+            .iter()
+            .any(|item| item.path == "folder 1/folder 3" && item.is_folder));
     }
 
     #[tokio::test]
@@ -182,5 +240,93 @@ mod tests {
         // Assert
 
         assert_eq!(actual, Err("Folder already exists!".to_string()));
+    }
+
+    #[tokio::test]
+    async fn create_file_neste_path_created_all_folders() {
+        // Arrange
+
+        let db = get_db().await;
+
+        // Act
+
+        create_file(&db, "folder 1/folder 2/file 1".into())
+            .await
+            .unwrap();
+
+        // Assert
+
+        let actual = get_user_files(&db).await.unwrap();
+        assert_eq!(actual.len(), 3);
+        assert!(actual.iter().any(|item| item.path == "folder 1"));
+        assert!(actual.iter().any(|item| item.path == "folder 1/folder 2"));
+        assert!(actual
+            .iter()
+            .any(|item| item.path == "folder 1/folder 2/file 1" && !item.is_folder));
+    }
+
+    #[tokio::test]
+    async fn create_file_empty_name_returned_error() {
+        // Arrange
+
+        let db = get_db().await;
+
+        // Act
+
+        let actual = create_file(&db, "  ".into()).await;
+
+        // Assert
+
+        assert_eq!(actual, Err("Name cannot be empty!".to_string()));
+    }
+
+    #[tokio::test]
+    async fn create_file_existing_file_returned_error() {
+        // Arrange
+
+        let db = get_db().await;
+
+        // Act
+
+        create_file(&db, "file 1".into()).await.unwrap();
+        let actual = create_file(&db, "file 1".into()).await;
+
+        // Assert
+
+        assert_eq!(actual, Err("File already exists!".to_string()));
+    }
+
+    #[tokio::test]
+    async fn delete_file_valid_input_deleted_file() {
+        // Arrange
+
+        let db = get_db().await;
+
+        // Act
+
+        create_file(&db, "file 1".into()).await.unwrap();
+        delete_file(&db, "file 1".into()).await.unwrap();
+
+        // Assert
+
+        let actual = get_user_files(&db).await.unwrap();
+        assert!(actual.is_empty());
+    }
+
+    #[tokio::test]
+    async fn delete_folder_valid_input_deleted_folder() {
+        // Arrange
+
+        let db = get_db().await;
+
+        // Act
+
+        create_folder(&db, "folder 1".into()).await.unwrap();
+        delete_folder(&db, "folder 1".into()).await.unwrap();
+
+        // Assert
+
+        let actual = get_user_files(&db).await.unwrap();
+        assert!(actual.is_empty());
     }
 }
