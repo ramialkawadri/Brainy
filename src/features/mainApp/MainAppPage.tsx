@@ -1,5 +1,4 @@
 import Editor from "../editor/Editor";
-import SideBar from "./SideBar";
 import styles from "./styles.module.css";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { autoSaveDelay } from "../../constants";
@@ -10,10 +9,10 @@ import Reviewer from "../reviewer/Reviewer";
 import Home from "../home/Home";
 import useBeforeUnload from "../../hooks/useBeforeUnload";
 import useAppDispatch from "../../hooks/useAppDispatch";
-import { fetchFiles, } from "../fileSystem/actions.ts";
 import useAppSelector from "../../hooks/useAppSelector";
-import { useSelector } from "react-redux";
-import { selectFileSystemSelectedFilePath, selectFileSystemRootFolder } from "../fileSystem/selectors.ts";
+import { selectRootFolder, selectSelectedFilePath } from "../../store/selectors/fileSystemSelectors";
+import { fetchFiles } from "../../store/actions/fileSystemActions";
+import SideBar from "../sideBar/SideBar";
 
 // TODO: add shortcut to start study, shortcut to insert new cell
 function MainAppPage() {
@@ -27,11 +26,11 @@ function MainAppPage() {
     const isLoading = false;
     // TODO:
     const errorMessage = "";
-    const rootFolder = useAppSelector(selectFileSystemRootFolder);
+    const rootFolder = useAppSelector(selectRootFolder);
     const saveTimeoutId = useRef(-1);
     const dispatch = useAppDispatch();
     useGlobalKey(handleKeyDown, "keydown");
-    const selectedFile = useAppSelector(selectFileSystemSelectedFilePath);
+    const selectedFile = useAppSelector(selectSelectedFilePath);
 
     const updateRepetitionCounts = useCallback(async () => {
         if (!selectedFile) {

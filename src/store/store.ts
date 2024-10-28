@@ -2,7 +2,7 @@ import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import { persistReducer } from "redux-persist";
 import storage from "redux-persist/lib/storage";
 import persistStore from "redux-persist/es/persistStore";
-import fileSystemReducer from "./features/fileSystem/fileSystemSlice";
+import fileSystemReducer from "./reducers/fileSystemReducers";
 
 const reducers = combineReducers({
     fileSystem: fileSystemReducer,

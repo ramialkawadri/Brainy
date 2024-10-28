@@ -1,17 +1,17 @@
-import IUserFileEntity from "../entities/userFileEntity";
-import IFolder from "../features/fileSystem/folder";
+import IUserFile from "../entities/userFile";
+import IFolder from "../types/folder";
 
-function parseListUserFilesResponse(entities: IUserFileEntity[]): IFolder {
+function parseListUserFilesResponse(entities: IUserFile[]): IFolder {
     return parseListUserFilesResponseHelper(entities, "", 0);
 }
 
 function parseListUserFilesResponseHelper(
-    entities: IUserFileEntity[], folderName: string, id: number) {
+    entities: IUserFile[], folderName: string, id: number) {
 
     /* Contains sub folder names as keys, and a list of
      * their files as values.
      */
-    const subFolders: Record<string, IUserFileEntity[]> = {};
+    const subFolders: Record<string, IUserFile[]> = {};
     const subFoldersIds: Record<string, number> = {};
     const folder: IFolder = {
         id,
@@ -32,10 +32,10 @@ function parseListUserFilesResponseHelper(
             const index = entity.path.indexOf("/");
             const folderName = entity.path.substring(0, index);
             const rest = entity.path.substring(index + 1);
-            const newEntity: IUserFileEntity = {
+            const newEntity: IUserFile = {
                 path: rest,
                 id: entity.id,
-                is_folder: entity.is_folder,
+                isFolder: entity.isFolder,
                 // repetitionCounts: fileInfo.repetitionCounts!,
             };
 
@@ -44,7 +44,7 @@ function parseListUserFilesResponseHelper(
             } else {
                 subFolders[folderName] = [newEntity];
             }
-        } else if (entity.is_folder) {
+        } else if (entity.isFolder) {
             subFoldersIds[entity.path] = entity.id;
         } else {
             folder.files.push({

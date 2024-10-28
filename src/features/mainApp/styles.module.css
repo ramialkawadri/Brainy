@@ -21,35 +21,3 @@
     width: 36rem;
 	padding: var(--large-padding);
 }
-
-.side-bar {
-	height: 100%;
-	padding: var(--xl-padding);
-	display: flex;
-	flex-direction: column;
-	justify-content: space-between;
-    border-right: 1px solid var(--border-color);
-    background-color: #f4f6f8;
-
-    & * {
-        font-size: 1.6rem;
-    }
-}
-
-.side-bar-search {
-	width: 100%;
-	margin: 1.2rem 0;
-	background-color: inherit;
-}
-
-.side-bar-search:focus,
-.side-bar-search:not(:placeholder-shown) {
-    background-color: var(--default-background-color);
-	border-color: var(--primary-color);
-}
-
-.search-bar {
-	display: flex;
-	align-items: center;
-	gap: 0.8rem;
-}

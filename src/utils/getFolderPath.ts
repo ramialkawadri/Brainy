@@ -1,3 +1,4 @@
+// TODO: use documentation comments
 // Returns the path of the parent folder of the given file.
 function getFolderPath(filePath: string) {
     const index = filePath.lastIndexOf("/");

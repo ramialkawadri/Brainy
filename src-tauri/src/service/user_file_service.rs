@@ -217,7 +217,6 @@ pub async fn rename_folder(
     path: String,
     new_name: String,
 ) -> Result<String, String> {
-    // TODO: test
     if new_name.trim().is_empty() {
         return Err("Please enter a non empty name!".into());
     }
@@ -729,7 +728,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn rename_file_valid_input_rename_file() {
+    async fn rename_file_valid_input_renamed_file() {
         // Arrange
 
         let db = get_db().await;
@@ -752,9 +751,6 @@ mod tests {
         // Assert
 
         let actual = get_user_files(&db).await.unwrap();
-        for row in actual.iter() {
-            println!("{}", row.path);
-        }
         assert_eq!(actual.len(), 5);
         assert!(actual
             .iter()
@@ -790,6 +786,62 @@ mod tests {
         assert_eq!(
             actual,
             Err("Another file with the same name already exists!".into())
+        );
+    }
+
+    #[tokio::test]
+    async fn rename_folder_valid_input_rename_folder() {
+        // Arrange
+
+        let db = get_db().await;
+        create_folder(&db, "folder 1".into()).await.unwrap();
+        create_folder(&db, "folder 2/folder 3".into()).await.unwrap();
+        create_file(&db, "folder 2/file".into()).await.unwrap();
+
+        // Act
+
+        rename_folder(&db, "folder 1".into(), "new_name".into())
+            .await
+            .unwrap();
+        rename_folder(&db, "folder 2".into(), "new_name_2".into())
+            .await
+            .unwrap();
+
+        // Assert
+
+        let actual = get_user_files(&db).await.unwrap();
+        assert_eq!(actual.len(), 4);
+        assert!(actual
+            .iter()
+            .any(|item| item.path == "new_name" && item.is_folder));
+        assert!(actual
+            .iter()
+            .any(|item| item.path == "new_name_2" && item.is_folder));
+        assert!(actual
+            .iter()
+            .any(|item| item.path == "new_name_2/folder 3" && item.is_folder));
+        assert!(actual
+            .iter()
+            .any(|item| item.path == "new_name_2/file" && !item.is_folder));
+    }
+
+    #[tokio::test]
+    async fn rename_folder_existing_folder_error_returned() {
+        // Arrange
+
+        let db = get_db().await;
+        create_folder(&db, "test".into()).await.unwrap();
+        create_folder(&db, "test 2".into()).await.unwrap();
+
+        // Act
+
+        let actual = rename_folder(&db, "test".into(), "test 2".into()).await;
+
+        // Assert
+
+        assert_eq!(
+            actual,
+            Err("Another folder with the same name already exists!".into())
         );
     }
 }

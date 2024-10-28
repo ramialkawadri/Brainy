@@ -2,16 +2,19 @@ import styles from "./styles.module.css";
 import ErrorBox from "../../ui/errorBox/ErrorBox";
 import FileTree from "../fileTree/FileTree";
 import useAppSelector from "../../hooks/useAppSelector";
-import { setErrorMessage, setSearchText } from "../fileSystem/fileSystemSlice";
 import useAppDispatch from "../../hooks/useAppDispatch";
-import { selectFileSystemError, selectFileSystemRootFolder } from "../fileSystem/selectors";
+import { selectError, selectRootFolder } from "../../store/selectors/fileSystemSelectors";
+import { setErrorMessage, setSearchText } from "../../store/reducers/fileSystemReducers";
 
 // TODO: expand/hide sidebar
+// TODO: Add Home button, search button (in all cells), add settings button
+// TODO: fix search
 function SideBar() {
-    const rootFolder = useAppSelector(selectFileSystemRootFolder);
-    const errorMessage = useAppSelector(selectFileSystemError);
+    const rootFolder = useAppSelector(selectRootFolder);
+    const errorMessage = useAppSelector(selectError);
     const dispatch = useAppDispatch();
-    // TODO: fix search
+
+    // TODO: add ability to create from nothing
 
     return (
         <div className={`${styles.sideBar}`}>
