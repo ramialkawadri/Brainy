@@ -4,7 +4,7 @@ import useAppDispatch from "../../hooks/useAppDispatch";
 import IFolder from "../../types/folder.ts";
 import { deleteFile, deleteFolder } from "../../store/actions/fileSystemActions.ts";
 import getFileName from "../../utils/getFileName.ts";
-import FileTreeList from "./FileTreeList.tsx";
+import FileTreeItem from "./FileTreeItem";
 
 
 interface IProps {
@@ -51,10 +51,11 @@ function FileTree({ folder }: IProps) {
                 onConfirm={() => void handleDelete()} />
             }
 
-            <FileTreeList
+            <FileTreeItem
                 path=""
                 folder={folder}
-                onMarkForDeletion={handleMarkForDeletion} />
+                onMarkForDeletion={handleMarkForDeletion}
+                id={0} />
         </>
     );
 }

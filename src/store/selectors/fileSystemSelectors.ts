@@ -6,8 +6,8 @@ export const selectError = (state: RootState) =>
 export const selectRootFolder = (state: RootState) =>
     state.fileSystem.rootFolder;
 
-export const selectSelectedFilePath = (state: RootState) =>
-    state.fileSystem.selectedFilePath;
+export const selectSelectedFileId = (state: RootState) =>
+    state.fileSystem.selectedFileId;
 
 export const selectSearchText = (state: RootState) =>
     state.fileSystem.searchText;

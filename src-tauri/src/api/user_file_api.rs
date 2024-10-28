@@ -39,7 +39,7 @@ pub async fn move_file(
     state: State<'_, Mutex<AppState>>,
     path: String,
     destination: String,
-) -> Result<String, String> {
+) -> Result<(), String> {
     let state = state.lock().await;
     return user_file_service::move_file(&state.connection, path, destination).await;
 }
@@ -49,7 +49,7 @@ pub async fn move_folder(
     state: State<'_, Mutex<AppState>>,
     path: String,
     destination: String,
-) -> Result<String, String> {
+) -> Result<(), String> {
     let state = state.lock().await;
     return user_file_service::move_folder(&state.connection, path, destination).await;
 }
@@ -59,7 +59,7 @@ pub async fn rename_file(
     state: State<'_, Mutex<AppState>>,
     path: String,
     new_name: String,
-) -> Result<String, String> {
+) -> Result<(), String> {
     let state = state.lock().await;
     return user_file_service::rename_file(&state.connection, path, new_name).await;
 }
@@ -69,7 +69,7 @@ pub async fn rename_folder(
     state: State<'_, Mutex<AppState>>,
     path: String,
     new_name: String,
-) -> Result<String, String> {
+) -> Result<(), String> {
     let state = state.lock().await;
     return user_file_service::rename_folder(&state.connection, path, new_name).await;
 }

@@ -82,9 +82,9 @@ pub async fn move_file(
     db: &DatabaseConnection,
     path: String,
     destination: String,
-) -> Result<String, String> {
+) -> Result<(), String> {
     if destination == get_folder_path(&path) {
-        return Ok(path);
+        return Ok(());
     }
     let file_name = get_file_name(&path);
     let new_path = if destination.is_empty() {
@@ -98,7 +98,7 @@ pub async fn move_file(
     }
 
     let result = UserFile::update_many()
-        .col_expr(user_file::Column::Path, Expr::value(new_path.clone()))
+        .col_expr(user_file::Column::Path, Expr::value(new_path))
         .filter(user_file::Column::Path.eq(path))
         .filter(user_file::Column::IsFolder.eq(false))
         .exec(db)
@@ -107,18 +107,18 @@ pub async fn move_file(
         return Err(err.to_string());
     }
 
-    return Ok(new_path);
+    return Ok(());
 }
 
 pub async fn move_folder(
     db: &DatabaseConnection,
     path: String,
     destination: String,
-) -> Result<String, String> {
+) -> Result<(), String> {
     if destination == path {
-        return Ok(path);
+        return Ok(());
     } else if destination == get_folder_path(&path) {
-        return Ok(path);
+        return Ok(());
     } else if destination.starts_with((path.clone() + "/").as_str()) {
         return Err("You cannot move into an inner folder!".into());
     }
@@ -171,7 +171,7 @@ pub async fn move_folder(
         }
     }
 
-    Ok(new_path)
+    Ok(())
 }
 
 fn get_file_name(path: &String) -> String {
@@ -186,7 +186,7 @@ pub async fn rename_file(
     db: &DatabaseConnection,
     path: String,
     new_name: String,
-) -> Result<String, String> {
+) -> Result<(), String> {
     if new_name.trim().is_empty() {
         return Err("Please enter a non empty name!".into());
     }
@@ -201,7 +201,7 @@ pub async fn rename_file(
     let result = UserFile::update_many()
         .filter(user_file::Column::Path.eq(path.clone()))
         .filter(user_file::Column::IsFolder.eq(false))
-        .col_expr(user_file::Column::Path, Expr::value(new_path.clone()))
+        .col_expr(user_file::Column::Path, Expr::value(new_path))
         .exec(db)
         .await;
 
@@ -209,14 +209,14 @@ pub async fn rename_file(
         return Err(err.to_string());
     }
 
-    Ok(new_path)
+    Ok(())
 }
 
 pub async fn rename_folder(
     db: &DatabaseConnection,
     path: String,
     new_name: String,
-) -> Result<String, String> {
+) -> Result<(), String> {
     if new_name.trim().is_empty() {
         return Err("Please enter a non empty name!".into());
     }
@@ -265,7 +265,7 @@ pub async fn rename_folder(
         }
     }
 
-    Ok(new_path)
+    Ok(())
 }
 
 fn get_folder_path(path: &String) -> String {

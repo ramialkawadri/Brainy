@@ -4,14 +4,14 @@ import IFolder from "../../types/folder";
 interface IFileSystemState {
     error: string | null,
     rootFolder: IFolder,
-    selectedFilePath: string,
+    selectedFileId: number | null,
     searchText: string,
 }
 
 const initialState: IFileSystemState = {
     error: null,
     rootFolder: { id: 0, files: [], name: "", subFolders: [] },
-    selectedFilePath: "",
+    selectedFileId: null,
     searchText: "",
 };
 
@@ -29,8 +29,8 @@ export const fileSystemSlice = createSlice({
         requestFailure: (state, payload: PayloadAction<string>) => {
             state.error = payload.payload;
         },
-        setSelectedFilePath: (state, payload: PayloadAction<string | null>) => {
-            state.selectedFilePath = payload.payload ?? "";
+        setSelectedFileId: (state, payload: PayloadAction<number | null>) => {
+            state.selectedFileId = payload.payload;
         },
         setErrorMessage: (state, payload: PayloadAction<string>) => {
             state.error = payload.payload;
@@ -47,7 +47,7 @@ export const {
     requestStart,
     requestSuccess,
     requestFailure,
-    setSelectedFilePath,
+    setSelectedFileId,
     setErrorMessage,
     setSearchText,
 } = fileSystemSlice.actions;

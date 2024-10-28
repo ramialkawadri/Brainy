@@ -10,7 +10,7 @@ import Home from "../home/Home";
 import useBeforeUnload from "../../hooks/useBeforeUnload";
 import useAppDispatch from "../../hooks/useAppDispatch";
 import useAppSelector from "../../hooks/useAppSelector";
-import { selectRootFolder, selectSelectedFilePath } from "../../store/selectors/fileSystemSelectors";
+import { selectRootFolder, selectSelectedFileId } from "../../store/selectors/fileSystemSelectors";
 import { fetchFiles } from "../../store/actions/fileSystemActions";
 import SideBar from "../sideBar/SideBar";
 
@@ -30,10 +30,10 @@ function MainAppPage() {
     const saveTimeoutId = useRef(-1);
     const dispatch = useAppDispatch();
     useGlobalKey(handleKeyDown, "keydown");
-    const selectedFile = useAppSelector(selectSelectedFilePath);
+    const selectedFileId = useAppSelector(selectSelectedFileId);
 
     const updateRepetitionCounts = useCallback(async () => {
-        if (!selectedFile) {
+        if (!selectedFileId) {
             return;
         }
 
@@ -53,7 +53,7 @@ function MainAppPage() {
             // setErrorMessage("An error has happened while getting the cell repetition counts.");
             console.error(e);
         }
-    }, [selectedFile]);
+    }, [selectedFileId]);
 
     const stopAutoSave = useCallback(() => {
         clearTimeout(saveTimeoutId.current);
@@ -99,7 +99,7 @@ function MainAppPage() {
 
     useEffect(() => {
         const updateFileContent = async () => {
-            if (!selectedFile) {
+            if (!selectedFileId) {
                 return;
             }
 
@@ -132,7 +132,7 @@ function MainAppPage() {
         // setErrorMessage("");
         void updateFileContent();
         void updateRepetitionCounts();
-    }, [selectedFile, updateRepetitionCounts]);
+    }, [selectedFileId, updateRepetitionCounts]);
 
     useEffect(() => {
         void dispatch(fetchFiles());
@@ -216,11 +216,11 @@ function MainAppPage() {
                         <Spinner text="Loading" />
                     </div>}
 
-                {!isLoading && !selectedFile &&
+                {!isLoading && !selectedFileId &&
                     <Home rootFolder={rootFolder} />}
 
-                {selectedFile && isExistingFile && !isLoading && !isReviewing &&
-                    <Editor cells={cells} title={selectedFile}
+                {selectedFileId && isExistingFile && !isLoading && !isReviewing &&
+                    <Editor cells={cells} title={selectedFileId}
                         onUpdate={handleCellsUpdate}
                         onSave={saveFile}
                         onDelete={handleDeleteCell}
@@ -229,7 +229,7 @@ function MainAppPage() {
                         onStudyButtonClick={() => void handleStudyButtonClick()} />}
 
                 {/* TODO: filePath={searchParams.get(selectedFileQueryStringParameter)!*/}
-                {selectedFile && isExistingFile && !isLoading && isReviewing &&
+                {selectedFileId && isExistingFile && !isLoading && isReviewing &&
                     <Reviewer
                         cellRepetitions={cellRepetitions}
                         cells={cells}
