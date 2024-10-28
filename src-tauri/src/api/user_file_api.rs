@@ -53,3 +53,23 @@ pub async fn move_folder(
     let state = state.lock().await;
     return user_file_service::move_folder(&state.connection, path, destination).await;
 }
+
+#[tauri::command]
+pub async fn rename_file(
+    state: State<'_, Mutex<AppState>>,
+    path: String,
+    new_name: String,
+) -> Result<String, String> {
+    let state = state.lock().await;
+    return user_file_service::rename_file(&state.connection, path, new_name).await;
+}
+
+#[tauri::command]
+pub async fn rename_folder(
+    state: State<'_, Mutex<AppState>>,
+    path: String,
+    new_name: String,
+) -> Result<String, String> {
+    let state = state.lock().await;
+    return user_file_service::rename_folder(&state.connection, path, new_name).await;
+}
