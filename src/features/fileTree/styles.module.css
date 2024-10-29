@@ -1,17 +1,39 @@
-.file-tree {
+.outer-container {
+    padding: 1px;
+    border: 2px solid transparent;
+    border-radius: var(--default-border-radius);
+
+    .drag-over {
+        border-color: var(--primary-color);
+    }
+}
+
+.file-tree-item {
 	width: 100%;
 	font-size: 1.2rem;
 	transition: var(--default-transition-time);
 	border-radius: var(--default-border-radius);
 	position: relative;
+
+    & form {
+        width: 100%;
+    }
 }
 
-.file-tree form {
-    width: 100%;
+.file-tree-button {
+	width: 100%;
+    padding: 8px;
+
+    & p {
+        width: 80%;
+        text-align: left;
+        text-overflow: ellipsis;
+        overflow: hidden;
+    }
 }
 
-.file-tree-new-item-row,
-.file-tree div {
+.file-tree-button,
+.file-tree-new-item-row {
 	display: flex;
 	align-items: center;
 	gap: 0.4rem;
@@ -25,18 +47,6 @@
     width: 100%;
 	padding: 2px var(--default-padding);
     border-width: 1px;
-}
-
-.file-tree-button {
-	width: 100%;
-    padding: 8px;
-
-    & p {
-        width: 80%;
-        text-align: left;
-        text-overflow: ellipsis;
-        overflow: hidden;
-    }
 }
 
 .file-tree-dots {
@@ -79,16 +89,6 @@
 
 .file-tree-children:hover {
 	border-left-color: var(--hover-border-color);
-}
-
-.outer-container {
-    padding: 1px;
-    border: 2px solid transparent;
-    border-radius: var(--default-border-radius);
-}
-
-.outer-container-drag-over {
-    border-color: var(--primary-color);
 }
 
 .actions-menu {

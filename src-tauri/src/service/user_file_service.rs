@@ -1,12 +1,11 @@
 use crate::entity::user_file;
-use crate::entity::UserFile;
 
 use prelude::Expr;
 use sea_orm::DatabaseConnection;
 use sea_orm::{entity::*, query::*};
 
 pub async fn get_user_files(db: &DatabaseConnection) -> Result<Vec<user_file::Model>, String> {
-    let result = UserFile::find().all(db).await;
+    let result = user_file::Entity::find().all(db).await;
     match result {
         Ok(result) => Ok(result),
         Err(err) => Err(err.to_string()),
@@ -28,7 +27,7 @@ pub async fn create_file(db: &DatabaseConnection, path: String) -> Result<(), St
         is_folder: Set(false),
         ..Default::default()
     };
-    UserFile::insert(active_model).exec(db).await.unwrap();
+    user_file::Entity::insert(active_model).exec(db).await.unwrap();
     Ok(())
 }
 
@@ -43,7 +42,7 @@ pub async fn create_folder(db: &DatabaseConnection, path: String) -> Result<(), 
 }
 
 pub async fn delete_file(db: &DatabaseConnection, path: String) -> Result<(), String> {
-    let result = UserFile::delete_many()
+    let result = user_file::Entity::delete_many()
         .filter(user_file::Column::Path.eq(path))
         .filter(user_file::Column::IsFolder.eq(false))
         .exec(db)
@@ -56,7 +55,7 @@ pub async fn delete_file(db: &DatabaseConnection, path: String) -> Result<(), St
 }
 
 pub async fn delete_folder(db: &DatabaseConnection, path: String) -> Result<(), String> {
-    let result = UserFile::delete_many()
+    let result = user_file::Entity::delete_many()
         .filter(user_file::Column::Path.starts_with(path.clone() + "/"))
         .exec(db)
         .await;
@@ -66,7 +65,7 @@ pub async fn delete_folder(db: &DatabaseConnection, path: String) -> Result<(), 
         _ => (),
     }
 
-    let result = UserFile::delete_many()
+    let result = user_file::Entity::delete_many()
         .filter(user_file::Column::Path.starts_with(path))
         .filter(user_file::Column::IsFolder.eq(true))
         .exec(db)
@@ -97,7 +96,7 @@ pub async fn move_file(
         return Err("Another file with the same name exists!".into());
     }
 
-    let result = UserFile::update_many()
+    let result = user_file::Entity::update_many()
         .col_expr(user_file::Column::Path, Expr::value(new_path))
         .filter(user_file::Column::Path.eq(path))
         .filter(user_file::Column::IsFolder.eq(false))
@@ -133,7 +132,7 @@ pub async fn move_folder(
         return Err("Another folder with the same name exists!".into());
     }
 
-    let result = UserFile::update_many()
+    let result = user_file::Entity::update_many()
         .col_expr(user_file::Column::Path, Expr::value(new_path.clone()))
         .filter(user_file::Column::Path.eq(path.clone()))
         .filter(user_file::Column::IsFolder.eq(true))
@@ -145,7 +144,7 @@ pub async fn move_folder(
 
     create_folder_recursively(db, &new_path).await?;
 
-    let result = UserFile::find()
+    let result = user_file::Entity::find()
         .filter(user_file::Column::Path.starts_with(path.clone() + "/"))
         .all(db)
         .await;
@@ -198,7 +197,7 @@ pub async fn rename_file(
 
     create_folder_recursively(db, &get_folder_path(&new_path)).await?;
 
-    let result = UserFile::update_many()
+    let result = user_file::Entity::update_many()
         .filter(user_file::Column::Path.eq(path.clone()))
         .filter(user_file::Column::IsFolder.eq(false))
         .col_expr(user_file::Column::Path, Expr::value(new_path))
@@ -228,7 +227,7 @@ pub async fn rename_folder(
 
     create_folder_recursively(db, &get_folder_path(&new_path)).await?;
 
-    let result = UserFile::update_many()
+    let result = user_file::Entity::update_many()
         .filter(user_file::Column::Path.eq(path.clone()))
         .filter(user_file::Column::IsFolder.eq(true))
         .col_expr(user_file::Column::Path, Expr::value(new_path.clone()))
@@ -239,7 +238,7 @@ pub async fn rename_folder(
         return Err(err.to_string());
     }
 
-    let result = UserFile::find()
+    let result = user_file::Entity::find()
         .filter(user_file::Column::Path.starts_with(path.clone() + "/"))
         .all(db)
         .await;
@@ -285,7 +284,7 @@ fn appy_new_name(path: &String, new_name: &String) -> String {
 }
 
 async fn file_exists(db: &DatabaseConnection, path: &String) -> Result<bool, String> {
-    let result = UserFile::find()
+    let result = user_file::Entity::find()
         .filter(user_file::Column::Path.eq(path.clone()))
         .filter(user_file::Column::IsFolder.eq(false))
         .count(db)
@@ -330,7 +329,7 @@ async fn create_folder_recursively(db: &DatabaseConnection, path: &String) -> Re
 }
 
 async fn folder_exists(db: &DatabaseConnection, path: &String) -> Result<bool, String> {
-    let result = UserFile::find()
+    let result = user_file::Entity::find()
         .filter(user_file::Column::Path.eq(path.clone()))
         .filter(user_file::Column::IsFolder.eq(true))
         .count(db)

@@ -1,33 +1,12 @@
-import { mdiPlus } from "@mdi/js";
-import Icon from "@mdi/react";
 import { useCallback, useRef, useState } from "react";
 import useGlobalKey from "../../hooks/useGlobalKey";
 import useOutsideClick from "../../hooks/useOutsideClick";
 import createDefaultCell from "../../utils/createDefaultCell";
-import getCellIcon from "../../utils/getCellIcon";
-import FocusTools from "./FocusTools";
-import NewCellTypeSelector from "./NewCellTypeSelector";
 import TitleBar from "./TitleBar";
 import styles from "./styles.module.css";
-import EditorCell from "../editorCell/EditorCell";
 import ConfirmationDialog from "../../ui/confirmationDialog/ConfirmationDialog";
 
-interface IProps {
-    title: string,
-    cells: CellInfoDto[],
-    isSaving: boolean,
-    repetitionCounts: CellRepetitionCountsDto,
-    onUpdate: (cells: CellInfoDto[]) => void,
-    onSave: () => Promise<void>,
-    onDelete: (index: number) => void,
-    onStudyButtonClick: () => void
-}
-
-function Editor({
-    title, cells, onUpdate, onSave,
-    onDelete, isSaving, repetitionCounts,
-    onStudyButtonClick }: IProps) {
-
+function Editor() {
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     // Used for the focus tools.
     const [showInsertNewCell, setShowInsertNewCell] = useState(false);
@@ -53,7 +32,7 @@ function Editor({
         const newArray = [...cells];
         newArray[index] = cellInfo;
         onUpdate(newArray);
-    }, [cells, onUpdate]);
+    }, []);
 
     const handleCellDeleteConfirm = () => {
         setShowDeleteDialog(false);
@@ -115,15 +94,16 @@ function Editor({
                 onConfirm={handleCellDeleteConfirm} />
             }
 
+            {/*TODO:*/}
             <TitleBar
-                title={title}
-                isSaving={isSaving}
-                repetitionCounts={repetitionCounts}
-                onSave={onSave}
-                onStudyButtonClick={onStudyButtonClick} />
+                title={""}
+                isSaving={false}
+                repetitionCounts={[]}
+                onSave={() => {}}
+                onStudyButtonClick={() => {}} />
 
             <div className={`container ${styles.editorContainer}`} ref={editorRef}>
-                {cells.map((cellInfo, i) =>
+                {/*cells.map((cellInfo, i) =>
                     <div key={cellInfo.id}
                         onFocus={() => selectCell(i)}
                         onClick={() => selectCell(i)}
@@ -157,8 +137,9 @@ function Editor({
                             onUpdate={(cellInfo) => handleCellUpdate(cellInfo, i)}
                             editable={draggedCellIndex === -1} />
                     </div>
-                )}
-
+                )*/}
+                
+                {/*
                 <div
                     className={`${styles.addButtonContainer}
                         ${dragOverCellIndex === cells.length ? styles.dragOver : ""}`}
@@ -180,6 +161,7 @@ function Editor({
                             ref={addNewCellPopupRef} />
                     </div>
                 }
+                */}
             </div>
         </div>
     );

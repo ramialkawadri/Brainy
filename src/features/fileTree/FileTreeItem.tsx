@@ -65,7 +65,7 @@ function FileTreeItem({folder, path, id, onMarkForDeletion }: IProps) {
             },
             {
                 iconName: mdiFileDocumentPlusOutline,
-                text: "New Notebook",
+                text: "New File",
                 onClick: () => {
                     setCreatingNewFolder(false);
                     setCreatingNewFile(true);
@@ -198,17 +198,15 @@ function FileTreeItem({folder, path, id, onMarkForDeletion }: IProps) {
         }
     };
 
-    // TODO: update css names
+    // TODO: make create a file into a button
     return (<div
-        className={`${styles.outerContainer}
-        ${isDragOver ? styles.outerContainerDragOver : ""}`}
+        className={`${styles.outerContainer} ${isDragOver ? styles.dragOver : ""}`}
         onDragStart={handleDragStart}
-        onDrop={(e) => void handleDrop(e)}
         onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}>
-        <div
-            className={`${styles.fileTree}`}
-            draggable={!isRoot && !renaming}>
+        onDragLeave={handleDragLeave}
+        onDrop={(e) => void handleDrop(e)}>
+
+        <div className={`${styles.fileTreeItem}`} draggable={!isRoot && !renaming}>
 
             <button
                 className={`${styles.fileTreeButton}
@@ -216,35 +214,33 @@ function FileTreeItem({folder, path, id, onMarkForDeletion }: IProps) {
                 onClick={(e) => void handleClick(e)}
                 onKeyUp={handleKeyUp}>
 
-                <div>
-                    <Icon
-                        path={isRoot ? mdiFileTreeOutline
-                        : folder ? (isExpanded ? mdiFolderOpenOutline : mdiFolderOutline)
-                        : mdiFileDocumentOutline}
-                        size={1} />
-                    {renaming && 
-                        <form onSubmit={(e) => void handleRenaming(e)}>
-                            <input
-                                type="text"
-                                value={newName}
-                                onChange={e => setNewName(e.target.value)}
-                                onFocus={e => e.target.select()}
-                                autoFocus
-                                className={`${styles.fileTreeRenameInput}`}
-                                onBlur={() => setRenaming(false)} />
-                        </form>
-                    }
-                    {!renaming && <p>{isRoot ? "Files" : getFileName(path)}</p>}
-                </div>
+                <Icon
+                    path={isRoot ? mdiFileTreeOutline
+                    : folder ? (isExpanded ? mdiFolderOpenOutline : mdiFolderOutline)
+                    : mdiFileDocumentOutline}
+                    size={1} />
+                {renaming && 
+                    <form onSubmit={(e) => void handleRenaming(e)}>
+                        <input
+                            type="text"
+                            value={newName}
+                            onChange={e => setNewName(e.target.value)}
+                            onFocus={e => e.target.select()}
+                            autoFocus
+                            className={`${styles.fileTreeRenameInput}`}
+                            onBlur={() => setRenaming(false)} />
+                    </form>}
+                {!renaming && <p>{isRoot ? "Files" : getFileName(path)}</p>}
             </button>
 
-            {!renaming && <button
-                title="Actions"
-                onClick={handleShowActions}
-                className={`${styles.fileTreeDots}
-                    ${isSelected ? styles.fileTreeDotsSelected : ""}`}>
-                <Icon path={mdiDotsHorizontal} size={1} />
-            </button>}
+            {!renaming &&
+                <button
+                    title="Actions"
+                    onClick={handleShowActions}
+                    className={`${styles.fileTreeDots}
+                        ${isSelected ? styles.fileTreeDotsSelected : ""}`}>
+                    <Icon path={mdiDotsHorizontal} size={1} />
+                </button>}
 
             {showActions && <ActionsMenu
                 onOutsideClick={() => setShowActions(false)}

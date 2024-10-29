@@ -1,5 +1,6 @@
 use sea_orm::entity::prelude::*;
-use serde::ser::{Serialize, SerializeStruct};
+use serde::ser::SerializeStruct;
+use serde::Serialize;
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq)]
 #[sea_orm(table_name = "user_file")]
@@ -10,8 +11,24 @@ pub struct Model {
     pub is_folder: bool,
 }
 
-#[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
-pub enum Relation {}
+#[derive(Copy, Clone, Debug, EnumIter)]
+pub enum Relation {
+    Cell,
+}
+
+impl RelationTrait for Relation {
+    fn def(&self) -> RelationDef {
+        match self {
+            Self::Cell => Entity::has_many(super::cell::Entity).into()
+        }
+    }
+}
+
+impl Related<super::cell::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Cell.def()
+    }
+}
 
 impl ActiveModelBehavior for ActiveModel {}
 

@@ -1,19 +1,23 @@
 use sea_orm::{
-    sea_query::{Index, TableCreateStatement}, ConnectionTrait, DatabaseConnection, DbBackend, DbErr, Schema,
+    sea_query::Index, ConnectionTrait, DatabaseConnection, DbBackend, DbErr, Schema
 };
 
-use crate::entity::UserFile;
-use crate::entity::user_file;
+use crate::entity::{user_file, cell};
 
 pub async fn setup_schema(db: &DatabaseConnection) -> Result<(), DbErr> {
     let schema = Schema::new(DbBackend::Sqlite);
-    let mut stmt: TableCreateStatement = schema.create_table_from_entity(UserFile);
+
+    let mut stmt = schema.create_table_from_entity(user_file::Entity);
+    stmt.if_not_exists();
+    db.execute(db.get_database_backend().build(&stmt)).await?;
+
+    let mut stmt = schema.create_table_from_entity(cell::Entity);
     stmt.if_not_exists();
     db.execute(db.get_database_backend().build(&stmt)).await?;
 
     let index = Index::create()
         .name("idx-path")
-        .table(UserFile)
+        .table(user_file::Entity)
         .col(user_file::Column::Path)
         .col(user_file::Column::IsFolder)
         .unique()

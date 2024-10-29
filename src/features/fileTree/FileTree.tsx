@@ -21,7 +21,7 @@ function FileTree({ folder }: IProps) {
     const handleDelete = async () => {
         if (folderMarkedForDeletion) {
             await dispatch(deleteFolder(folderMarkedForDeletion));
-            setFileMarkedForDeletion(null);
+            setFolderMarkedForDeletion(null);
         }
         if (fileMarkedForDeletion) {
             await dispatch(deleteFile(fileMarkedForDeletion));
@@ -42,14 +42,14 @@ function FileTree({ folder }: IProps) {
 
     return (
         <>
-            {(fileMarkedForDeletion ?? folderMarkedForDeletion) && <ConfirmationDialog
-                text={`Are you sure you want to delete "${
-                    getFileName(fileMarkedForDeletion ?? folderMarkedForDeletion!)
-                }"?`}
-                title="Delete"
-                onCancel={handleDeleteCancel}
-                onConfirm={() => void handleDelete()} />
-            }
+            {(fileMarkedForDeletion ?? folderMarkedForDeletion) &&
+                <ConfirmationDialog
+                    text={`Are you sure you want to delete "${
+                        getFileName(fileMarkedForDeletion ?? folderMarkedForDeletion!)
+                    }"?`}
+                    title="Delete"
+                    onCancel={handleDeleteCancel}
+                    onConfirm={() => void handleDelete()} />}
 
             <FileTreeItem
                 path=""

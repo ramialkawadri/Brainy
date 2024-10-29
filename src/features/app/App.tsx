@@ -4,7 +4,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { autoSaveDelay } from "../../constants";
 import useGlobalKey from "../../hooks/useGlobalKey";
 import ErrorBox from "../../ui/errorBox/ErrorBox";
-import Spinner from "../../ui/spinner/Spinner";
 import Reviewer from "../reviewer/Reviewer";
 import Home from "../home/Home";
 import useBeforeUnload from "../../hooks/useBeforeUnload";
@@ -15,12 +14,11 @@ import { fetchFiles } from "../../store/actions/fileSystemActions";
 import SideBar from "../sideBar/SideBar";
 
 // TODO: add shortcut to start study, shortcut to insert new cell
-function MainAppPage() {
+function App() {
     const [cells, setCells] = useState<CellInfoDto[]>([]);
     const [cellRepetitions, setCellRepetitions] = useState<CellRepetitionDto[]>([]);
     const [repetitionCounts, setRepetitionCounts] =
         useState<CellRepetitionCountsDto>({});
-    const [isExistingFile, setIsExistingFile] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [isReviewing, setIsReviewing] = useState(false);;
     const isLoading = false;
@@ -211,25 +209,15 @@ function MainAppPage() {
             <SideBar />
 
             <div className={`${styles.workarea}`}>
-                {isLoading &&
-                    <div className="center">
-                        <Spinner text="Loading" />
-                    </div>}
 
-                {!isLoading && !selectedFileId &&
+                {!selectedFileId &&
                     <Home rootFolder={rootFolder} />}
 
-                {selectedFileId && isExistingFile && !isLoading && !isReviewing &&
-                    <Editor cells={cells} title={selectedFileId}
-                        onUpdate={handleCellsUpdate}
-                        onSave={saveFile}
-                        onDelete={handleDeleteCell}
-                        isSaving={isSaving}
-                        repetitionCounts={repetitionCounts}
-                        onStudyButtonClick={() => void handleStudyButtonClick()} />}
+                {selectedFileId && !isReviewing &&
+                    <Editor />}
 
                 {/* TODO: filePath={searchParams.get(selectedFileQueryStringParameter)!*/}
-                {selectedFileId && isExistingFile && !isLoading && isReviewing &&
+                {selectedFileId && isReviewing &&
                     <Reviewer
                         cellRepetitions={cellRepetitions}
                         cells={cells}
@@ -242,4 +230,4 @@ function MainAppPage() {
     );
 }
 
-export default MainAppPage;
+export default App;

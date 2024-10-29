@@ -7,14 +7,12 @@ import { selectError, selectRootFolder } from "../../store/selectors/fileSystemS
 import { setErrorMessage, setSearchText } from "../../store/reducers/fileSystemReducers";
 
 // TODO: expand/hide sidebar
-// TODO: Add Home button, search button (in all cells), add settings button
+// TODO: Add Home button, recents, search button (in all cells), add settings button
 // TODO: fix search
 function SideBar() {
     const rootFolder = useAppSelector(selectRootFolder);
     const errorMessage = useAppSelector(selectError);
     const dispatch = useAppDispatch();
-
-    // TODO: add ability to create from nothing
 
     return (
         <div className={`${styles.sideBar}`}>
