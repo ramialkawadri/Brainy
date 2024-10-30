@@ -27,8 +27,11 @@ pub async fn create_file(db: &DatabaseConnection, path: String) -> Result<(), St
         is_folder: Set(false),
         ..Default::default()
     };
-    user_file::Entity::insert(active_model).exec(db).await.unwrap();
-    Ok(())
+    let result = user_file::Entity::insert(active_model).exec(db).await;
+    match result {
+        Ok(_) => Ok(()),
+        Err(err) => Err(err.to_string()),
+    }
 }
 
 pub async fn create_folder(db: &DatabaseConnection, path: String) -> Result<(), String> {
@@ -794,7 +797,9 @@ mod tests {
 
         let db = get_db().await;
         create_folder(&db, "folder 1".into()).await.unwrap();
-        create_folder(&db, "folder 2/folder 3".into()).await.unwrap();
+        create_folder(&db, "folder 2/folder 3".into())
+            .await
+            .unwrap();
         create_file(&db, "folder 2/file".into()).await.unwrap();
 
         // Act

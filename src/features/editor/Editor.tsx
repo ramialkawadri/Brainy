@@ -1,10 +1,20 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import useGlobalKey from "../../hooks/useGlobalKey";
 import useOutsideClick from "../../hooks/useOutsideClick";
 import createDefaultCell from "../../utils/createDefaultCell";
 import TitleBar from "./TitleBar";
 import styles from "./styles.module.css";
 import ConfirmationDialog from "../../ui/confirmationDialog/ConfirmationDialog";
+import { invoke } from "@tauri-apps/api/core";
+import useAppSelector from "../../hooks/useAppSelector";
+import { selectSelectedFileId } from "../../store/selectors/fileSystemSelectors";
+import ICell from "../../entities/cell";
+import FocusTools from "./FocusTools";
+import NewCellTypeSelector from "./NewCellTypeSelector";
+import Icon from "@mdi/react";
+import getCellIcon from "../../utils/getCellIcon";
+import EditorCell from "../editorCell/EditorCell";
+import { mdiPlus } from "@mdi/js";
 
 function Editor() {
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -15,8 +25,10 @@ function Editor() {
     const [selectedCellIndex, setSelectedCellIndex] = useState(0);
     const [draggedCellIndex, setDraggedCellIndex] = useState(-1);
     const [dragOverCellIndex, setDragOverCellIndex] = useState(-1);
+    const selectedFileId = useAppSelector(selectSelectedFileId);
     const addNewCellPopupRef = useRef<HTMLDivElement>(null);
     const editorRef = useRef<HTMLDivElement>(null);
+    const [cells, setCells] = useState<ICell[]>([]);
 
     useOutsideClick(editorRef as React.MutableRefObject<HTMLElement>,
         () => setShowInsertNewCell(false));
@@ -27,6 +39,24 @@ function Editor() {
             setShowAddNewCellPopup(false);
         }
     });
+
+    useEffect(() => {
+        void (async () => {
+            // await invoke("create_cell", {
+            //     fileId: selectedFileId,
+            //     content: JSON.stringify({
+            //         "question": "q",
+            //         "answer": "a",
+            //     }),
+            //     cellType: "FlashCard",
+            // });
+
+            const result: ICell[] = await invoke("get_cells", {
+                fileId: selectedFileId
+            });
+            setCells(result);
+        })();
+    }, [selectedFileId]);
 
     const handleCellUpdate = useCallback((cellInfo: CellInfoDto, index: number) => {
         const newArray = [...cells];
@@ -103,8 +133,8 @@ function Editor() {
                 onStudyButtonClick={() => {}} />
 
             <div className={`container ${styles.editorContainer}`} ref={editorRef}>
-                {/*cells.map((cellInfo, i) =>
-                    <div key={cellInfo.id}
+                {cells.map((cell, i) =>
+                    <div key={cell.id}
                         onFocus={() => selectCell(i)}
                         onClick={() => selectCell(i)}
                         onDragOver={(e) => handleDragOver(e, i)}
@@ -128,18 +158,17 @@ function Editor() {
                                 onClick={(cellType) => insertNewCell(cellType, i)}/>}
 
                         <div className={styles.cellTitle}>
-                            <Icon path={getCellIcon(cellInfo.type!)} size={1} />
-                            <span>{cellInfo.type}</span>
+                            <Icon path={getCellIcon(cell)} size={1} />
+                            <span>{cell.cellType}</span>
                         </div>
 
                         <EditorCell
-                            cellInfo={cellInfo}
-                            onUpdate={(cellInfo) => handleCellUpdate(cellInfo, i)}
+                            cell={cell}
+                            // onUpdate={(cellInfo) => handleCellUpdate(cellInfo, i)}
                             editable={draggedCellIndex === -1} />
                     </div>
-                )*/}
+                )}
                 
-                {/*
                 <div
                     className={`${styles.addButtonContainer}
                         ${dragOverCellIndex === cells.length ? styles.dragOver : ""}`}
@@ -161,7 +190,6 @@ function Editor() {
                             ref={addNewCellPopupRef} />
                     </div>
                 }
-                */}
             </div>
         </div>
     );

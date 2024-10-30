@@ -26,6 +26,9 @@ pub async fn run() -> Result<(), DbErr> {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
+            get_cells,
+            create_cell,
+
             get_files,
             create_file,
             create_folder,

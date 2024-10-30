@@ -1,8 +1,8 @@
 use sea_orm::entity::prelude::*;
 use serde::ser::SerializeStruct;
-use serde::Serialize;
+use serde::{Serialize, Deserialize};
 
-#[derive(Debug, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum, Serialize, Deserialize)]
 #[sea_orm(rs_type = "String", db_type = "String(StringLen::None)")]
 pub enum CellType {
     #[sea_orm(string_value = "FlashCard")]
@@ -49,10 +49,11 @@ impl Serialize for Model {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer {
-            let mut state = serializer.serialize_struct("Cell", 3)?;
+            let mut state = serializer.serialize_struct("Cell", 4)?;
             state.serialize_field("id", &self.id)?;
+            state.serialize_field("fileId", &self.file_id)?;
             state.serialize_field("content", &self.content)?;
-            state.serialize_field("CellType", &self.cell_type)?;
+            state.serialize_field("cellType", &self.cell_type)?;
             state.end()
     }
 }

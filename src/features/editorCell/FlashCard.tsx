@@ -1,16 +1,16 @@
-import { CellInfoDto } from "../../services/backendApi";
-import IFlashCard from "../../types/cells/FlashCard";
-import RichTextEditor from "../../ui/RichTextEditor/RichTextEditor";
+import ICell from "../../entities/cell";
+import IFlashCard from "../../types/flashCard";
+import RichTextEditor from "../../ui/richTextEditor/RichTextEditor";
 import styles from "./styles.module.css";
 
 interface IProps {
-    cellInfo: CellInfoDto,
+    cell: ICell,
     editable: boolean,
     onUpdate: (flashCard: IFlashCard) => void,
 }
 
-function FlashCard({ cellInfo, onUpdate, editable }: IProps) {
-    const flashCard = cellInfo.data as IFlashCard;
+function FlashCard({ cell, onUpdate, editable }: IProps) {
+    const flashCard = JSON.parse(cell.content) as IFlashCard;
 
     const handleQuestionUpdate = (html: string) =>
         onUpdate({

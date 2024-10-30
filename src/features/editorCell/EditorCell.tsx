@@ -1,24 +1,30 @@
-import RichTextEditor from "../../ui/RichTextEditor/RichTextEditor";
+import ICell from "../../entities/cell";
+import RichTextEditor from "../../ui/richTextEditor/RichTextEditor";
 import FlashCard from "./FlashCard";
 
 interface IProps {
-    cellInfo: CellInfoDto,
+    cell: ICell,
     editable: boolean,
-    onUpdate: (cellInfo: CellInfoDto) => void,
 }
 
-function EditorCell({ cellInfo, onUpdate, editable }: IProps) {
-    // switch (cellInfo.type) {
-    //     case CellType.FlashCard:
-    //         return <FlashCard cellInfo={cellInfo} onUpdate={
-    //             data => onUpdate({...cellInfo, data })} editable={editable} />
-    //     case CellType.Note:
-    //         return <RichTextEditor content={String(cellInfo.data)}
-    //             onUpdate={html => onUpdate({ ...cellInfo, data: html })}
-    //             editable={editable} />;
-    // }
-    return <p></p>;
-    
+function EditorCell({ cell, editable }: IProps) {
+    const onUpdate = (cell: ICell) => {
+        // TODO:
+        console.log(cell);
+    };
+
+    switch (cell.cellType) {
+        case "FlashCard":
+            return <FlashCard
+                cell={cell}
+                onUpdate={data => onUpdate({...cell, content: JSON.stringify(data)})}
+                editable={editable} />;
+        case "Note":
+            return <RichTextEditor
+                content={cell.content}
+                onUpdate={html => onUpdate({ ...cell, content: html })}
+                editable={editable} />;
+    }
 }
 
 export default EditorCell;
