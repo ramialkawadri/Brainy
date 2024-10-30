@@ -34,4 +34,6 @@ const NewCellTypeSelector = forwardRef<HTMLDivElement, IProps>(
     );
 });
 
+NewCellTypeSelector.displayName = "NewCellTypeSelector";
+
 export default NewCellTypeSelector;
