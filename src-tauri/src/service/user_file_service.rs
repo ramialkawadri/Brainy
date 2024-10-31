@@ -45,6 +45,7 @@ pub async fn create_folder(db: &DatabaseConnection, path: String) -> Result<(), 
 }
 
 pub async fn delete_file(db: &DatabaseConnection, path: String) -> Result<(), String> {
+    // TODO: delete all cells, use cascade
     let result = user_file::Entity::delete_many()
         .filter(user_file::Column::Path.eq(path))
         .filter(user_file::Column::IsFolder.eq(false))
@@ -58,6 +59,7 @@ pub async fn delete_file(db: &DatabaseConnection, path: String) -> Result<(), St
 }
 
 pub async fn delete_folder(db: &DatabaseConnection, path: String) -> Result<(), String> {
+    // TODO: delete all cells, use cascade
     let result = user_file::Entity::delete_many()
         .filter(user_file::Column::Path.starts_with(path.clone() + "/"))
         .exec(db)
@@ -347,13 +349,7 @@ async fn folder_exists(db: &DatabaseConnection, path: &String) -> Result<bool, S
 #[cfg(test)]
 mod tests {
     use super::*;
-    use sea_orm::Database;
-
-    async fn get_db() -> DatabaseConnection {
-        let connection = Database::connect("sqlite::memory:").await.unwrap();
-        crate::migration::setup_schema(&connection).await.unwrap();
-        connection
-    }
+    use crate::service::tests::*;
 
     #[tokio::test]
     async fn create_folder_valid_input_created_folder() {

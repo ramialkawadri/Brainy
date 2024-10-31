@@ -8,7 +8,7 @@ import ConfirmationDialog from "../../ui/confirmationDialog/ConfirmationDialog";
 import { invoke } from "@tauri-apps/api/core";
 import useAppSelector from "../../hooks/useAppSelector";
 import { selectSelectedFileId } from "../../store/selectors/fileSystemSelectors";
-import ICell from "../../entities/cell";
+import ICell, { CellType } from "../../entities/cell";
 import FocusTools from "./FocusTools";
 import NewCellTypeSelector from "./NewCellTypeSelector";
 import Icon from "@mdi/react";
@@ -25,7 +25,7 @@ function Editor() {
     const [selectedCellIndex, setSelectedCellIndex] = useState(0);
     const [draggedCellIndex, setDraggedCellIndex] = useState(-1);
     const [dragOverCellIndex, setDragOverCellIndex] = useState(-1);
-    const selectedFileId = useAppSelector(selectSelectedFileId);
+    const selectedFileId = useAppSelector(selectSelectedFileId)!;
     const addNewCellPopupRef = useRef<HTMLDivElement>(null);
     const editorRef = useRef<HTMLDivElement>(null);
     const [cells, setCells] = useState<ICell[]>([]);
@@ -40,23 +40,27 @@ function Editor() {
         }
     });
 
-    useEffect(() => {
-        void (async () => {
-            // await invoke("create_cell", {
-            //     fileId: selectedFileId,
-            //     content: JSON.stringify({
-            //         "question": "q",
-            //         "answer": "a",
-            //     }),
-            //     cellType: "FlashCard",
-            // });
+    const fetchUserFiles = useCallback(async () => {
+        // TODO: handle exception
+        const result: ICell[] = await invoke("get_cells", {
+            fileId: selectedFileId
+        });
+        setCells(result);
+    }, [selectedFileId, setCells]);
 
-            const result: ICell[] = await invoke("get_cells", {
-                fileId: selectedFileId
-            });
-            setCells(result);
-        })();
-    }, [selectedFileId]);
+    const insertNewCell = async (cellType: CellType, index = -1) => {
+        // TODO: handle exception
+        await invoke("create_cell", {
+            ...createDefaultCell(cellType, selectedFileId, index)
+        });
+        await fetchUserFiles();
+        setShowInsertNewCell(false);
+        setShowAddNewCellPopup(false);
+    };
+
+    useEffect(() => {
+        void fetchUserFiles();
+    }, [fetchUserFiles]);
 
     const handleCellUpdate = useCallback((cellInfo: CellInfoDto, index: number) => {
         const newArray = [...cells];
@@ -74,15 +78,6 @@ function Editor() {
             setShowInsertNewCell(false);
             setSelectedCellIndex(index);
         }
-    };
-
-    const insertNewCell = (cellType: CellType, index = -1) => {
-        const insertIndex = index === -1 ? cells.length : index;
-        const newArray = [...cells];
-        newArray.splice(insertIndex, 0, createDefaultCell(cellType));
-        onUpdate(newArray);
-        setShowInsertNewCell(false);
-        setShowAddNewCellPopup(false);
     };
 
     const handleDragStart = (e: React.DragEvent, index: number) => {
@@ -155,10 +150,10 @@ function Editor() {
                         {showInsertNewCell && selectedCellIndex === i &&
                             <NewCellTypeSelector
                                 className={styles.insertCellPopup}
-                                onClick={(cellType) => insertNewCell(cellType, i)}/>}
+                                onClick={(cellType) => void insertNewCell(cellType, i)}/>}
 
                         <div className={styles.cellTitle}>
-                            <Icon path={getCellIcon(cell)} size={1} />
+                            <Icon path={getCellIcon(cell.cellType)} size={1} />
                             <span>{cell.cellType}</span>
                         </div>
 
@@ -186,10 +181,9 @@ function Editor() {
                     <div className="overlay">
                         <NewCellTypeSelector
                             className={styles.overlayCellSelector}
-                            onClick={(cellType) => insertNewCell(cellType)}
+                            onClick={(cellType) => void insertNewCell(cellType, cells.length)}
                             ref={addNewCellPopupRef} />
-                    </div>
-                }
+                    </div>}
             </div>
         </div>
     );

@@ -1,6 +1,10 @@
+export type CellType = "FlashCard" | "Note";
+export const allCellTypes: CellType[] = ["FlashCard", "Note"]; 
+
 export default interface ICell {
-    id: number,
-    file_id: number,
+    id?: number,
+    fileId: number,
     content: string,
-    cellType: "FlashCard" | "Note",
+    cellType: CellType,
+    index: number,
 }

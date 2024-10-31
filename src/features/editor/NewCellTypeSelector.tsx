@@ -2,6 +2,7 @@ import { forwardRef, useState } from "react";
 import styles from "./styles.module.css";
 import Icon from "@mdi/react";
 import getCellIcon from "../../utils/getCellIcon";
+import { allCellTypes, CellType } from "../../entities/cell";
 
 interface IProps {
     className?: string,
@@ -18,9 +19,8 @@ const NewCellTypeSelector = forwardRef<HTMLDivElement, IProps>(
             <input id="search-type" type="text" placeholder="Search"
                 onChange={(e) => setSearchText(e.target.value)} autoFocus />
 
-            {Object.keys(CellType)
+            {allCellTypes
                 .filter(key => key.toLowerCase().includes(searchText.toLowerCase()))
-                .map(key => CellType[key as keyof typeof CellType])
                 .map(cellType =>
                     <button
                         key={cellType}

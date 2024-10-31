@@ -1,8 +1,8 @@
 import { mdiCardMultipleOutline, mdiHelp, mdiNoteOutline } from "@mdi/js";
-import ICell from "../entities/cell";
+import { CellType } from "../entities/cell";
 
-function getCellIcon(cell: ICell): string {
-    switch (cell.cellType) {
+function getCellIcon(cellType: CellType): string {
+    switch (cellType) {
         case "FlashCard":
             return mdiCardMultipleOutline;
         case "Note":

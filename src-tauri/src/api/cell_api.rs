@@ -19,7 +19,8 @@ pub async fn create_cell(
     file_id: i32,
     content: String,
     cell_type: CellType,
+    index: i32,
 ) -> Result<(), String> {
     let state = state.lock().await;
-    cell_services::create_cell(&state.connection, file_id, content, cell_type).await
+    cell_services::create_cell(&state.connection, file_id, content, cell_type, index).await
 }

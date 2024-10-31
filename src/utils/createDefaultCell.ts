@@ -1,19 +1,22 @@
-// import { v4 as uuidv4 } from "uuid";
+import ICell, { CellType } from "../entities/cell";
+import IFlashCard from "../types/flashCard";
 
-function createDefaultCell(cellType: CellType) {
-    const cellInfo: CellInfoDto = {
-        type: cellType,
-        id: uuidv4(),
+function createDefaultCell(cellType: CellType, fileId: number, index: number) {
+    const cell: ICell = {
+        fileId,
+        content: "",
+        cellType,
+        index,
     };
 
     switch (cellType) {
-        case CellType.FlashCard:
-            cellInfo.data = { question: "", answer: "" } as IFlashCard;
+        case "FlashCard":
+            cell.content = JSON.stringify({ question: "", answer: "" } as IFlashCard);
             break;
-        case CellType.Note:
-            cellInfo.data = "";
+        case "Note":
+            break;
     }
-    return cellInfo;
+    return cell;
 }
 
 export default createDefaultCell;
