@@ -198,7 +198,7 @@ function FileTreeItem({folder, path, id, onMarkForDeletion }: IProps) {
         }
     };
 
-    // TODO: make create a file into a button
+    // TODO: make create a file text into a button
     return (<div
         className={`${styles.outerContainer} ${isDragOver ? styles.dragOver : ""}`}
         onDragStart={handleDragStart}

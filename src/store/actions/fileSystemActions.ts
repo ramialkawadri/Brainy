@@ -21,10 +21,12 @@ export function createFolder(path: string) {
 }
 
 export function deleteFile(path: string) {
+    // TODO: if selected file is deleted then change selected fiel id
     return executeRequest(() => invoke("delete_file", { path }));
 }
 
 export function deleteFolder(path: string) {
+    // TODO: if selected file is deleted then change selected fiel id
     return executeRequest(() => invoke("delete_folder", { path }));
 }
 

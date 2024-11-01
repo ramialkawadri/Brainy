@@ -57,6 +57,7 @@ mod tests {
     use super::*;
     use crate::service::tests::*;
     use crate::service::user_file_service::*;
+    use crate::service::user_file_service::tests::*;
 
     #[tokio::test]
     async fn create_cell_valid_input_created_cells() {
@@ -64,7 +65,7 @@ mod tests {
 
         let db = get_db().await;
         create_file(&db, "file 1".into()).await.unwrap();
-        let file_id = get_user_files(&db).await.unwrap().first().unwrap().id;
+        let file_id = get_file_id(&db, "file 1").await;
 
         // Act
 

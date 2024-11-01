@@ -1,4 +1,4 @@
-use crate::entity::user_file;
+use crate::entity::{cell, user_file};
 
 use prelude::Expr;
 use sea_orm::DatabaseConnection;
@@ -45,12 +45,44 @@ pub async fn create_folder(db: &DatabaseConnection, path: String) -> Result<(), 
 }
 
 pub async fn delete_file(db: &DatabaseConnection, path: String) -> Result<(), String> {
-    // TODO: delete all cells, use cascade
+    let file = match user_file::Entity::find()
+        .filter(user_file::Column::Path.eq(path.clone()))
+        .column(user_file::Column::Id)
+        .one(db)
+        .await
+    {
+        Ok(file_id) => file_id,
+        Err(err) => return Err(err.to_string()),
+    };
+
+    let file = match file {
+        Some(id) => id,
+        None => return Ok(()),
+    };
+
+    let txn = match db.begin().await {
+        Ok(txn) => txn,
+        Err(err) => return Err(err.to_string()),
+    };
+
+    let result = cell::Entity::delete_many()
+        .filter(cell::Column::FileId.eq(file.id))
+        .exec(&txn)
+        .await;
+    if let Err(err) = result {
+        return Err(err.to_string());
+    }
+
     let result = user_file::Entity::delete_many()
         .filter(user_file::Column::Path.eq(path))
         .filter(user_file::Column::IsFolder.eq(false))
-        .exec(db)
+        .exec(&txn)
         .await;
+    if let Err(err) = result {
+        return Err(err.to_string());
+    }
+
+    let result = txn.commit().await;
 
     match result {
         Err(err) => return Err(err.to_string()),
@@ -59,22 +91,50 @@ pub async fn delete_file(db: &DatabaseConnection, path: String) -> Result<(), St
 }
 
 pub async fn delete_folder(db: &DatabaseConnection, path: String) -> Result<(), String> {
-    // TODO: delete all cells, use cascade
-    let result = user_file::Entity::delete_many()
+    let files = match user_file::Entity::find()
         .filter(user_file::Column::Path.starts_with(path.clone() + "/"))
-        .exec(db)
-        .await;
-
-    match result {
+        .filter(user_file::Column::IsFolder.eq(false))
+        .column(user_file::Column::Id)
+        .all(db)
+        .await
+    {
+        Ok(file_id) => file_id,
         Err(err) => return Err(err.to_string()),
-        _ => (),
+    };
+
+    let txn = match db.begin().await {
+        Ok(txn) => txn,
+        Err(err) => return Err(err.to_string()),
+    };
+
+    for file in files {
+        let result = cell::Entity::delete_many()
+            .filter(cell::Column::FileId.eq(file.id))
+            .exec(&txn)
+            .await;
+        if let Err(err) = result {
+            return Err(err.to_string());
+        }
     }
 
     let result = user_file::Entity::delete_many()
-        .filter(user_file::Column::Path.starts_with(path))
-        .filter(user_file::Column::IsFolder.eq(true))
-        .exec(db)
+        .filter(user_file::Column::Path.starts_with(path.clone() + "/"))
+        .exec(&txn)
         .await;
+    if let Err(err) = result {
+        return Err(err.to_string());
+    }
+
+    let result = user_file::Entity::delete_many()
+        .filter(user_file::Column::Path.eq(path))
+        .filter(user_file::Column::IsFolder.eq(true))
+        .exec(&txn)
+        .await;
+    if let Err(err) = result {
+        return Err(err.to_string());
+    }
+
+    let result = txn.commit().await;
 
     match result {
         Err(err) => return Err(err.to_string()),
@@ -347,9 +407,11 @@ async fn folder_exists(db: &DatabaseConnection, path: &String) -> Result<bool, S
 }
 
 #[cfg(test)]
-mod tests {
+pub mod tests {
+    use cell::CellType;
+
     use super::*;
-    use crate::service::tests::*;
+    use crate::service::{cell_services::create_cell, tests::*};
 
     #[tokio::test]
     async fn create_folder_valid_input_created_folder() {
@@ -492,6 +554,17 @@ mod tests {
         let db = get_db().await;
         create_folder(&db, "test".into()).await.unwrap();
         create_file(&db, "test".into()).await.unwrap();
+        create_file(&db, "test 2".into()).await.unwrap();
+
+        let file_id = get_file_id(&db, "test").await;
+        create_cell(&db, file_id, "".into(), CellType::Note, 0)
+            .await
+            .unwrap();
+
+        let file_id = get_file_id(&db, "test 2").await;
+        create_cell(&db, file_id, "".into(), CellType::Note, 0)
+            .await
+            .unwrap();
 
         // Act
 
@@ -500,7 +573,9 @@ mod tests {
         // Assert
 
         let actual = get_user_files(&db).await.unwrap();
-        assert_eq!(actual.len(), 1);
+        assert_eq!(actual.len(), 2);
+        let cell_counts = cell::Entity::find().all(&db).await.unwrap();
+        assert_eq!(cell_counts.len(), 1);
     }
 
     #[tokio::test]
@@ -509,7 +584,17 @@ mod tests {
 
         let db = get_db().await;
         create_folder(&db, "test".into()).await.unwrap();
+        create_file(&db, "test/file".into()).await.unwrap();
+        let file_id = get_file_id(&db, "test/file").await;
+        create_cell(&db, file_id, "".into(), CellType::Note, 0)
+            .await
+            .unwrap();
+
         create_file(&db, "test".into()).await.unwrap();
+        let file_id = get_file_id(&db, "test").await;
+        create_cell(&db, file_id, "".into(), CellType::Note, 0)
+            .await
+            .unwrap();
 
         // Act
 
@@ -519,6 +604,8 @@ mod tests {
 
         let actual = get_user_files(&db).await.unwrap();
         assert_eq!(actual.len(), 1);
+        let cell_counts = cell::Entity::find().all(&db).await.unwrap();
+        assert_eq!(cell_counts.len(), 1);
     }
 
     #[tokio::test]
@@ -843,5 +930,16 @@ mod tests {
             actual,
             Err("Another folder with the same name already exists!".into())
         );
+    }
+
+    pub async fn get_file_id(db: &DatabaseConnection, path: &str) -> i32 {
+        return user_file::Entity::find()
+            .filter(user_file::Column::Path.eq(path))
+            .filter(user_file::Column::IsFolder.eq(false))
+            .one(db)
+            .await
+            .unwrap()
+            .unwrap()
+            .id;
     }
 }

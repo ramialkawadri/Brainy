@@ -3,7 +3,7 @@
     border: 2px solid transparent;
     border-radius: var(--default-border-radius);
 
-    .drag-over {
+    &.drag-over {
         border-color: var(--primary-color);
     }
 }
