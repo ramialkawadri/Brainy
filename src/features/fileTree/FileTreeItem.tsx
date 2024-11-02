@@ -9,7 +9,6 @@ import { mdiDeleteOutline, mdiDotsHorizontal, mdiFileDocumentOutline,
     mdiPencilOutline} from "@mdi/js";
 import React, { useState } from "react";
 import ActionsMenu, { IAction } from "./ActionsMenu";
-import getFolderPath from "../../utils/getFolderPath";
 import useAppDispatch from "../../hooks/useAppDispatch";
 import useAppSelector from "../../hooks/useAppSelector";
 import { selectSearchText, selectSelectedFileId } from "../../store/selectors/fileSystemSelectors";
@@ -24,8 +23,8 @@ const dragFormatForFile = "brainy/filepath";
 interface IProps {
     folder: IFolder | null,
     path: string,
-    onMarkForDeletion: (path: string, isFolder: boolean) => void,
     id: number,
+    onMarkForDeletion: (id: number, isFolder: boolean) => void,
 }
 
 /**
@@ -102,7 +101,7 @@ function FileTreeItem({folder, path, id, onMarkForDeletion }: IProps) {
 
     function markForDeletion() {
         if (isRoot) return;
-        onMarkForDeletion(path, folder !== null);
+        onMarkForDeletion(id, folder !== null);
         setShowActions(false);
     }
 
@@ -130,8 +129,8 @@ function FileTreeItem({folder, path, id, onMarkForDeletion }: IProps) {
         e.preventDefault();
         setRenaming(false);
 
-        if (folder) await dispatch(renameFolder(path, newName));
-        else await dispatch(renameFile(path, newName));
+        if (folder) await dispatch(renameFolder(id, newName));
+        else await dispatch(renameFile(id, newName));
     };
 
     const handleKeyUp = (e: React.KeyboardEvent<HTMLButtonElement>) => {
@@ -160,7 +159,7 @@ function FileTreeItem({folder, path, id, onMarkForDeletion }: IProps) {
         e.stopPropagation();
         if (renaming) return;
         const format = folder ? dragFormatForFolder : dragFormatForFile;
-        e.dataTransfer.setData(format, path);
+        e.dataTransfer.setData(format, id.toString());
     };
 
     const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
@@ -183,18 +182,12 @@ function FileTreeItem({folder, path, id, onMarkForDeletion }: IProps) {
         e.stopPropagation();
         setIsDragOver(false);
 
-        const filePath = e.dataTransfer.getData(dragFormatForFile);
-        const folderPath = e.dataTransfer.getData(dragFormatForFolder);
-        const sourceFolder = filePath
-            ? getFolderPath(filePath)
-            : folderPath;
-        if (sourceFolder === path) {
-            return;
-        }
-        if (filePath) {
-            await dispatch(moveFile(filePath, path));
-        } else if (folderPath) {
-            await dispatch(moveFolder(folderPath, path));
+        const fileId = e.dataTransfer.getData(dragFormatForFile);
+        const folderId = e.dataTransfer.getData(dragFormatForFolder);
+        if (fileId) {
+            await dispatch(moveFile(Number(fileId), id));
+        } else if (folderId) {
+            await dispatch(moveFolder(Number(folderId), id));
         }
     };
 

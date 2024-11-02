@@ -121,7 +121,6 @@ function Editor() {
 
             {/*TODO:*/}
             <TitleBar
-                title={""}
                 isSaving={false}
                 repetitionCounts={[]}
                 onSave={() => {}}

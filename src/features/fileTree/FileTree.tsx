@@ -3,7 +3,6 @@ import ConfirmationDialog from "../../ui/confirmationDialog/ConfirmationDialog";
 import useAppDispatch from "../../hooks/useAppDispatch";
 import IFolder from "../../types/folder.ts";
 import { deleteFile, deleteFolder } from "../../store/actions/fileSystemActions.ts";
-import getFileName from "../../utils/getFileName.ts";
 import FileTreeItem from "./FileTreeItem";
 
 
@@ -13,9 +12,9 @@ interface IProps {
 
 function FileTree({ folder }: IProps) {
     const [fileMarkedForDeletion, setFileMarkedForDeletion] =
-        useState<string | null>(null);
+        useState<number | null>(null);
     const [folderMarkedForDeletion, setFolderMarkedForDeletion] =
-        useState<string | null>(null);
+        useState<number | null>(null);
     const dispatch = useAppDispatch();
 
     const handleDelete = async () => {
@@ -35,18 +34,17 @@ function FileTree({ folder }: IProps) {
         setFolderMarkedForDeletion(null);
     };
 
-    const handleMarkForDeletion = (path: string, isFolder: boolean) => {
-        if (isFolder) setFolderMarkedForDeletion(path);
-        else setFileMarkedForDeletion(path);
+    const handleMarkForDeletion = (id: number, isFolder: boolean) => {
+        if (isFolder) setFolderMarkedForDeletion(id);
+        else setFileMarkedForDeletion(id);
     };
 
     return (
         <>
             {(fileMarkedForDeletion ?? folderMarkedForDeletion) &&
                 <ConfirmationDialog
-                    text={`Are you sure you want to delete "${
-                        getFileName(fileMarkedForDeletion ?? folderMarkedForDeletion!)
-                    }"?`}
+                    text={`Are you sure you want to delete the selected ${
+                        fileMarkedForDeletion ? "file" : "folder"}?`}
                     title="Delete"
                     onCancel={handleDeleteCancel}
                     onConfirm={() => void handleDelete()} />}

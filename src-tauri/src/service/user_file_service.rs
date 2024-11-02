@@ -44,29 +44,14 @@ pub async fn create_folder(db: &DatabaseConnection, path: String) -> Result<(), 
     create_folder_recursively(db, &path).await
 }
 
-pub async fn delete_file(db: &DatabaseConnection, path: String) -> Result<(), String> {
-    let file = match user_file::Entity::find()
-        .filter(user_file::Column::Path.eq(path.clone()))
-        .column(user_file::Column::Id)
-        .one(db)
-        .await
-    {
-        Ok(file_id) => file_id,
-        Err(err) => return Err(err.to_string()),
-    };
-
-    let file = match file {
-        Some(id) => id,
-        None => return Ok(()),
-    };
-
+pub async fn delete_file(db: &DatabaseConnection, file_id: i32) -> Result<(), String> {
     let txn = match db.begin().await {
         Ok(txn) => txn,
         Err(err) => return Err(err.to_string()),
     };
 
     let result = cell::Entity::delete_many()
-        .filter(cell::Column::FileId.eq(file.id))
+        .filter(cell::Column::FileId.eq(file_id))
         .exec(&txn)
         .await;
     if let Err(err) = result {
@@ -74,8 +59,7 @@ pub async fn delete_file(db: &DatabaseConnection, path: String) -> Result<(), St
     }
 
     let result = user_file::Entity::delete_many()
-        .filter(user_file::Column::Path.eq(path))
-        .filter(user_file::Column::IsFolder.eq(false))
+        .filter(user_file::Column::Id.eq(file_id))
         .exec(&txn)
         .await;
     if let Err(err) = result {
@@ -90,9 +74,11 @@ pub async fn delete_file(db: &DatabaseConnection, path: String) -> Result<(), St
     }
 }
 
-pub async fn delete_folder(db: &DatabaseConnection, path: String) -> Result<(), String> {
+pub async fn delete_folder(db: &DatabaseConnection, folder_id: i32) -> Result<(), String> {
+    let folder = get_by_id(db, folder_id).await?;
+
     let files = match user_file::Entity::find()
-        .filter(user_file::Column::Path.starts_with(path.clone() + "/"))
+        .filter(user_file::Column::Path.starts_with(folder.path.clone() + "/"))
         .filter(user_file::Column::IsFolder.eq(false))
         .column(user_file::Column::Id)
         .all(db)
@@ -118,7 +104,7 @@ pub async fn delete_folder(db: &DatabaseConnection, path: String) -> Result<(), 
     }
 
     let result = user_file::Entity::delete_many()
-        .filter(user_file::Column::Path.starts_with(path.clone() + "/"))
+        .filter(user_file::Column::Path.starts_with(folder.path.clone() + "/"))
         .exec(&txn)
         .await;
     if let Err(err) = result {
@@ -126,8 +112,7 @@ pub async fn delete_folder(db: &DatabaseConnection, path: String) -> Result<(), 
     }
 
     let result = user_file::Entity::delete_many()
-        .filter(user_file::Column::Path.eq(path))
-        .filter(user_file::Column::IsFolder.eq(true))
+        .filter(user_file::Column::Id.eq(folder_id))
         .exec(&txn)
         .await;
     if let Err(err) = result {
@@ -144,17 +129,24 @@ pub async fn delete_folder(db: &DatabaseConnection, path: String) -> Result<(), 
 
 pub async fn move_file(
     db: &DatabaseConnection,
-    path: String,
-    destination: String,
+    file_id: i32,
+    destination_folder_id: i32,
 ) -> Result<(), String> {
-    if destination == get_folder_path(&path) {
+    let file = get_by_id(db, file_id).await?;
+    let destination_path = if destination_folder_id == 0 {
+        "".into()
+    } else {
+        get_by_id(db, destination_folder_id).await?.path
+    };
+
+    if destination_path == get_folder_path(&file.path) {
         return Ok(());
     }
-    let file_name = get_file_name(&path);
-    let new_path = if destination.is_empty() {
+    let file_name = get_file_name(&file.path);
+    let new_path = if destination_path.is_empty() {
         file_name
     } else {
-        destination + "/" + file_name.as_str()
+        destination_path + "/" + file_name.as_str()
     };
 
     if file_exists(db, &new_path).await? {
@@ -163,8 +155,7 @@ pub async fn move_file(
 
     let result = user_file::Entity::update_many()
         .col_expr(user_file::Column::Path, Expr::value(new_path))
-        .filter(user_file::Column::Path.eq(path))
-        .filter(user_file::Column::IsFolder.eq(false))
+        .filter(user_file::Column::Id.eq(file_id))
         .exec(db)
         .await;
     if let Err(err) = result {
@@ -176,21 +167,28 @@ pub async fn move_file(
 
 pub async fn move_folder(
     db: &DatabaseConnection,
-    path: String,
-    destination: String,
+    folder_id: i32,
+    destination_folder_id: i32,
 ) -> Result<(), String> {
-    if destination == path {
+    let folder = get_by_id(db, folder_id).await?;
+    let destination_path = if destination_folder_id == 0 {
+        "".into()
+    } else {
+        get_by_id(db, destination_folder_id).await?.path
+    };
+
+    if destination_path == folder.path {
         return Ok(());
-    } else if destination == get_folder_path(&path) {
+    } else if destination_path == get_folder_path(&folder.path) {
         return Ok(());
-    } else if destination.starts_with((path.clone() + "/").as_str()) {
+    } else if destination_path.starts_with((folder.path.clone() + "/").as_str()) {
         return Err("You cannot move into an inner folder!".into());
     }
-    let folder_name = get_file_name(&path);
-    let new_path = if destination.is_empty() {
+    let folder_name = get_file_name(&folder.path);
+    let new_path = if destination_path.is_empty() {
         folder_name
     } else {
-        destination + "/" + folder_name.as_str()
+        destination_path + "/" + folder_name.as_str()
     };
 
     if folder_exists(db, &new_path).await? {
@@ -199,8 +197,7 @@ pub async fn move_folder(
 
     let result = user_file::Entity::update_many()
         .col_expr(user_file::Column::Path, Expr::value(new_path.clone()))
-        .filter(user_file::Column::Path.eq(path.clone()))
-        .filter(user_file::Column::IsFolder.eq(true))
+        .filter(user_file::Column::Id.eq(folder_id))
         .exec(db)
         .await;
     if let Err(err) = result {
@@ -210,7 +207,7 @@ pub async fn move_folder(
     create_folder_recursively(db, &new_path).await?;
 
     let result = user_file::Entity::find()
-        .filter(user_file::Column::Path.starts_with(path.clone() + "/"))
+        .filter(user_file::Column::Path.starts_with(folder.path.clone() + "/"))
         .all(db)
         .await;
 
@@ -223,7 +220,7 @@ pub async fn move_folder(
             + row
                 .path
                 .chars()
-                .skip(path.len())
+                .skip(folder.path.len())
                 .collect::<String>()
                 .as_str();
         let mut row: user_file::ActiveModel = row.into();
@@ -248,14 +245,16 @@ fn get_file_name(path: &String) -> String {
 
 pub async fn rename_file(
     db: &DatabaseConnection,
-    path: String,
+    file_id: i32,
     new_name: String,
 ) -> Result<(), String> {
     if new_name.trim().is_empty() {
         return Err("Please enter a non empty name!".into());
     }
 
-    let new_path = appy_new_name(&path, &new_name);
+    let file = get_by_id(db, file_id).await?;
+
+    let new_path = appy_new_name(&file.path, &new_name);
     if file_exists(db, &new_path).await? {
         return Err("Another file with the same name already exists!".into());
     }
@@ -263,8 +262,7 @@ pub async fn rename_file(
     create_folder_recursively(db, &get_folder_path(&new_path)).await?;
 
     let result = user_file::Entity::update_many()
-        .filter(user_file::Column::Path.eq(path.clone()))
-        .filter(user_file::Column::IsFolder.eq(false))
+        .filter(user_file::Column::Id.eq(file_id))
         .col_expr(user_file::Column::Path, Expr::value(new_path))
         .exec(db)
         .await;
@@ -278,14 +276,15 @@ pub async fn rename_file(
 
 pub async fn rename_folder(
     db: &DatabaseConnection,
-    path: String,
+    folder_id: i32,
     new_name: String,
 ) -> Result<(), String> {
     if new_name.trim().is_empty() {
         return Err("Please enter a non empty name!".into());
     }
 
-    let new_path = appy_new_name(&path, &new_name);
+    let folder = get_by_id(db, folder_id).await?;
+    let new_path = appy_new_name(&folder.path, &new_name);
     if folder_exists(db, &new_path).await? {
         return Err("Another folder with the same name already exists!".into());
     }
@@ -293,8 +292,7 @@ pub async fn rename_folder(
     create_folder_recursively(db, &get_folder_path(&new_path)).await?;
 
     let result = user_file::Entity::update_many()
-        .filter(user_file::Column::Path.eq(path.clone()))
-        .filter(user_file::Column::IsFolder.eq(true))
+        .filter(user_file::Column::Id.eq(folder_id))
         .col_expr(user_file::Column::Path, Expr::value(new_path.clone()))
         .exec(db)
         .await;
@@ -304,7 +302,7 @@ pub async fn rename_folder(
     }
 
     let result = user_file::Entity::find()
-        .filter(user_file::Column::Path.starts_with(path.clone() + "/"))
+        .filter(user_file::Column::Path.starts_with(folder.path.clone() + "/"))
         .all(db)
         .await;
 
@@ -317,7 +315,7 @@ pub async fn rename_folder(
             + row
                 .path
                 .chars()
-                .skip(path.len())
+                .skip(folder.path.len())
                 .collect::<String>()
                 .as_str();
         let mut row: user_file::ActiveModel = row.into();
@@ -403,6 +401,14 @@ async fn folder_exists(db: &DatabaseConnection, path: &String) -> Result<bool, S
     match result {
         Ok(result) => Ok(result > 0),
         Err(err) => return Err(err.to_string()),
+    }
+}
+
+async fn get_by_id(db: &DatabaseConnection, id: i32) -> Result<user_file::Model, String> {
+    let result = user_file::Entity::find_by_id(id).one(db).await;
+    match result {
+        Ok(result) => Ok(result.unwrap()),
+        Err(err) => Err(err.to_string()),
     }
 }
 
@@ -556,19 +562,21 @@ pub mod tests {
         create_file(&db, "test".into()).await.unwrap();
         create_file(&db, "test 2".into()).await.unwrap();
 
-        let file_id = get_file_id(&db, "test").await;
+        let file_id = get_id(&db, "test", false).await;
         create_cell(&db, file_id, "".into(), CellType::Note, 0)
             .await
             .unwrap();
 
-        let file_id = get_file_id(&db, "test 2").await;
+        let file_id = get_id(&db, "test 2", false).await;
         create_cell(&db, file_id, "".into(), CellType::Note, 0)
             .await
             .unwrap();
 
         // Act
 
-        delete_file(&db, "test".into()).await.unwrap();
+        delete_file(&db, get_id(&db, "test", false).await)
+            .await
+            .unwrap();
 
         // Assert
 
@@ -585,20 +593,22 @@ pub mod tests {
         let db = get_db().await;
         create_folder(&db, "test".into()).await.unwrap();
         create_file(&db, "test/file".into()).await.unwrap();
-        let file_id = get_file_id(&db, "test/file").await;
+        let file_id = get_id(&db, "test/file", false).await;
         create_cell(&db, file_id, "".into(), CellType::Note, 0)
             .await
             .unwrap();
 
         create_file(&db, "test".into()).await.unwrap();
-        let file_id = get_file_id(&db, "test").await;
+        let file_id = get_id(&db, "test", false).await;
         create_cell(&db, file_id, "".into(), CellType::Note, 0)
             .await
             .unwrap();
 
         // Act
 
-        delete_folder(&db, "test".into()).await.unwrap();
+        delete_folder(&db, get_id(&db, "test", true).await)
+            .await
+            .unwrap();
 
         // Assert
 
@@ -619,9 +629,13 @@ pub mod tests {
 
         // Act
 
-        move_file(&db, "test".into(), "test 2".into())
-            .await
-            .unwrap();
+        move_file(
+            &db,
+            get_id(&db, "test", false).await,
+            get_id(&db, "test 2", true).await,
+        )
+        .await
+        .unwrap();
 
         // Assert
 
@@ -649,9 +663,13 @@ pub mod tests {
 
         // Act
 
-        move_file(&db, "test/folder 1/folder 2/file".into(), "".into())
-            .await
-            .unwrap();
+        move_file(
+            &db,
+            get_id(&db, "test/folder 1/folder 2/file", false).await,
+            0,
+        )
+        .await
+        .unwrap();
 
         // Assert
 
@@ -681,7 +699,12 @@ pub mod tests {
 
         // Act
 
-        let actual = move_file(&db, "test".into(), "folder".into()).await;
+        let actual = move_file(
+            &db,
+            get_id(&db, "test", false).await,
+            get_id(&db, "folder", true).await,
+        )
+        .await;
 
         // Assert
 
@@ -707,9 +730,13 @@ pub mod tests {
 
         // Act
 
-        move_folder(&db, "test".into(), "test 2".into())
-            .await
-            .unwrap();
+        move_folder(
+            &db,
+            get_id(&db, "test", true).await,
+            get_id(&db, "test 2", true).await,
+        )
+        .await
+        .unwrap();
 
         // Assert
 
@@ -749,7 +776,7 @@ pub mod tests {
 
         // Act
 
-        move_folder(&db, "test/folder 1".into(), "".into())
+        move_folder(&db, get_id(&db, "test/folder 1", true).await, 0)
             .await
             .unwrap();
 
@@ -782,7 +809,12 @@ pub mod tests {
 
         // Act
 
-        let actual = move_folder(&db, "test".into(), "test/folder 1".into()).await;
+        let actual = move_folder(
+            &db,
+            get_id(&db, "test", true).await,
+            get_id(&db, "test/folder 1", true).await,
+        )
+        .await;
 
         // Assert
 
@@ -802,7 +834,12 @@ pub mod tests {
 
         // Act
 
-        let actual = move_folder(&db, "test".into(), "test 2".into()).await;
+        let actual = move_folder(
+            &db,
+            get_id(&db, "test", true).await,
+            get_id(&db, "test 2", true).await,
+        )
+        .await;
 
         // Assert
 
@@ -823,15 +860,23 @@ pub mod tests {
 
         // Act
 
-        rename_file(&db, "test".into(), "new_name".into())
+        rename_file(&db, get_id(&db, "test", false).await, "new_name".into())
             .await
             .unwrap();
-        rename_file(&db, "folder 1/test 2".into(), "new_name_2".into())
-            .await
-            .unwrap();
-        rename_file(&db, "folder 1/test 3".into(), "folder 2/new_name_3".into())
-            .await
-            .unwrap();
+        rename_file(
+            &db,
+            get_id(&db, "folder 1/test 2", false).await,
+            "new_name_2".into(),
+        )
+        .await
+        .unwrap();
+        rename_file(
+            &db,
+            get_id(&db, "folder 1/test 3", false).await,
+            "folder 2/new_name_3".into(),
+        )
+        .await
+        .unwrap();
 
         // Assert
 
@@ -864,7 +909,7 @@ pub mod tests {
 
         // Act
 
-        let actual = rename_file(&db, "test".into(), "test 2".into()).await;
+        let actual = rename_file(&db, get_id(&db, "test", false).await, "test 2".into()).await;
 
         // Assert
 
@@ -887,12 +932,16 @@ pub mod tests {
 
         // Act
 
-        rename_folder(&db, "folder 1".into(), "new_name".into())
+        rename_folder(&db, get_id(&db, "folder 1", true).await, "new_name".into())
             .await
             .unwrap();
-        rename_folder(&db, "folder 2".into(), "new_name_2".into())
-            .await
-            .unwrap();
+        rename_folder(
+            &db,
+            get_id(&db, "folder 2", true).await,
+            "new_name_2".into(),
+        )
+        .await
+        .unwrap();
 
         // Assert
 
@@ -922,7 +971,7 @@ pub mod tests {
 
         // Act
 
-        let actual = rename_folder(&db, "test".into(), "test 2".into()).await;
+        let actual = rename_folder(&db, get_id(&db, "test", true).await, "test 2".into()).await;
 
         // Assert
 
@@ -932,10 +981,10 @@ pub mod tests {
         );
     }
 
-    pub async fn get_file_id(db: &DatabaseConnection, path: &str) -> i32 {
+    pub async fn get_id(db: &DatabaseConnection, path: &str, is_folder: bool) -> i32 {
         return user_file::Entity::find()
             .filter(user_file::Column::Path.eq(path))
-            .filter(user_file::Column::IsFolder.eq(false))
+            .filter(user_file::Column::IsFolder.eq(is_folder))
             .one(db)
             .await
             .unwrap()

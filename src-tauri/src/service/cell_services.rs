@@ -8,7 +8,6 @@ pub async fn get_cells(
     db: &DatabaseConnection,
     file_id: i32,
 ) -> Result<Vec<cell::Model>, String> {
-    // TODO: test
     let result = cell::Entity::find()
         .filter(cell::Column::FileId.eq(file_id))
         .order_by_asc(cell::Column::Index)
@@ -65,7 +64,7 @@ mod tests {
 
         let db = get_db().await;
         create_file(&db, "file 1".into()).await.unwrap();
-        let file_id = get_file_id(&db, "file 1").await;
+        let file_id = get_id(&db, "file 1", false).await;
 
         // Act
 

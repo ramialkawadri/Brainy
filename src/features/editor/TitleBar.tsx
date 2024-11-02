@@ -2,9 +2,10 @@ import Icon from "@mdi/react";
 import styles from "./styles.module.css";
 import { mdiContentSaveEditOutline, mdiContentSaveSettingsOutline, mdiPlayOutline } from "@mdi/js";
 import { CellRepetitionCountsDto } from "../../services/backendApi";
+import useAppSelector from "../../hooks/useAppSelector";
+import { selectFileById, selectSelectedFileId } from "../../store/selectors/fileSystemSelectors";
 
 interface IProps {
-    title: string,
     isSaving: boolean,
     repetitionCounts: CellRepetitionCountsDto,
     onSave: () => Promise<void>,
@@ -12,7 +13,10 @@ interface IProps {
 }
 
 function TitleBar({
-    title, onSave, isSaving, repetitionCounts, onStudyButtonClick }: IProps) {
+    onSave, isSaving, repetitionCounts, onStudyButtonClick }: IProps) {
+
+    const selectedFileId = useAppSelector(selectSelectedFileId);
+    const selectedFile = useAppSelector(state => selectFileById(state, selectedFileId!));
 
     const isReviewButtonDisabled = 
         ((repetitionCounts.new ?? 0) +
@@ -38,7 +42,7 @@ function TitleBar({
                     <span>Study</span>
                 </button>
                 <div>
-                    <p>{title}</p>
+                    <p>{selectedFile.name}</p>
                     <div className={styles.repetitionCounts}>
                         <span>New: {repetitionCounts.new ?? 0}</span>
                         <span>&#x2022;</span>
