@@ -30,3 +30,13 @@ pub async fn delete_cell(state: State<'_, Mutex<AppState>>, cell_id: i32) -> Res
     let state = state.lock().await;
     cell_services::delete_cell(&state.connection, cell_id).await
 }
+
+#[tauri::command]
+pub async fn move_cell(
+    state: State<'_, Mutex<AppState>>,
+    cell_id: i32,
+    new_index: i32,
+) -> Result<(), String> {
+    let state = state.lock().await;
+    cell_services::move_cell(&state.connection, cell_id, new_index).await
+}

@@ -21,9 +21,7 @@ function App() {
         useState<CellRepetitionCountsDto>({});
     const [isSaving, setIsSaving] = useState(false);
     const [isReviewing, setIsReviewing] = useState(false);;
-    const isLoading = false;
-    // TODO:
-    const errorMessage = "";
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const rootFolder = useAppSelector(selectRootFolder);
     const saveTimeoutId = useRef(-1);
     const dispatch = useAppDispatch();
@@ -143,12 +141,6 @@ function App() {
         saveTimeoutId.current = setTimeout(saveFile, autoSaveDelay);
     }, [stopAutoSave, saveTimeoutId, saveFile]);
 
-    const handleDeleteCell = (index: number) => {
-        cells.splice(index, 1);
-        setCells(cells);
-        startAutoSaveTimer();
-    };
-
     const handleCellsUpdate = useCallback((newCells: CellInfoDto[]) => {
         setCells(newCells);
         startAutoSaveTimer();
@@ -203,7 +195,7 @@ function App() {
                 <div className={styles.errorDialog}>
                     <ErrorBox
                         message={errorMessage}
-                        onClose={() => {/*TODO:*/}} />
+                        onClose={() => setErrorMessage(null)} />
                 </div>}
 
             <SideBar />
@@ -214,9 +206,8 @@ function App() {
                     <Home rootFolder={rootFolder} />}
 
                 {selectedFileId && !isReviewing &&
-                    <Editor />}
+                    <Editor onError={setErrorMessage} />}
 
-                {/* TODO: filePath={searchParams.get(selectedFileQueryStringParameter)!*/}
                 {selectedFileId && isReviewing &&
                     <Reviewer
                         cellRepetitions={cellRepetitions}
@@ -224,7 +215,7 @@ function App() {
                         filePath=""
                         onEditButtonClick={() => setIsReviewing(false)}
                         onReviewEnd={() => void handleEndReview()}
-                        onError={() => {/*TODO:*/}} />}
+                        onError={setErrorMessage} />}
             </div>
         </div>
     );

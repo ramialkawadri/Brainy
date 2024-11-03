@@ -44,7 +44,6 @@ function TitleBar({
                     </div>
                 </div>
             </div>
-            <input type="text" placeholder="Search" />
         </div>);
 }
 

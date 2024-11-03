@@ -16,7 +16,11 @@ import getCellIcon from "../../utils/getCellIcon";
 import EditorCell from "../editorCell/EditorCell";
 import { mdiPlus } from "@mdi/js";
 
-function Editor() {
+interface IProps {
+    onError: (error: string) => void,
+}
+
+function Editor({ onError }: IProps) {
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     // Used for the focus tools.
     const [showInsertNewCell, setShowInsertNewCell] = useState(false);
@@ -40,40 +44,42 @@ function Editor() {
         }
     });
 
+    const executeRequest = useCallback(async (cb: () => Promise<unknown>) => {
+        try {
+            await cb();
+        } catch (e) {
+            console.error(e);
+            if (e instanceof Error) onError(e.message);
+            else onError(e as string);
+        }
+    }, [onError]);
+
     const fetchFileCells = useCallback(async () => {
-        // TODO: handle exception
-        const result: ICell[] = await invoke("get_cells", {
-            fileId: selectedFileId
+        await executeRequest(async () => {
+            const fetchedCells: ICell[] = await invoke("get_cells", {
+                fileId: selectedFileId
+            });
+            setCells(fetchedCells);
         });
-        console.log(result);
-        setCells(result);
-    }, [selectedFileId, setCells]);
+    }, [executeRequest, selectedFileId, setCells]);
 
     const insertNewCell = async (cellType: CellType, index = -1) => {
-        // TODO: handle exception
-        await invoke("create_cell", {
-            ...createDefaultCell(cellType, selectedFileId, index)
+        await executeRequest(async () => {
+            await invoke("create_cell", {
+                ...createDefaultCell(cellType, selectedFileId, index)
+            });
+            await fetchFileCells();
+            setShowInsertNewCell(false);
+            setShowAddNewCellPopup(false);
         });
-        await fetchFileCells();
-        setShowInsertNewCell(false);
-        setShowAddNewCellPopup(false);
     };
 
-    useEffect(() => {
-        void fetchFileCells();
-    }, [fetchFileCells]);
-
-    const handleCellUpdate = useCallback((cellInfo: CellInfoDto, index: number) => {
-        const newArray = [...cells];
-        newArray[index] = cellInfo;
-        onUpdate(newArray);
-    }, [cells]);
-
     const handleCellDeleteConfirm = async () => {
-        // TODO: handle exception
-        setShowDeleteDialog(false);
-        await invoke("delete_cell", { cellId: cells[selectedCellIndex].id });
-        await fetchFileCells();
+        await executeRequest(async () => {
+            setShowDeleteDialog(false);
+            await invoke("delete_cell", { cellId: cells[selectedCellIndex].id });
+            await fetchFileCells();
+        });
     };
 
     const selectCell = (index: number) => {
@@ -85,6 +91,9 @@ function Editor() {
 
     const handleDragStart = (e: React.DragEvent, index: number) => {
         e.stopPropagation();
+        // Setting anything in the data transfer so that drag over works,
+        // but the index is stored in the state.
+        e.dataTransfer.setData("tmp", "tmp");
         setDraggedCellIndex(index);
     };
 
@@ -96,30 +105,35 @@ function Editor() {
         setDragOverCellIndex(index);
     };
 
-    const handleDrop = (index: number) => {
-        if (draggedCellIndex === -1 || index === draggedCellIndex) {
-            return;
-        }
-        setDragOverCellIndex(-1);
-        const element = cells[draggedCellIndex];
-        const newCells = [...cells];
-        const dropIndex = index > draggedCellIndex ? index - 1 : index;
-        newCells.splice(draggedCellIndex, 1);
-        newCells.splice(dropIndex, 0, element);
-        onUpdate(newCells);
-
-        if (selectedCellIndex === draggedCellIndex) {
-            setSelectedCellIndex(dropIndex);
-        }
-        setDraggedCellIndex(-1);
+    const handleDrop = async (index: number) => {
+        await executeRequest(async () => {
+            if (draggedCellIndex === -1 || index === draggedCellIndex) {
+                return;
+            }
+            setDragOverCellIndex(-1);
+            await invoke("move_cell", {
+                cellId: cells[draggedCellIndex].id,
+                newIndex: index,
+            });
+            await fetchFileCells();
+            const dropIndex = index > draggedCellIndex ? index - 1 : index;
+            if (selectedCellIndex === draggedCellIndex) {
+                setSelectedCellIndex(dropIndex);
+            }
+            setDraggedCellIndex(-1);
+        });
     };
+
+    useEffect(() => {
+        void fetchFileCells();
+    }, [fetchFileCells]);
 
     return (
         <div className={styles.container}>
             {showDeleteDialog && <ConfirmationDialog
                 text="Are you sure you want to delete the cell?"
                 title="Delete Cell" onCancel={() => setShowDeleteDialog(false)}
-                onConfirm={handleCellDeleteConfirm} />
+                onConfirm={() => void handleCellDeleteConfirm()} />
             }
 
             {/*TODO:*/}
@@ -128,13 +142,15 @@ function Editor() {
                 onStudyButtonClick={() => {}} />
 
             <div className={`container ${styles.editorContainer}`} ref={editorRef}>
+                {cells.length === 0 && <p>The file is empty</p>}
+
                 {cells.map((cell, i) =>
                     <div key={cell.id}
                         onFocus={() => selectCell(i)}
                         onClick={() => selectCell(i)}
                         onDragOver={(e) => handleDragOver(e, i)}
                         onDragLeave={() => setDragOverCellIndex(-1)}
-                        onDrop={() => handleDrop(i)}
+                        onDrop={() => void handleDrop(i)}
                         className={`${styles.cell}
                             ${selectedCellIndex === i ? styles.selectedCell : "" }
                             ${dragOverCellIndex === i ? styles.dragOver : ""}
@@ -168,7 +184,7 @@ function Editor() {
                     className={`${styles.addButtonContainer}
                         ${dragOverCellIndex === cells.length ? styles.dragOver : ""}`}
                     onDragOver={(e) => handleDragOver(e, cells.length)}
-                    onDrop={() => handleDrop(cells.length)}
+                    onDrop={() => void handleDrop(cells.length)}
                     onDragLeave={() => setDragOverCellIndex(-1)}>
                     <button className={`${styles.addButton} grey-button`}
                         onClick={() => setShowAddNewCellPopup(true)}>
