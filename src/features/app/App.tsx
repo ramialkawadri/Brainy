@@ -1,8 +1,6 @@
 import Editor from "../editor/Editor";
 import styles from "./styles.module.css";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { autoSaveDelay } from "../../constants";
-import useGlobalKey from "../../hooks/useGlobalKey";
 import ErrorBox from "../../ui/errorBox/ErrorBox";
 import Reviewer from "../reviewer/Reviewer";
 import Home from "../home/Home";
@@ -25,7 +23,6 @@ function App() {
     const rootFolder = useAppSelector(selectRootFolder);
     const saveTimeoutId = useRef(-1);
     const dispatch = useAppDispatch();
-    useGlobalKey(handleKeyDown, "keydown");
     const selectedFileId = useAppSelector(selectSelectedFileId);
 
     const updateRepetitionCounts = useCallback(async () => {
@@ -50,11 +47,6 @@ function App() {
             console.error(e);
         }
     }, [selectedFileId]);
-
-    const stopAutoSave = useCallback(() => {
-        clearTimeout(saveTimeoutId.current);
-        saveTimeoutId.current = -1;
-    }, [saveTimeoutId]);
 
     const saveFile = useCallback(async () => {
         if (saveTimeoutId.current === -1) {
@@ -133,27 +125,6 @@ function App() {
     useEffect(() => {
         void dispatch(fetchFiles());
     }, [dispatch])
-
-    const startAutoSaveTimer = useCallback(() => {
-        if (saveTimeoutId.current !== -1) {
-            stopAutoSave();
-        }
-        saveTimeoutId.current = setTimeout(saveFile, autoSaveDelay);
-    }, [stopAutoSave, saveTimeoutId, saveFile]);
-
-    const handleCellsUpdate = useCallback((newCells: CellInfoDto[]) => {
-        setCells(newCells);
-        startAutoSaveTimer();
-    }, [setCells, startAutoSaveTimer]);
-
-    function handleKeyDown(e: KeyboardEvent) {
-        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
-            e.preventDefault();
-            void saveFile();
-            return false;
-        }
-        return true;
-    }
 
     const handleEndReview = async () => {
         setIsReviewing(false);

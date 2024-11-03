@@ -6,23 +6,23 @@ import styles from "./styles.module.css";
 interface IProps {
     cell: ICell,
     editable: boolean,
-    onUpdate: (flashCard: IFlashCard) => void,
+    onUpdate: (content: string) => void,
 }
 
 function FlashCard({ cell, onUpdate, editable }: IProps) {
-    const flashCard = JSON.parse(cell.content) as IFlashCard;
+    const flashCard = JSON.parse(cell.content) as IFlashCard ?? {};
 
     const handleQuestionUpdate = (html: string) =>
-        onUpdate({
+        onUpdate(JSON.stringify({
             question: html,
             answer: flashCard.answer,
-        });
+        }));
 
     const handleAnswerUpdate = (html: string) => 
-        onUpdate({
+        onUpdate(JSON.stringify({
             question: flashCard.question,
             answer: html,
-        });
+        }));
 
     return (
         <div className={styles.flashCard}>

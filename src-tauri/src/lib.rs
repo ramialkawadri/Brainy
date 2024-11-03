@@ -30,6 +30,7 @@ pub async fn run() -> Result<(), DbErr> {
             delete_cell,
             get_cells,
             move_cell,
+            update_cell,
 
             create_file,
             create_folder,

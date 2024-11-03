@@ -129,6 +129,22 @@ pub async fn move_cell(
     }
 
     let result = txn.commit().await;
+    match result {
+        Ok(_) => Ok(()),
+        Err(err) => Err(err.to_string()),
+    }
+}
+
+pub async fn update_cell(
+    db: &DatabaseConnection,
+    cell_id: i32,
+    content: String,
+) -> Result<(), String> {
+    let result = cell::Entity::update_many()
+        .filter(cell::Column::Id.eq(cell_id))
+        .col_expr(cell::Column::Content, Expr::value(content))
+        .exec(db)
+        .await;
 
     match result {
         Ok(_) => Ok(()),
@@ -283,5 +299,30 @@ mod tests {
         assert_eq!("1".to_string(), cells[2].content);
         assert_eq!("2".to_string(), cells[3].content);
         assert_eq!("4".to_string(), cells[4].content);
+    }
+
+    #[tokio::test]
+    pub async fn update_cell_valid_input_content_updated() {
+        // Arrange
+
+        let db = get_db().await;
+        create_file(&db, "file 1".into()).await.unwrap();
+        let file_id = get_id(&db, "file 1", false).await;
+
+        create_cell(&db, file_id, "old".into(), CellType::Note, 0)
+            .await
+            .unwrap();
+        let cells = get_cells(&db, file_id).await.unwrap();
+
+        // Act
+
+        update_cell(&db, cells[0].id, "new".into())
+            .await
+            .unwrap();
+
+        // Assert
+
+        let cells = get_cells(&db, file_id).await.unwrap();
+        assert_eq!("new".to_string(), cells[0].content);
     }
 }

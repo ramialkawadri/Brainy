@@ -4,7 +4,7 @@ import styles from "./styles.module.css";
 import Icon from "@mdi/react";
 import { mdiFormatBold, mdiFormatItalic, mdiFormatListBulleted, mdiFormatListNumbered, mdiFormatSubscript, mdiFormatSuperscript, mdiFormatUnderline, mdiLink } from "@mdi/js";
 import Link from "@tiptap/extension-link";
-import { useCallback, useEffect } from "react";
+import { useCallback } from "react";
 import Underline from "@tiptap/extension-underline";
 import Subscript from "@tiptap/extension-subscript";
 import Superscript from "@tiptap/extension-superscript";
@@ -27,33 +27,28 @@ const extensions = [
 interface IProps {
     content: string,
     title?: string,
-    onUpdate?: (html: string) => void,
+    onUpdate: (html: string) => void,
     editable?: boolean
 }
 
-function RichTextEditor({ content, title, onUpdate, editable }: IProps) {
+function RichTextEditor({ content, title, editable, onUpdate, }: IProps) {
     const editor = useEditor({
         extensions,
         content,
+        editable,
         onUpdate: (e) => {
-            if (onUpdate && content !== e.editor.getHTML()) {
-                onUpdate(e.editor.getHTML());
-            }
-        }
-    }, [content, onUpdate]);
-    useEffect(() => editor?.setEditable(editable ?? true), [editable, editor]);
+            // TODO: update the code so that it does not fire on each button click
+            if (e.editor.getHTML() !== content) onUpdate(e.editor.getHTML());
+        },
+    }, [editable]);
 
     const setLink = useCallback(() => {
-        if (!editor) {
-            return;
-        }
+        if (!editor) return;
 
         const previousUrl = String(editor.getAttributes("link").href ?? "");
         const url = window.prompt("URL", previousUrl);
 
-        if (url === null) {
-          return;
-        }
+        if (url === null) return;
 
         if (url === "") {
           editor.chain().focus().extendMarkRange("link").unsetLink().run();

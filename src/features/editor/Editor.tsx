@@ -29,10 +29,10 @@ function Editor({ onError }: IProps) {
     const [selectedCellIndex, setSelectedCellIndex] = useState(0);
     const [draggedCellIndex, setDraggedCellIndex] = useState(-1);
     const [dragOverCellIndex, setDragOverCellIndex] = useState(-1);
+    const [cells, setCells] = useState<ICell[]>([]);
     const selectedFileId = useAppSelector(selectSelectedFileId)!;
     const addNewCellPopupRef = useRef<HTMLDivElement>(null);
     const editorRef = useRef<HTMLDivElement>(null);
-    const [cells, setCells] = useState<ICell[]>([]);
 
     useOutsideClick(editorRef as React.MutableRefObject<HTMLElement>,
         () => setShowInsertNewCell(false));
@@ -43,6 +43,17 @@ function Editor({ onError }: IProps) {
             setShowAddNewCellPopup(false);
         }
     });
+
+    const handleUpdate = async (cell: ICell, content: string, index: number) => {
+        await executeRequest(async () => {
+            await invoke("update_cell", {
+                cellId: cell.id,
+                content,
+            });
+            cells[index].content = content;
+            setCells(cells);
+        });
+    };
 
     const executeRequest = useCallback(async (cb: () => Promise<unknown>) => {
         try {
@@ -61,7 +72,7 @@ function Editor({ onError }: IProps) {
             });
             setCells(fetchedCells);
         });
-    }, [executeRequest, selectedFileId, setCells]);
+    }, [executeRequest, setCells, selectedFileId]);
 
     const insertNewCell = async (cellType: CellType, index = -1) => {
         await executeRequest(async () => {
@@ -128,18 +139,18 @@ function Editor({ onError }: IProps) {
         void fetchFileCells();
     }, [fetchFileCells]);
 
+    // TODO: autofocus on text field when changing focus
     return (
         <div className={styles.container}>
             {showDeleteDialog && <ConfirmationDialog
                 text="Are you sure you want to delete the cell?"
                 title="Delete Cell" onCancel={() => setShowDeleteDialog(false)}
-                onConfirm={() => void handleCellDeleteConfirm()} />
-            }
+                onConfirm={() => void handleCellDeleteConfirm()} />}
 
             {/*TODO:*/}
             <TitleBar
                 repetitionCounts={[]}
-                onStudyButtonClick={() => {}} />
+                onStudyButtonClick={() => {/* Empty */}} />
 
             <div className={`container ${styles.editorContainer}`} ref={editorRef}>
                 {cells.length === 0 && <p>The file is empty</p>}
@@ -175,8 +186,8 @@ function Editor({ onError }: IProps) {
 
                         <EditorCell
                             cell={cell}
-                            // onUpdate={(cellInfo) => handleCellUpdate(cellInfo, i)}
-                            editable={draggedCellIndex === -1} />
+                            editable={draggedCellIndex === -1}
+                            onUpdate={content => void handleUpdate(cell, content, i)} />
                     </div>
                 )}
                 

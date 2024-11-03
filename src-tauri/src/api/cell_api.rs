@@ -40,3 +40,13 @@ pub async fn move_cell(
     let state = state.lock().await;
     cell_services::move_cell(&state.connection, cell_id, new_index).await
 }
+
+#[tauri::command]
+pub async fn update_cell(
+    state: State<'_, Mutex<AppState>>,
+    cell_id: i32,
+    content: String,
+) -> Result<(), String> {
+    let state = state.lock().await;
+    cell_services::update_cell(&state.connection, cell_id, content).await
+}
