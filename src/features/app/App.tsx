@@ -1,10 +1,9 @@
 import Editor from "../editor/Editor";
 import styles from "./styles.module.css";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import ErrorBox from "../../ui/errorBox/ErrorBox";
 import Reviewer from "../reviewer/Reviewer";
 import Home from "../home/Home";
-import useBeforeUnload from "../../hooks/useBeforeUnload";
 import useAppDispatch from "../../hooks/useAppDispatch";
 import useAppSelector from "../../hooks/useAppSelector";
 import { selectRootFolder, selectSelectedFileId } from "../../store/selectors/fileSystemSelectors";
@@ -15,13 +14,10 @@ import SideBar from "../sideBar/SideBar";
 function App() {
     const [cells, setCells] = useState<CellInfoDto[]>([]);
     const [cellRepetitions, setCellRepetitions] = useState<CellRepetitionDto[]>([]);
-    const [repetitionCounts, setRepetitionCounts] =
-        useState<CellRepetitionCountsDto>({});
-    const [isSaving, setIsSaving] = useState(false);
+    const [repetitionCounts, setRepetitionCounts] = useState<CellRepetitionCountsDto>({});
     const [isReviewing, setIsReviewing] = useState(false);;
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const rootFolder = useAppSelector(selectRootFolder);
-    const saveTimeoutId = useRef(-1);
     const dispatch = useAppDispatch();
     const selectedFileId = useAppSelector(selectSelectedFileId);
 
@@ -48,77 +44,7 @@ function App() {
         }
     }, [selectedFileId]);
 
-    const saveFile = useCallback(async () => {
-        if (saveTimeoutId.current === -1) {
-            // The save timeout is used to know if a file has changed or not.
-            return;
-        }
-        setIsSaving(true);
-        try {
-            // TODO:
-            // stopAutoSave();
-            // const response = await api(backendApi.updateFile(cells, {
-            //     filePath: searchParams.get(selectedFileQueryStringParameter)!,
-            // }));
-            // if (response.status !== 200) {
-            //     const problemDetails =
-            //         getErrorFromAxiosResponse<ProblemDetails>(response);
-            //     setErrorMessage(problemDetails.detail ?? "");
-            // }
-            // await updateRepetitionCounts();
-        } catch (e) {
-            // setErrorMessage("An error has happened.");
-            console.error(e);
-        } finally {
-            setIsSaving(false);
-        }
-    }, [setIsSaving, saveTimeoutId]);
-
-    const handleBeforeUnload = useCallback(async (e: BeforeUnloadEvent) => {
-        if (saveTimeoutId.current !== -1 || isSaving) {
-            e.preventDefault();
-            if (!isSaving) {
-                await saveFile();
-            }
-        }
-    }, [isSaving, saveFile]);
-
-    useBeforeUnload((e) => void handleBeforeUnload(e));
-
     useEffect(() => {
-        const updateFileContent = async () => {
-            if (!selectedFileId) {
-                return;
-            }
-
-            // setIsLoading(true);
-            try {
-                // TODO:
-                // const response = await api(backendApi.getFileContent({
-                //     filePath: searchParams.get(selectedFileQueryStringParameter)!,
-                // }));
-                // if (response.status === 200) {
-                //     setCells(response.data);
-                //     setIsExistingFile(true);
-                // } else {
-                //     if (response.status === 404) {
-                //         setIsExistingFile(false);
-                //     }
-                //     const problemDetails =
-                //         getErrorFromAxiosResponse<ProblemDetails>(response);
-                //     setErrorMessage(problemDetails.detail ?? "");
-                // }
-            } catch (e) {
-                setCells([]);
-                // setErrorMessage("An error has happened while fetching file content.");
-                console.error(e);
-            } finally {
-                // setIsLoading(false);
-            }
-        };
-
-        // setErrorMessage("");
-        void updateFileContent();
         void updateRepetitionCounts();
     }, [selectedFileId, updateRepetitionCounts]);
 
