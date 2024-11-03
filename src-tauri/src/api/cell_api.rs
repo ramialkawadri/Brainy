@@ -24,3 +24,9 @@ pub async fn create_cell(
     let state = state.lock().await;
     cell_services::create_cell(&state.connection, file_id, content, cell_type, index).await
 }
+
+#[tauri::command]
+pub async fn delete_cell(state: State<'_, Mutex<AppState>>, cell_id: i32) -> Result<(), String> {
+    let state = state.lock().await;
+    cell_services::delete_cell(&state.connection, cell_id).await
+}

@@ -1,19 +1,16 @@
 import Icon from "@mdi/react";
 import styles from "./styles.module.css";
-import { mdiContentSaveEditOutline, mdiContentSaveSettingsOutline, mdiPlayOutline } from "@mdi/js";
-import { CellRepetitionCountsDto } from "../../services/backendApi";
+import { mdiPlayOutline } from "@mdi/js";
 import useAppSelector from "../../hooks/useAppSelector";
 import { selectFileById, selectSelectedFileId } from "../../store/selectors/fileSystemSelectors";
 
 interface IProps {
-    isSaving: boolean,
     repetitionCounts: CellRepetitionCountsDto,
-    onSave: () => Promise<void>,
     onStudyButtonClick: () => void
 }
 
 function TitleBar({
-    onSave, isSaving, repetitionCounts, onStudyButtonClick }: IProps) {
+    repetitionCounts, onStudyButtonClick }: IProps) {
 
     const selectedFileId = useAppSelector(selectSelectedFileId);
     const selectedFile = useAppSelector(state => selectFileById(state, selectedFileId!));
@@ -23,13 +20,6 @@ function TitleBar({
         (repetitionCounts.learning ?? 0) +
         (repetitionCounts.relearning ?? 0) +
         (repetitionCounts.review ?? 0)) === 0;
-
-    const handleSaveClick = () => {
-        if (isSaving) {
-            return;
-        }
-        void onSave();
-    };
 
     return (
         <div className={styles.titleBar}>
@@ -55,20 +45,6 @@ function TitleBar({
                 </div>
             </div>
             <input type="text" placeholder="Search" />
-            <div className={styles.saveButtonContainer}>
-                <button className="transparent" onClick={handleSaveClick}>
-                    {isSaving &&
-                        <>
-                            <Icon path={mdiContentSaveSettingsOutline} size={1} />
-                            <p>Saving</p>
-                        </>}
-                    {!isSaving &&
-                        <>
-                            <Icon path={mdiContentSaveEditOutline} size={1} />
-                            <span>Save</span>
-                        </>}
-                </button>
-            </div>
         </div>);
 }
 

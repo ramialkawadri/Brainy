@@ -4,10 +4,7 @@ use prelude::Expr;
 use sea_orm::DatabaseConnection;
 use sea_orm::{entity::*, query::*};
 
-pub async fn get_cells(
-    db: &DatabaseConnection,
-    file_id: i32,
-) -> Result<Vec<cell::Model>, String> {
+pub async fn get_cells(db: &DatabaseConnection, file_id: i32) -> Result<Vec<cell::Model>, String> {
     let result = cell::Entity::find()
         .filter(cell::Column::FileId.eq(file_id))
         .order_by_asc(cell::Column::Index)
@@ -35,7 +32,7 @@ pub async fn create_cell(
     if let Err(err) = result {
         return Err(err.to_string());
     }
-    
+
     let active_model = cell::ActiveModel {
         file_id: Set(file_id),
         cell_type: Set(cell_type),
@@ -50,13 +47,55 @@ pub async fn create_cell(
     }
 }
 
+pub async fn delete_cell(db: &DatabaseConnection, cell_id: i32) -> Result<(), String> {
+    // TODO: test
+    let cell = get_cell_by_id(db, cell_id).await?;
+
+    let txn = match db.begin().await {
+        Ok(txn) => txn,
+        Err(err) => return Err(err.to_string()),
+    };
+
+    let result = cell::Entity::delete_many()
+        .filter(cell::Column::Id.eq(cell_id))
+        .exec(&txn)
+        .await;
+    if let Err(err) = result {
+        return Err(err.to_string());
+    }
+
+    let result = cell::Entity::update_many()
+        .filter(cell::Column::FileId.eq(cell.file_id))
+        .filter(cell::Column::Index.gt(cell.index))
+        .col_expr(cell::Column::Index, Expr::col(cell::Column::Index).sub(1))
+        .exec(&txn)
+        .await;
+    if let Err(err) = result {
+        return Err(err.to_string());
+    }
+
+    let result = txn.commit().await;
+
+    match result {
+        Ok(_) => Ok(()),
+        Err(err) => Err(err.to_string()),
+    }
+}
+
+async fn get_cell_by_id(db: &DatabaseConnection, cell_id: i32) -> Result<cell::Model, String> {
+    let result = cell::Entity::find_by_id(cell_id).one(db).await;
+    match result {
+        Ok(cell) => Ok(cell.unwrap()),
+        Err(err) => Err(err.to_string()),
+    }
+}
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::service::tests::*;
-    use crate::service::user_file_service::*;
     use crate::service::user_file_service::tests::*;
+    use crate::service::user_file_service::*;
 
     #[tokio::test]
     async fn create_cell_valid_input_created_cells() {
@@ -68,10 +107,18 @@ mod tests {
 
         // Act
 
-        create_cell(&db, file_id, "1".into(), CellType::FlashCard, 0).await.unwrap();
-        create_cell(&db, file_id, "2".into(), CellType::FlashCard, 0).await.unwrap();
-        create_cell(&db, file_id, "3".into(), CellType::FlashCard, 0).await.unwrap();
-        create_cell(&db, file_id, "4".into(), CellType::Note, 0).await.unwrap();
+        create_cell(&db, file_id, "1".into(), CellType::FlashCard, 0)
+            .await
+            .unwrap();
+        create_cell(&db, file_id, "2".into(), CellType::FlashCard, 0)
+            .await
+            .unwrap();
+        create_cell(&db, file_id, "3".into(), CellType::FlashCard, 0)
+            .await
+            .unwrap();
+        create_cell(&db, file_id, "4".into(), CellType::Note, 0)
+            .await
+            .unwrap();
 
         // Assert
 

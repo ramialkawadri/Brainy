@@ -1,7 +1,8 @@
 import IUserFile from "../../entities/userFile";
+import getFileOrFolderById from "../../utils/getFilOrFolderById";
 import parseGetFilesResponse from "../../utils/parseGetFilesResponse";
 import { requestFailure, requestStart, requestSuccess, setSelectedFileId } from "../reducers/fileSystemReducers";
-import { selectSelectedFileId } from "../selectors/fileSystemSelectors";
+import { selectFolderById, selectSelectedFileId } from "../selectors/fileSystemSelectors";
 import { AppDispatch, RootState } from "../store";
 import { invoke } from "@tauri-apps/api/core";
 
@@ -31,9 +32,17 @@ export function deleteFile(fileId: number) {
 }
 
 export function deleteFolder(folderId: number) {
-    return executeRequest(async () => {
-        // TODO: if selected file is deleted then change selected fiel id
+    return executeRequest(async (dispatch, state) => {
+        const selectedFileId = selectSelectedFileId(state);
+        const folder = selectFolderById(state, folderId);
+        const isSelectedFileInFolder =
+            selectedFileId && getFileOrFolderById(folder, selectedFileId);
+
         await invoke("delete_folder", { folderId });
+
+        if (isSelectedFileInFolder) {
+            dispatch(setSelectedFileId(null));
+        }
     });
 }
 

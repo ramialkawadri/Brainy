@@ -10,7 +10,6 @@ interface IProps {
 function EditorCell({ cell, editable }: IProps) {
     const onUpdate = (cell: ICell) => {
         // TODO:
-        console.log(cell);
     };
 
     switch (cell.cellType) {

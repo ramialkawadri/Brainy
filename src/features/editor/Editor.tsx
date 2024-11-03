@@ -40,11 +40,12 @@ function Editor() {
         }
     });
 
-    const fetchUserFiles = useCallback(async () => {
+    const fetchFileCells = useCallback(async () => {
         // TODO: handle exception
         const result: ICell[] = await invoke("get_cells", {
             fileId: selectedFileId
         });
+        console.log(result);
         setCells(result);
     }, [selectedFileId, setCells]);
 
@@ -53,24 +54,26 @@ function Editor() {
         await invoke("create_cell", {
             ...createDefaultCell(cellType, selectedFileId, index)
         });
-        await fetchUserFiles();
+        await fetchFileCells();
         setShowInsertNewCell(false);
         setShowAddNewCellPopup(false);
     };
 
     useEffect(() => {
-        void fetchUserFiles();
-    }, [fetchUserFiles]);
+        void fetchFileCells();
+    }, [fetchFileCells]);
 
     const handleCellUpdate = useCallback((cellInfo: CellInfoDto, index: number) => {
         const newArray = [...cells];
         newArray[index] = cellInfo;
         onUpdate(newArray);
-    }, []);
+    }, [cells]);
 
-    const handleCellDeleteConfirm = () => {
+    const handleCellDeleteConfirm = async () => {
+        // TODO: handle exception
         setShowDeleteDialog(false);
-        onDelete(selectedCellIndex);
+        await invoke("delete_cell", { cellId: cells[selectedCellIndex].id });
+        await fetchFileCells();
     };
 
     const selectCell = (index: number) => {
@@ -121,9 +124,7 @@ function Editor() {
 
             {/*TODO:*/}
             <TitleBar
-                isSaving={false}
                 repetitionCounts={[]}
-                onSave={() => {}}
                 onStudyButtonClick={() => {}} />
 
             <div className={`container ${styles.editorContainer}`} ref={editorRef}>
