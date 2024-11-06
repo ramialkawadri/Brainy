@@ -11,17 +11,17 @@ import React, { useState } from "react";
 import ActionsMenu, { IAction } from "./ActionsMenu";
 import useAppDispatch from "../../hooks/useAppDispatch";
 import useAppSelector from "../../hooks/useAppSelector";
-import { selectSearchText, selectSelectedFileId } from "../../store/selectors/fileSystemSelectors";
-import IFolder from "../../types/folder";
+import { selectSelectedFileId } from "../../store/selectors/fileSystemSelectors";
 import { createFile, createFolder, moveFile, moveFolder, renameFile, renameFolder } from "../../store/actions/fileSystemActions";
 import getFileName from "../../utils/getFileName";
 import { setSelectedFileId } from "../../store/reducers/fileSystemReducers";
+import IUiFolder from "../../types/uiFolder";
 
 const dragFormatForFolder = "brainy/folderpath";
 const dragFormatForFile = "brainy/filepath";
 
 interface IProps {
-    folder: IFolder | null,
+    folder: IUiFolder | null,
     path: string,
     id: number,
     onMarkForDeletion: (id: number, isFolder: boolean) => void,
@@ -44,8 +44,7 @@ function FileTreeItem({folder, path, id, onMarkForDeletion }: IProps) {
     const [isDragOver, setIsDragOver] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
     const dispatch = useAppDispatch();
-    const searchText = useAppSelector(selectSearchText);
-    const isExpanded = isRoot || searchText || isOpen;
+    const isExpanded = isRoot || isOpen;
     const isSelected = selectedFileId === id && !isRoot;
 
     const actions: IAction[] = [];
@@ -191,15 +190,17 @@ function FileTreeItem({folder, path, id, onMarkForDeletion }: IProps) {
         }
     };
 
-    // TODO: make create a file text into a button
-    return (<div
+    return (
+        (!folder || isRoot || folder.isVisible) && <div
         className={`${styles.outerContainer} ${isDragOver ? styles.dragOver : ""}`}
-        onDragStart={handleDragStart}
+        
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={(e) => void handleDrop(e)}>
 
-        <div className={`${styles.fileTreeItem}`} draggable={!isRoot && !renaming}>
+        <div className={`${styles.fileTreeItem}`}
+            draggable={!isRoot && !renaming}
+            onDragStart={handleDragStart}>
 
             <button
                 className={`${styles.fileTreeButton}
@@ -263,7 +264,12 @@ function FileTreeItem({folder, path, id, onMarkForDeletion }: IProps) {
 
                 {folder.subFolders.length + folder.files.length === 0 &&
                     !creatingNewFolder && !creatingNewFile &&
-                    <p>This folder is empty, create a file</p>}
+                    <p>
+                        This folder is empty,
+                        <button
+                            onClick={() => setCreatingNewFile(true)}
+                            className="link">create a file</button>
+                    </p>}
                 
                 {folder.subFolders.map(subFolder =>
                     <FileTreeItem
@@ -274,6 +280,7 @@ function FileTreeItem({folder, path, id, onMarkForDeletion }: IProps) {
                         id={subFolder.id} /> )}
 
                 {folder.files.map(file =>
+                    file.isVisible && 
                     <FileTreeItem
                         key={file.id}
                         folder={null}

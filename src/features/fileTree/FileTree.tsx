@@ -1,13 +1,13 @@
 import { useState } from "react";
 import ConfirmationDialog from "../../ui/confirmationDialog/ConfirmationDialog";
 import useAppDispatch from "../../hooks/useAppDispatch";
-import IFolder from "../../types/folder.ts";
 import { deleteFile, deleteFolder } from "../../store/actions/fileSystemActions.ts";
 import FileTreeItem from "./FileTreeItem";
+import IUiFolder from "../../types/uiFolder.ts";
 
 
 interface IProps {
-    folder: IFolder,
+    folder: IUiFolder,
 }
 
 function FileTree({ folder }: IProps) {

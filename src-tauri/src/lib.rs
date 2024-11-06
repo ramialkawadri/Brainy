@@ -9,6 +9,7 @@ use tokio::sync::Mutex;
 
 use api::*;
 
+// TODO: make this into a configuration
 const DATABASE_URL: &str = "sqlite:///home/ramikw/brainy/rami.db?mode=rwc";
 
 pub struct AppState {

@@ -5,14 +5,12 @@ interface IFileSystemState {
     error: string | null,
     rootFolder: IFolder,
     selectedFileId: number | null,
-    searchText: string,
 }
 
 const initialState: IFileSystemState = {
     error: null,
-    rootFolder: { id: 0, files: [], name: "", subFolders: [] },
+    rootFolder: { id: 0, files: [], name: "", subFolders: [], },
     selectedFileId: null,
-    searchText: "",
 };
 
 export const fileSystemSlice = createSlice({
@@ -35,9 +33,6 @@ export const fileSystemSlice = createSlice({
         setErrorMessage: (state, payload: PayloadAction<string>) => {
             state.error = payload.payload;
         },
-        setSearchText: (state, payload: PayloadAction<string>) => {
-            state.searchText = payload.payload;
-        },
     }
 });
 
@@ -49,5 +44,4 @@ export const {
     requestFailure,
     setSelectedFileId,
     setErrorMessage,
-    setSearchText,
 } = fileSystemSlice.actions;

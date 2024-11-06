@@ -13,9 +13,6 @@ export const selectRootFolder = (state: RootState) =>
 export const selectSelectedFileId = (state: RootState) =>
     state.fileSystem.selectedFileId;
 
-export const selectSearchText = (state: RootState) =>
-    state.fileSystem.searchText;
-
 export const selectFileById = createSelector(
     [
         selectRootFolder,

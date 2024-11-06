@@ -37,7 +37,6 @@ function RichTextEditor({ content, title, editable, onUpdate, }: IProps) {
         content,
         editable,
         onUpdate: (e) => {
-            // TODO: update the code so that it does not fire on each button click
             if (e.editor.getHTML() !== content) onUpdate(e.editor.getHTML());
         },
     }, [editable]);
