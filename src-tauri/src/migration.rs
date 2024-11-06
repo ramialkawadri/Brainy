@@ -1,8 +1,6 @@
-use sea_orm::{
-    sea_query::Index, ConnectionTrait, DatabaseConnection, DbBackend, DbErr, Schema
-};
+use sea_orm::{sea_query::Index, ConnectionTrait, DatabaseConnection, DbBackend, DbErr, Schema};
 
-use crate::entity::{user_file, cell};
+use crate::entity::{cell, repetition, user_file};
 
 pub async fn setup_schema(db: &DatabaseConnection) -> Result<(), DbErr> {
     let schema = Schema::new(DbBackend::Sqlite);
@@ -12,6 +10,10 @@ pub async fn setup_schema(db: &DatabaseConnection) -> Result<(), DbErr> {
     db.execute(db.get_database_backend().build(&stmt)).await?;
 
     let mut stmt = schema.create_table_from_entity(cell::Entity);
+    stmt.if_not_exists();
+    db.execute(db.get_database_backend().build(&stmt)).await?;
+
+    let mut stmt = schema.create_table_from_entity(repetition::Entity);
     stmt.if_not_exists();
     db.execute(db.get_database_backend().build(&stmt)).await?;
 

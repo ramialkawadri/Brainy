@@ -1,6 +1,6 @@
 use sea_orm::entity::prelude::*;
 use serde::ser::SerializeStruct;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum, Serialize, Deserialize)]
 #[sea_orm(rs_type = "String", db_type = "String(StringLen::None)")]
@@ -25,6 +25,7 @@ pub struct Model {
 #[derive(Copy, Clone, Debug, EnumIter)]
 pub enum Relation {
     File,
+    Repetition,
 }
 
 impl RelationTrait for Relation {
@@ -34,6 +35,7 @@ impl RelationTrait for Relation {
                 .from(Column::FileId)
                 .to(super::user_file::Column::Id)
                 .into(),
+            Self::Repetition => Entity::has_many(super::repetition::Entity).into(),
         }
     }
 }
@@ -49,13 +51,14 @@ impl ActiveModelBehavior for ActiveModel {}
 impl Serialize for Model {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
-        S: serde::Serializer {
-            let mut state = serializer.serialize_struct("Cell", 5)?;
-            state.serialize_field("id", &self.id)?;
-            state.serialize_field("fileId", &self.file_id)?;
-            state.serialize_field("index", &self.index)?;
-            state.serialize_field("content", &self.content)?;
-            state.serialize_field("cellType", &self.cell_type)?;
-            state.end()
+        S: serde::Serializer,
+    {
+        let mut state = serializer.serialize_struct("Cell", 5)?;
+        state.serialize_field("id", &self.id)?;
+        state.serialize_field("fileId", &self.file_id)?;
+        state.serialize_field("index", &self.index)?;
+        state.serialize_field("content", &self.content)?;
+        state.serialize_field("cellType", &self.cell_type)?;
+        state.end()
     }
 }

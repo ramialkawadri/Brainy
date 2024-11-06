@@ -14,12 +14,14 @@ pub struct Model {
 #[derive(Copy, Clone, Debug, EnumIter)]
 pub enum Relation {
     Cell,
+    Repetition,
 }
 
 impl RelationTrait for Relation {
     fn def(&self) -> RelationDef {
         match self {
-            Self::Cell => Entity::has_many(super::cell::Entity).into()
+            Self::Cell => Entity::has_many(super::cell::Entity).into(),
+            Self::Repetition => Entity::has_many(super::repetition::Entity).into(),
         }
     }
 }
@@ -35,11 +37,12 @@ impl ActiveModelBehavior for ActiveModel {}
 impl Serialize for Model {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
-        S: serde::Serializer {
-            let mut state = serializer.serialize_struct("UserFile", 3)?;
-            state.serialize_field("id", &self.id)?;
-            state.serialize_field("path", &self.path)?;
-            state.serialize_field("isFolder", &self.is_folder)?;
-            state.end()
+        S: serde::Serializer,
+    {
+        let mut state = serializer.serialize_struct("UserFile", 3)?;
+        state.serialize_field("id", &self.id)?;
+        state.serialize_field("path", &self.path)?;
+        state.serialize_field("isFolder", &self.is_folder)?;
+        state.end()
     }
 }

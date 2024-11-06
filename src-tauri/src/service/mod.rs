@@ -1,6 +1,6 @@
 pub mod cell_services;
+pub mod repetition_service;
 pub mod user_file_service;
-
 
 #[cfg(test)]
 mod tests {
