@@ -9,81 +9,42 @@ import useAppSelector from "../../hooks/useAppSelector";
 import { selectRootFolder, selectSelectedFileId } from "../../store/selectors/fileSystemSelectors";
 import { fetchFiles } from "../../store/actions/fileSystemActions";
 import SideBar from "../sideBar/SideBar";
+import ICell from "../../entities/cell";
+import { invoke } from "@tauri-apps/api/core";
 
 // TODO: add shortcut to start study, shortcut to insert new cell
 function App() {
-    const [cells, setCells] = useState<CellInfoDto[]>([]);
-    const [cellRepetitions, setCellRepetitions] = useState<CellRepetitionDto[]>([]);
-    const [repetitionCounts, setRepetitionCounts] = useState<CellRepetitionCountsDto>({});
     const [isReviewing, setIsReviewing] = useState(false);;
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const [cells, setCells] = useState<ICell[]>([]);
     const rootFolder = useAppSelector(selectRootFolder);
     const dispatch = useAppDispatch();
     const selectedFileId = useAppSelector(selectSelectedFileId);
 
-    const updateRepetitionCounts = useCallback(async () => {
-        if (!selectedFileId) {
-            return;
-        }
 
+    const fetchFileCells = useCallback(async () => {
         try {
-            // TODO:
-            // const response = await api(backendApi.getFileCellRepetitionsCounts({
-            //     filePath: searchParams.get(selectedFileQueryStringParameter)!,
-            // }));
-            // if (response.status === 200) {
-            //     setRepetitionCounts(response.data);
-            // } else {
-            //     const problemDetails =
-            //         getErrorFromAxiosResponse<ProblemDetails>(response);
-            //     setErrorMessage(problemDetails.detail ?? "");
-            // }
+            const fetchedCells: ICell[] = await invoke("get_cells", {
+                fileId: selectedFileId
+            });
+            setCells(fetchedCells);
         } catch (e) {
-            // setErrorMessage("An error has happened while getting the cell repetition counts.");
             console.error(e);
+            if (e instanceof Error) setErrorMessage(e.message);
+            else setErrorMessage(e as string);
         }
-    }, [selectedFileId]);
+    }, [setCells, selectedFileId]);
 
     useEffect(() => {
-        void updateRepetitionCounts();
-    }, [selectedFileId, updateRepetitionCounts]);
+        void fetchFileCells();
+    }, [fetchFileCells]);
 
     useEffect(() => {
         void dispatch(fetchFiles());
     }, [dispatch])
 
-    const handleEndReview = async () => {
+    const handleEndReview = () => {
         setIsReviewing(false);
-        await updateRepetitionCounts();
-    };
-
-    const handleStudyButtonClick = async () => {
-        // TODO:
-        // try {
-        //     setIsLoading(true);
-        //     await saveFile();
-        //     setSearchParams({
-        //         ...Object.fromEntries(searchParams.entries()),
-        //     });
-        //     const response = await api(backendApi.getFileCellRepetitions({
-        //         filePath: searchParams.get(selectedFileQueryStringParameter)!,
-        //     }));
-        //
-        //     if (response.status === 200) {
-        //         setCellRepetitions(response.data);
-        //         setIsReviewing(true);
-        //     } else {
-        //         const problemDetails =
-        //             getErrorFromAxiosResponse<ProblemDetails>(response);
-        //         setErrorMessage(problemDetails.detail ?? "");
-        //     }
-        // } catch (e) {
-        //     setSearchParams(searchParams);
-        //     setErrorMessage("An error has happened while preparing file to study.");
-        //     console.error(e);
-        // } finally {
-        //     setIsLoading(false);
-        // }
     };
 
     return (
@@ -103,13 +64,15 @@ function App() {
                     <Home rootFolder={rootFolder} />}
 
                 {selectedFileId && !isReviewing &&
-                    <Editor onError={setErrorMessage} />}
+                    <Editor
+                        cells={cells}
+                        onError={setErrorMessage}
+                        onCellsUpdate={setCells}
+                        fetchFileCells={fetchFileCells} />}
 
                 {selectedFileId && isReviewing &&
                     <Reviewer
-                        cellRepetitions={cellRepetitions}
                         cells={cells}
-                        filePath=""
                         onEditButtonClick={() => setIsReviewing(false)}
                         onReviewEnd={() => void handleEndReview()}
                         onError={setErrorMessage} />}

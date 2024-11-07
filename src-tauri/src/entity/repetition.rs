@@ -1,4 +1,6 @@
 use sea_orm::entity::prelude::*;
+use sea_orm::entity::*;
+use sea_orm::sqlx::types::chrono::Utc;
 use serde::ser::SerializeStruct;
 use serde::{Deserialize, Serialize};
 
@@ -16,7 +18,7 @@ pub enum State {
 }
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel)]
-#[sea_orm(table_name = "cell")]
+#[sea_orm(table_name = "repetition")]
 pub struct Model {
     #[sea_orm(primary_key)]
     pub id: i32,
@@ -66,7 +68,22 @@ impl Related<super::cell::Entity> for Entity {
     }
 }
 
-impl ActiveModelBehavior for ActiveModel {}
+impl ActiveModelBehavior for ActiveModel {
+    fn new() -> Self {
+        Self {
+            due: Set(Utc::now().naive_utc()),
+            stability: Set(0f32),
+            difficulty: Set(0f32),
+            elapsed_days: Set(0),
+            scheduled_days: Set(0),
+            reps: Set(0),
+            lapses: Set(0),
+            state: Set(State::New),
+            last_review: Set(Utc::now().naive_utc()),
+            ..ActiveModelTrait::default()
+        }
+    }
+}
 
 impl Serialize for Model {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>

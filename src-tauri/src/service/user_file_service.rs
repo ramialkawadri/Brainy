@@ -1,4 +1,5 @@
 use crate::entity::{cell, user_file};
+use crate::entity::repetition;
 
 use prelude::Expr;
 use sea_orm::DatabaseConnection;
@@ -50,6 +51,15 @@ pub async fn delete_file(db: &DatabaseConnection, file_id: i32) -> Result<(), St
         Err(err) => return Err(err.to_string()),
     };
 
+    // TODO: update test
+    let result = repetition::Entity::delete_many()
+        .filter(repetition::Column::FileId.eq(file_id))
+        .exec(&txn)
+        .await;
+    if let Err(err) = result {
+        return Err(err.to_string());
+    }
+
     let result = cell::Entity::delete_many()
         .filter(cell::Column::FileId.eq(file_id))
         .exec(&txn)
@@ -94,6 +104,15 @@ pub async fn delete_folder(db: &DatabaseConnection, folder_id: i32) -> Result<()
     };
 
     for file in files {
+        // TODO: update test
+        let result = repetition::Entity::delete_many()
+            .filter(repetition::Column::FileId.eq(file.id))
+            .exec(&txn)
+            .await;
+        if let Err(err) = result {
+            return Err(err.to_string());
+        }
+
         let result = cell::Entity::delete_many()
             .filter(cell::Column::FileId.eq(file.id))
             .exec(&txn)
@@ -563,12 +582,12 @@ pub mod tests {
         create_file(&db, "test 2".into()).await.unwrap();
 
         let file_id = get_id(&db, "test", false).await;
-        create_cell(&db, file_id, "".into(), CellType::Note, 0)
+        create_cell(&db, file_id, "".into(), CellType::FlashCard, 0)
             .await
             .unwrap();
 
         let file_id = get_id(&db, "test 2", false).await;
-        create_cell(&db, file_id, "".into(), CellType::Note, 0)
+        create_cell(&db, file_id, "".into(), CellType::FlashCard, 0)
             .await
             .unwrap();
 
@@ -594,13 +613,13 @@ pub mod tests {
         create_folder(&db, "test".into()).await.unwrap();
         create_file(&db, "test/file".into()).await.unwrap();
         let file_id = get_id(&db, "test/file", false).await;
-        create_cell(&db, file_id, "".into(), CellType::Note, 0)
+        create_cell(&db, file_id, "".into(), CellType::FlashCard, 0)
             .await
             .unwrap();
 
         create_file(&db, "test".into()).await.unwrap();
         let file_id = get_id(&db, "test", false).await;
-        create_cell(&db, file_id, "".into(), CellType::Note, 0)
+        create_cell(&db, file_id, "".into(), CellType::FlashCard, 0)
             .await
             .unwrap();
 

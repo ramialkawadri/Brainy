@@ -1,4 +1,6 @@
 use crate::entity::cell::{self, CellType};
+use crate::entity::repetition;
+use crate::service::repetition_service;
 
 use prelude::Expr;
 use sea_orm::DatabaseConnection;
@@ -35,25 +37,38 @@ pub async fn create_cell(
 
     let active_model = cell::ActiveModel {
         file_id: Set(file_id),
-        cell_type: Set(cell_type),
+        cell_type: Set(cell_type.clone()),
         content: Set(content),
         index: Set(index),
         ..Default::default()
     };
     let result = cell::Entity::insert(active_model).exec(db).await;
     match result {
-        Ok(_) => Ok(()),
+        Ok(insert_result) => {
+            let cell_id = insert_result.last_insert_id;
+            repetition_service::upsert_repetition(db, file_id, cell_id, cell_type).await?;
+            Ok(())
+        },
         Err(err) => Err(err.to_string()),
     }
 }
 
 pub async fn delete_cell(db: &DatabaseConnection, cell_id: i32) -> Result<(), String> {
+    // TODO: update test
     let cell = get_cell_by_id(db, cell_id).await?;
 
     let txn = match db.begin().await {
         Ok(txn) => txn,
         Err(err) => return Err(err.to_string()),
     };
+
+    let result = repetition::Entity::delete_many()
+        .filter(repetition::Column::CellId.eq(cell_id))
+        .exec(&txn)
+        .await;
+    if let Err(err) = result {
+        return Err(err.to_string());
+    }
 
     let result = cell::Entity::delete_many()
         .filter(cell::Column::Id.eq(cell_id))
@@ -74,7 +89,6 @@ pub async fn delete_cell(db: &DatabaseConnection, cell_id: i32) -> Result<(), St
     }
 
     let result = txn.commit().await;
-
     match result {
         Ok(_) => Ok(()),
         Err(err) => Err(err.to_string()),
@@ -309,16 +323,14 @@ mod tests {
         create_file(&db, "file 1".into()).await.unwrap();
         let file_id = get_id(&db, "file 1", false).await;
 
-        create_cell(&db, file_id, "old".into(), CellType::Note, 0)
+        create_cell(&db, file_id, "old".into(), CellType::FlashCard, 0)
             .await
             .unwrap();
         let cells = get_cells(&db, file_id).await.unwrap();
 
         // Act
 
-        update_cell(&db, cells[0].id, "new".into())
-            .await
-            .unwrap();
+        update_cell(&db, cells[0].id, "new".into()).await.unwrap();
 
         // Assert
 

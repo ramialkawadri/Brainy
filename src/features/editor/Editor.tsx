@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import useGlobalKey from "../../hooks/useGlobalKey";
 import useOutsideClick from "../../hooks/useOutsideClick";
 import createDefaultCell from "../../utils/createDefaultCell";
@@ -17,10 +17,14 @@ import EditorCell from "../editorCell/EditorCell";
 import { mdiPlus } from "@mdi/js";
 
 interface IProps {
+    cells: ICell[],
+    onCellsUpdate: (cells: ICell[]) => void,
     onError: (error: string) => void,
+    // TODO: find better name
+    fetchFileCells: () => Promise<void>,
 }
 
-function Editor({ onError }: IProps) {
+function Editor({ onError, cells, onCellsUpdate, fetchFileCells }: IProps) {
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     // Used for the focus tools.
     const [showInsertNewCell, setShowInsertNewCell] = useState(false);
@@ -29,7 +33,6 @@ function Editor({ onError }: IProps) {
     const [selectedCellIndex, setSelectedCellIndex] = useState(0);
     const [draggedCellIndex, setDraggedCellIndex] = useState(-1);
     const [dragOverCellIndex, setDragOverCellIndex] = useState(-1);
-    const [cells, setCells] = useState<ICell[]>([]);
     const selectedFileId = useAppSelector(selectSelectedFileId)!;
     const addNewCellPopupRef = useRef<HTMLDivElement>(null);
     const editorRef = useRef<HTMLDivElement>(null);
@@ -51,7 +54,7 @@ function Editor({ onError }: IProps) {
                 content,
             });
             cells[index].content = content;
-            setCells(cells);
+            onCellsUpdate(cells);
         });
     };
 
@@ -64,15 +67,6 @@ function Editor({ onError }: IProps) {
             else onError(e as string);
         }
     }, [onError]);
-
-    const fetchFileCells = useCallback(async () => {
-        await executeRequest(async () => {
-            const fetchedCells: ICell[] = await invoke("get_cells", {
-                fileId: selectedFileId
-            });
-            setCells(fetchedCells);
-        });
-    }, [executeRequest, setCells, selectedFileId]);
 
     const insertNewCell = async (cellType: CellType, index = -1) => {
         await executeRequest(async () => {
@@ -134,10 +128,6 @@ function Editor({ onError }: IProps) {
             setDraggedCellIndex(-1);
         });
     };
-
-    useEffect(() => {
-        void fetchFileCells();
-    }, [fetchFileCells]);
 
     // TODO: autofocus on text field when changing focus
     return (
