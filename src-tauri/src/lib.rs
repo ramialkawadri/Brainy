@@ -1,6 +1,7 @@
 mod api;
 mod entity;
 mod migration;
+mod model;
 mod service;
 
 use sea_orm::{Database, DatabaseConnection, DbErr};
@@ -42,6 +43,8 @@ pub async fn run() -> Result<(), DbErr> {
             move_folder,
             rename_file,
             rename_folder,
+
+            get_file_repetitions_count,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

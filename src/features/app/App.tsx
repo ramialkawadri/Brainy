@@ -18,9 +18,8 @@ function App() {
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [cells, setCells] = useState<ICell[]>([]);
     const rootFolder = useAppSelector(selectRootFolder);
-    const dispatch = useAppDispatch();
     const selectedFileId = useAppSelector(selectSelectedFileId);
-
+    const dispatch = useAppDispatch();
 
     const fetchFileCells = useCallback(async () => {
         try {

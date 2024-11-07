@@ -1,5 +1,8 @@
 mod cell_api;
+mod repetition_api;
 mod user_file_api;
+
+pub use repetition_api::get_file_repetitions_count;
 
 pub use cell_api::{create_cell, delete_cell, get_cells, move_cell, update_cell};
 

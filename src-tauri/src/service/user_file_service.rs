@@ -436,7 +436,7 @@ pub mod tests {
     use cell::CellType;
 
     use super::*;
-    use crate::service::{cell_services::create_cell, tests::*};
+    use crate::service::{cell_service::create_cell, tests::*};
 
     #[tokio::test]
     async fn create_folder_valid_input_created_folder() {

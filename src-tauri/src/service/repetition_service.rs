@@ -3,6 +3,7 @@ use sea_orm::{entity::*, query::*};
 
 use crate::entity::cell::CellType;
 use crate::entity::repetition;
+use crate::model::file_repetitions_count::FileRepetitionCounts;
 
 pub async fn upsert_repetition(
     db: &DatabaseConnection,
@@ -52,4 +53,11 @@ pub async fn upsert_repetition(
         Ok(_) => Ok(()),
         Err(err) => Err(err.to_string()),
     }
+}
+
+pub async fn get_file_repetitions_count(
+    db: &DatabaseConnection,
+    file_id: i32,
+) -> Result<FileRepetitionCounts, String> {
+    // TODO: test
 }
