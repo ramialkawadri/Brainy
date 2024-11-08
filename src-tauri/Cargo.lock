@@ -300,6 +300,7 @@ dependencies = [
 name = "brainy-app"
 version = "0.1.0"
 dependencies = [
+ "async-trait",
  "sea-orm",
  "serde",
  "serde_json",

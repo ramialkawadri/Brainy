@@ -4,7 +4,13 @@ mod migration;
 mod model;
 mod service;
 
+use std::sync::Arc;
+
 use sea_orm::{Database, DatabaseConnection, DbErr};
+use service::{
+    cell_service::{CellService, DefaultCellService},
+    user_file_service::{DefaultUserFileServices, UserFileService},
+};
 use tauri::Manager;
 use tokio::sync::Mutex;
 
@@ -14,7 +20,7 @@ use api::*;
 const DATABASE_URL: &str = "sqlite:///home/ramikw/brainy/rami.db?mode=rwc";
 
 pub struct AppState {
-    connection: DatabaseConnection,
+    connection: Arc<DatabaseConnection>,
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -24,7 +30,16 @@ pub async fn run() -> Result<(), DbErr> {
 
     tauri::Builder::default()
         .setup(|app| {
-            app.manage(Mutex::new(AppState { connection: conn }));
+            let arc = Arc::new(conn);
+            app.manage(Mutex::new(AppState {
+                connection: arc.clone(),
+            }));
+            app.manage::<Box<dyn UserFileService + Sync + Send>>(Box::new(
+                DefaultUserFileServices::new(arc.clone()),
+            ));
+            app.manage::<Box<dyn CellService + Sync + Send>>(Box::new(DefaultCellService::new(
+                arc.clone(),
+            )));
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
