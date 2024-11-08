@@ -1,9 +1,9 @@
-import ICell from "../../entities/cell";
+import Cell from "../../entities/cell";
 import RichTextEditor from "../../ui/richTextEditor/RichTextEditor";
-import FlashCard from "./FlashCard";
+import FlashCardCell from "./FlashCardCell";
 
 interface IProps {
-    cell: ICell,
+    cell: Cell,
     editable: boolean,
     onUpdate: (content: string) => void,
 }
@@ -11,7 +11,7 @@ interface IProps {
 function EditorCell({ cell, editable, onUpdate }: IProps) {
     switch (cell.cellType) {
         case "FlashCard":
-            return <FlashCard cell={cell} onUpdate={onUpdate} editable={editable} />;
+            return <FlashCardCell cell={cell} onUpdate={onUpdate} editable={editable} />;
         case "Note":
             return <RichTextEditor
                 content={cell.content} onUpdate={onUpdate} editable={editable} />;

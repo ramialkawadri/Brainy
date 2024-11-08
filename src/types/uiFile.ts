@@ -1,5 +1,5 @@
-import IFile from "./file";
+import File from "./file";
 
-export default interface IUiFile extends IFile {
+export default interface UiFile extends File {
     isVisible: boolean,
 }

@@ -1,7 +1,7 @@
-import IFile from "../types/file";
-import IFolder from "../types/folder";
+import File from "../types/file";
+import Folder from "../types/folder";
 
-function getFileOrFolderById(folder: IFolder, id: number): IFile | IFolder | null {
+function getFileOrFolderById(folder: Folder, id: number): File | Folder | null {
     let queue = [folder];
 
     while (queue.length > 0) {

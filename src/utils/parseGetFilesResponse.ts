@@ -1,19 +1,19 @@
-import IUserFile from "../entities/userFile";
-import IFolder from "../types/folder";
+import UserFile from "../entities/userFile";
+import Folder from "../types/folder";
 
-function parseListUserFilesResponse(entities: IUserFile[]): IFolder {
+function parseListUserFilesResponse(entities: UserFile[]): Folder {
     return parseListUserFilesResponseHelper(entities, "", 0);
 }
 
 function parseListUserFilesResponseHelper(
-    entities: IUserFile[], folderName: string, id: number) {
+    entities: UserFile[], folderName: string, id: number) {
 
     /* Contains sub folder names as keys, and a list of
      * their files as values.
      */
-    const subFolders: Record<string, IUserFile[]> = {};
+    const subFolders: Record<string, UserFile[]> = {};
     const subFoldersIds: Record<string, number> = {};
-    const folder: IFolder = {
+    const folder: Folder = {
         id,
         name: folderName,
         subFolders: [],
@@ -32,7 +32,7 @@ function parseListUserFilesResponseHelper(
             const index = entity.path.indexOf("/");
             const folderName = entity.path.substring(0, index);
             const rest = entity.path.substring(index + 1);
-            const newEntity: IUserFile = {
+            const newEntity: UserFile = {
                 path: rest,
                 id: entity.id,
                 isFolder: entity.isFolder,

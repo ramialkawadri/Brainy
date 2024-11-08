@@ -1,4 +1,4 @@
-export default interface IUserFile {
+export default interface UserFile {
     id: number,
     path: string,
     isFolder: boolean,

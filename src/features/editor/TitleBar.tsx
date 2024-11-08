@@ -3,23 +3,22 @@ import styles from "./styles.module.css";
 import { mdiPlayOutline } from "@mdi/js";
 import useAppSelector from "../../hooks/useAppSelector";
 import { selectFileById, selectSelectedFileId } from "../../store/selectors/fileSystemSelectors";
+import FileRepetitionCounts from "../../entities/fileRepetitionCounts";
 
 interface IProps {
-    repetitionCounts: CellRepetitionCountsDto,
+    repetitionCounts: FileRepetitionCounts,
     onStudyButtonClick: () => void
 }
 
-function TitleBar({
-    repetitionCounts, onStudyButtonClick }: IProps) {
-
+function TitleBar({ repetitionCounts, onStudyButtonClick }: IProps) {
     const selectedFileId = useAppSelector(selectSelectedFileId);
     const selectedFile = useAppSelector(state => selectFileById(state, selectedFileId!));
 
     const isReviewButtonDisabled = 
-        ((repetitionCounts.new ?? 0) +
-        (repetitionCounts.learning ?? 0) +
-        (repetitionCounts.relearning ?? 0) +
-        (repetitionCounts.review ?? 0)) === 0;
+        (repetitionCounts.new +
+        repetitionCounts.learning +
+        repetitionCounts.relearning +
+        repetitionCounts.review) === 0;
 
     return (
         <div className={styles.titleBar}>
@@ -34,13 +33,13 @@ function TitleBar({
                 <div>
                     <p>{selectedFile.name}</p>
                     <div className={styles.repetitionCounts}>
-                        <span>New: {repetitionCounts.new ?? 0}</span>
+                        <span>New: {repetitionCounts.new}</span>
                         <span>&#x2022;</span>
-                        <span>Learning: {(repetitionCounts.learning ?? 0) +
-                            (repetitionCounts.relearning ?? 0)}
+                        <span>Learning: {(repetitionCounts.learning) +
+                            (repetitionCounts.relearning)}
                         </span>
                         <span>&#x2022;</span>
-                        <span>Review: {repetitionCounts.review ?? 0}</span>
+                        <span>Review: {repetitionCounts.review}</span>
                     </div>
                 </div>
             </div>

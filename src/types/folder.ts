@@ -1,9 +1,9 @@
-import IFile from "./file";
+import File from "./file";
 
-export default interface IFolder {
+export default interface Folder {
     id: number,
     name: string,
-    subFolders: IFolder[],
-    files: IFile[],
+    subFolders: Folder[],
+    files: File[],
     // repetitionCounts: CellRepetitionCountsDto,
 }

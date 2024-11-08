@@ -1,10 +1,10 @@
-import IFolder from "../types/folder";
-import IUiFile from "../types/uiFile";
-import IUiFolder from "../types/uiFolder";
+import Folder from "../types/folder";
+import UiFile from "../types/uiFile";
+import UiFolder from "../types/uiFolder";
 
-function searchFolder(folder: IFolder, searchText: string): IUiFolder {
+function searchFolder(folder: Folder, searchText: string): UiFolder {
     const subFolders = folder.subFolders.map(f => searchFolder(f, searchText));
-    const files: IUiFile[] = folder.files.map(f => ({
+    const files: UiFile[] = folder.files.map(f => ({
         ...f,
         isVisible: f.name.includes(searchText)
     }));

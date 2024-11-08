@@ -15,13 +15,13 @@ import { selectSelectedFileId } from "../../store/selectors/fileSystemSelectors"
 import { createFile, createFolder, moveFile, moveFolder, renameFile, renameFolder } from "../../store/actions/fileSystemActions";
 import getFileName from "../../utils/getFileName";
 import { setSelectedFileId } from "../../store/reducers/fileSystemReducers";
-import IUiFolder from "../../types/uiFolder";
+import UiFolder from "../../types/uiFolder";
 
 const dragFormatForFolder = "brainy/folderpath";
 const dragFormatForFile = "brainy/filepath";
 
 interface IProps {
-    folder: IUiFolder | null,
+    folder: UiFolder | null,
     path: string,
     id: number,
     onMarkForDeletion: (id: number, isFolder: boolean) => void,

@@ -3,11 +3,11 @@ import ConfirmationDialog from "../../ui/confirmationDialog/ConfirmationDialog";
 import useAppDispatch from "../../hooks/useAppDispatch";
 import { deleteFile, deleteFolder } from "../../store/actions/fileSystemActions.ts";
 import FileTreeItem from "./FileTreeItem";
-import IUiFolder from "../../types/uiFolder.ts";
+import UiFolder from "../../types/uiFolder.ts";
 
 
 interface IProps {
-    folder: IUiFolder,
+    folder: UiFolder,
 }
 
 function FileTree({ folder }: IProps) {

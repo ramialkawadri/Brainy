@@ -1,4 +1,4 @@
-import IUserFile from "../../entities/userFile";
+import UserFile from "../../entities/userFile";
 import getFileOrFolderById from "../../utils/getFilOrFolderById";
 import parseGetFilesResponse from "../../utils/parseGetFilesResponse";
 import { requestFailure, requestStart, requestSuccess, setSelectedFileId } from "../reducers/fileSystemReducers";
@@ -73,7 +73,7 @@ function executeRequest<T>(
         try {
             dispatch(requestStart());
             await cb(dispatch, getState());
-            const userFiles: IUserFile[] = await invoke("get_files");
+            const userFiles: UserFile[] = await invoke("get_files");
             const rootFolder = parseGetFilesResponse(userFiles);
             dispatch(requestSuccess(rootFolder));
         } catch (e) {

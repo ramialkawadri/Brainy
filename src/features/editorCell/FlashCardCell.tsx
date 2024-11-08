@@ -1,16 +1,16 @@
-import ICell from "../../entities/cell";
-import IFlashCard from "../../types/flashCard";
+import Cell from "../../entities/cell";
+import FlashCard from "../../types/flashCard";
 import RichTextEditor from "../../ui/richTextEditor/RichTextEditor";
 import styles from "./styles.module.css";
 
 interface IProps {
-    cell: ICell,
+    cell: Cell,
     editable: boolean,
     onUpdate: (content: string) => void,
 }
 
-function FlashCard({ cell, onUpdate, editable }: IProps) {
-    const flashCard = JSON.parse(cell.content) as IFlashCard ?? {};
+function FlashCardCell({ cell, onUpdate, editable }: IProps) {
+    const flashCard = JSON.parse(cell.content) as FlashCard ?? {};
 
     const handleQuestionUpdate = (html: string) =>
         onUpdate(JSON.stringify({
@@ -36,4 +36,4 @@ function FlashCard({ cell, onUpdate, editable }: IProps) {
     );
 }
 
-export default FlashCard;
+export default FlashCardCell;

@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import useGlobalKey from "../../hooks/useGlobalKey";
 import useOutsideClick from "../../hooks/useOutsideClick";
 import createDefaultCell from "../../utils/createDefaultCell";
@@ -8,23 +8,26 @@ import ConfirmationDialog from "../../ui/confirmationDialog/ConfirmationDialog";
 import { invoke } from "@tauri-apps/api/core";
 import useAppSelector from "../../hooks/useAppSelector";
 import { selectSelectedFileId } from "../../store/selectors/fileSystemSelectors";
-import ICell, { CellType } from "../../entities/cell";
+import Cell, { CellType } from "../../entities/cell";
 import FocusTools from "./FocusTools";
 import NewCellTypeSelector from "./NewCellTypeSelector";
 import Icon from "@mdi/react";
 import getCellIcon from "../../utils/getCellIcon";
 import EditorCell from "../editorCell/EditorCell";
 import { mdiPlus } from "@mdi/js";
+import FileRepetitionCounts from "../../entities/fileRepetitionCounts";
 
 interface IProps {
-    cells: ICell[],
-    onCellsUpdate: (cells: ICell[]) => void,
+    cells: Cell[],
+    onCellsUpdate: (cells: Cell[]) => void,
     onError: (error: string) => void,
+    // TODO: seperate the title bar from the editor
+    onStudyButtonClick: () => void,
     // TODO: find better name
     fetchFileCells: () => Promise<void>,
 }
 
-function Editor({ onError, cells, onCellsUpdate, fetchFileCells }: IProps) {
+function Editor({ cells, onError, onCellsUpdate, fetchFileCells, onStudyButtonClick }: IProps) {
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     // Used for the focus tools.
     const [showInsertNewCell, setShowInsertNewCell] = useState(false);
@@ -33,6 +36,9 @@ function Editor({ onError, cells, onCellsUpdate, fetchFileCells }: IProps) {
     const [selectedCellIndex, setSelectedCellIndex] = useState(0);
     const [draggedCellIndex, setDraggedCellIndex] = useState(-1);
     const [dragOverCellIndex, setDragOverCellIndex] = useState(-1);
+    const [repetitionCounts, setRepetitionCounts] = useState<FileRepetitionCounts>({
+        new: 0, learning: 0, relearning: 0, review: 0,
+    });
     const selectedFileId = useAppSelector(selectSelectedFileId)!;
     const addNewCellPopupRef = useRef<HTMLDivElement>(null);
     const editorRef = useRef<HTMLDivElement>(null);
@@ -47,7 +53,17 @@ function Editor({ onError, cells, onCellsUpdate, fetchFileCells }: IProps) {
         }
     });
 
-    const handleUpdate = async (cell: ICell, content: string, index: number) => {
+    useEffect(() => {
+        void (async () => {
+            setRepetitionCounts(await invoke("get_file_repetitions_count", {
+                fileId: selectedFileId
+            }));
+        })();
+
+        // We need to refetch the count on cells or file changing!
+    }, [selectedFileId, cells]);
+
+    const handleUpdate = async (cell: Cell, content: string, index: number) => {
         await executeRequest(async () => {
             await invoke("update_cell", {
                 cellId: cell.id,
@@ -137,10 +153,9 @@ function Editor({ onError, cells, onCellsUpdate, fetchFileCells }: IProps) {
                 title="Delete Cell" onCancel={() => setShowDeleteDialog(false)}
                 onConfirm={() => void handleCellDeleteConfirm()} />}
 
-            {/*TODO:*/}
             <TitleBar
-                repetitionCounts={[]}
-                onStudyButtonClick={() => {/* Empty */}} />
+                repetitionCounts={repetitionCounts}
+                onStudyButtonClick={onStudyButtonClick} />
 
             <div className={`container ${styles.editorContainer}`} ref={editorRef}>
                 {cells.length === 0 && <p>The file is empty</p>}

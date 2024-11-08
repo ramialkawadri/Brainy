@@ -1,8 +1,8 @@
-import IFolder from "./folder";
-import IUiFile from "./uiFile";
+import Folder from "./folder";
+import UiFile from "./uiFile";
 
-export default interface IUiFolder extends IFolder {
-    subFolders: IUiFolder[],
-    files: IUiFile[],
+export default interface UiFolder extends Folder {
+    subFolders: UiFolder[],
+    files: UiFile[],
     isVisible: boolean,
 }

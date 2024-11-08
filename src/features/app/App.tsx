@@ -9,21 +9,21 @@ import useAppSelector from "../../hooks/useAppSelector";
 import { selectRootFolder, selectSelectedFileId } from "../../store/selectors/fileSystemSelectors";
 import { fetchFiles } from "../../store/actions/fileSystemActions";
 import SideBar from "../sideBar/SideBar";
-import ICell from "../../entities/cell";
+import Cell from "../../entities/cell";
 import { invoke } from "@tauri-apps/api/core";
 
 // TODO: add shortcut to start study, shortcut to insert new cell
 function App() {
-    const [isReviewing, setIsReviewing] = useState(false);;
+    const [isReviewing, setIsReviewing] = useState(false);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
-    const [cells, setCells] = useState<ICell[]>([]);
+    const [cells, setCells] = useState<Cell[]>([]);
     const rootFolder = useAppSelector(selectRootFolder);
     const selectedFileId = useAppSelector(selectSelectedFileId);
     const dispatch = useAppDispatch();
 
     const fetchFileCells = useCallback(async () => {
         try {
-            const fetchedCells: ICell[] = await invoke("get_cells", {
+            const fetchedCells: Cell[] = await invoke("get_cells", {
                 fileId: selectedFileId
             });
             setCells(fetchedCells);
@@ -36,15 +36,8 @@ function App() {
 
     useEffect(() => {
         void fetchFileCells();
-    }, [fetchFileCells]);
-
-    useEffect(() => {
         void dispatch(fetchFiles());
-    }, [dispatch])
-
-    const handleEndReview = () => {
-        setIsReviewing(false);
-    };
+    }, [fetchFileCells, dispatch]);
 
     return (
         <div className={`${styles.workspace}`}>
@@ -67,13 +60,14 @@ function App() {
                         cells={cells}
                         onError={setErrorMessage}
                         onCellsUpdate={setCells}
-                        fetchFileCells={fetchFileCells} />}
+                        fetchFileCells={fetchFileCells}
+                        onStudyButtonClick={() => setIsReviewing(true)} />}
 
                 {selectedFileId && isReviewing &&
                     <Reviewer
                         cells={cells}
                         onEditButtonClick={() => setIsReviewing(false)}
-                        onReviewEnd={() => void handleEndReview()}
+                        onReviewEnd={() => setIsReviewing(false)}
                         onError={setErrorMessage} />}
             </div>
         </div>

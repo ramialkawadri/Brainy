@@ -1,12 +1,12 @@
-import IUserFile from "../../entities/userFile";
-import IFolder from "../../types/folder";
+import UserFile from "../../entities/userFile";
+import Folder from "../../types/folder";
 import parseGetFilesResponse from "../../utils/parseGetFilesResponse";
 
 describe(parseGetFilesResponse, () => {
     it("Parse file list correctly", () => {
         // Arrange
         
-        const response: IUserFile[] = [
+        const response: UserFile[] = [
             {
                 id: 1,
                 path: "file 1",
@@ -63,7 +63,7 @@ describe(parseGetFilesResponse, () => {
             },
         ];
 
-        const folder2: IFolder = {
+        const folder2: Folder = {
             id: 3,
             name: "folder 2",
             /*repetitionCounts: {
@@ -79,7 +79,7 @@ describe(parseGetFilesResponse, () => {
                 }*/}, 
             ],
         };
-        const folder1: IFolder = {
+        const folder1: Folder = {
             id: 2,
             name: "folder 1",
             /*repetitionCounts: {
@@ -95,7 +95,7 @@ describe(parseGetFilesResponse, () => {
             ],
             subFolders: [folder2],
         };
-        const folder3: IFolder = {
+        const folder3: Folder = {
             id: 4,
             name: "folder 3",
             /*repetitionCounts: {
@@ -106,7 +106,7 @@ describe(parseGetFilesResponse, () => {
             }*/}],
             subFolders: []
         };
-        const expected: IFolder = {
+        const expected: Folder = {
             id: 0,
             name: "",
             /*repetitionCounts: {

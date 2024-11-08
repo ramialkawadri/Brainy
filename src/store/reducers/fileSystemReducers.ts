@@ -1,9 +1,9 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
-import IFolder from "../../types/folder";
+import Folder from "../../types/folder";
 
 interface IFileSystemState {
     error: string | null,
-    rootFolder: IFolder,
+    rootFolder: Folder,
     selectedFileId: number | null,
 }
 
@@ -20,7 +20,7 @@ export const fileSystemSlice = createSlice({
         requestStart: (state) => {
             state.error = null;
         },
-        requestSuccess: (state, payload: PayloadAction<IFolder>) => {
+        requestSuccess: (state, payload: PayloadAction<Folder>) => {
             state.error = null;
             state.rootFolder = payload.payload;
         },

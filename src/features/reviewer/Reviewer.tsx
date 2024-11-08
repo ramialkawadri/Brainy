@@ -7,10 +7,10 @@ import { FSRS, generatorParameters, Rating } from "ts-fsrs";
 import createCardFromCellRepetitionDto from "../../utils/createCardFromCellRepetitionDto";
 import durationToString from "../../utils/durationToString";
 import useGlobalKey from "../../hooks/useGlobalKey";
-import ICell from "../../entities/cell";
+import Cell from "../../entities/cell";
 
 interface IProps {
-    cells: ICell[],
+    cells: Cell[],
     onEditButtonClick: () => void,
     onReviewEnd: () => void,
     onError: (message: string) => void,
@@ -21,7 +21,7 @@ const params = generatorParameters({ enable_fuzz: true, enable_short_term: false
 const fsrs = new FSRS(params);
 
 function Reviewer({
-    cells, onEditButtonClick, onError, onReviewEnd
+    cells, onEditButtonClick, onError, onReviewEnd,
 }: IProps) {
 
     const [showAnswer, setShowAnswer] = useState(false);

@@ -1,8 +1,8 @@
-import ICell, { CellType } from "../entities/cell";
-import IFlashCard from "../types/flashCard";
+import Cell, { CellType } from "../entities/cell";
+import FlashCard from "../types/flashCard";
 
 function createDefaultCell(cellType: CellType, fileId: number, index: number) {
-    const cell: ICell = {
+    const cell: Cell = {
         fileId,
         content: "",
         cellType,
@@ -11,7 +11,7 @@ function createDefaultCell(cellType: CellType, fileId: number, index: number) {
 
     switch (cellType) {
         case "FlashCard":
-            cell.content = JSON.stringify({ question: "", answer: "" } as IFlashCard);
+            cell.content = JSON.stringify({ question: "", answer: "" } as FlashCard);
             break;
         case "Note":
             break;
