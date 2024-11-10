@@ -1,3 +1,5 @@
+#[cfg(test)]
+use mockall::{automock, predicate::*};
 use std::sync::Arc;
 
 use crate::entities::user_file;
@@ -5,6 +7,7 @@ use crate::repositories::user_file_repository::UserFileRepository;
 
 use async_trait::async_trait;
 
+#[cfg_attr(test, automock)]
 #[async_trait]
 pub trait UserFileService {
     async fn get_user_files(&self) -> Result<Vec<user_file::Model>, String>;
@@ -242,160 +245,192 @@ fn apply_new_name(path: &String, new_name: &String) -> String {
 
 #[cfg(test)]
 pub mod tests {
-    // use cell::CellType;
-    //
-    // use super::*;
-    // use crate::services::{
-    //     cell_service::{CellService, DefaultCellService},
-    //     tests::*,
-    // };
-    //
-    // async fn create_service() -> DefaultUserFileServices {
-    //     let db = get_db().await;
-    //     DefaultUserFileServices::new(Arc::new(db))
-    // }
-    //
-    // fn create_cell_service(db_conn: Arc<DatabaseConnection>) -> DefaultCellService {
-    //     DefaultCellService::new(db_conn)
-    // }
-    //
-    // #[tokio::test]
-    // async fn create_folder_valid_input_created_folder() {
-    //     // Arrange
-    //
-    //     let service = create_service().await;
-    //
-    //     // Act
-    //
-    //     service.create_folder("folder 1".into()).await.unwrap();
-    //
-    //     // Assert
-    //
-    //     let actual = service.get_user_files().await.unwrap();
-    //     assert_eq!(actual.len(), 1);
-    //     assert_eq!(actual[0].path, "folder 1");
-    //     assert_eq!(actual[0].is_folder, true);
-    //     assert_eq!(actual[0].id, 1);
-    // }
-    //
-    // #[tokio::test]
-    // async fn create_folder_nested_path_created_all_folders() {
-    //     // Arrange
-    //
-    //     let service = create_service().await;
-    //
-    //     // Act
-    //
-    //     service
-    //         .create_folder("folder 1/folder 2".into())
-    //         .await
-    //         .unwrap();
-    //     service
-    //         .create_folder("folder 1/folder 3".into())
-    //         .await
-    //         .unwrap();
-    //
-    //     // Assert
-    //
-    //     let actual = service.get_user_files().await.unwrap();
-    //     assert_eq!(actual.len(), 3);
-    //     assert!(actual
-    //         .iter()
-    //         .any(|item| item.path == "folder 1" && item.is_folder));
-    //     assert!(actual
-    //         .iter()
-    //         .any(|item| item.path == "folder 1/folder 2" && item.is_folder));
-    //     assert!(actual
-    //         .iter()
-    //         .any(|item| item.path == "folder 1/folder 3" && item.is_folder));
-    // }
-    //
-    // #[tokio::test]
-    // async fn create_folder_empty_name_returned_error() {
-    //     // Arrange
-    //
-    //     let service = create_service().await;
-    //
-    //     // Act
-    //
-    //     let actual = service.create_folder("  ".into()).await;
-    //
-    //     // Assert
-    //
-    //     assert_eq!(actual, Err("Name cannot be empty!".to_string()));
-    // }
-    //
-    // #[tokio::test]
-    // async fn create_folder_existing_folder_returned_error() {
-    //     // Arrange
-    //
-    //     let service = create_service().await;
-    //
-    //     // Act
-    //
-    //     service.create_folder("folder 1".into()).await.unwrap();
-    //     let actual = service.create_folder("folder 1".into()).await;
-    //
-    //     // Assert
-    //
-    //     assert_eq!(actual, Err("Folder already exists!".to_string()));
-    // }
-    //
-    // #[tokio::test]
-    // async fn create_file_nested_path_created_all_folders() {
-    //     // Arrange
-    //
-    //     let service = create_service().await;
-    //
-    //     // Act
-    //
-    //     service
-    //         .create_file("folder 1/folder 2/file 1".into())
-    //         .await
-    //         .unwrap();
-    //
-    //     // Assert
-    //
-    //     let actual = service.get_user_files().await.unwrap();
-    //     assert_eq!(actual.len(), 3);
-    //     assert!(actual.iter().any(|item| item.path == "folder 1"));
-    //     assert!(actual.iter().any(|item| item.path == "folder 1/folder 2"));
-    //     assert!(actual
-    //         .iter()
-    //         .any(|item| item.path == "folder 1/folder 2/file 1" && !item.is_folder));
-    // }
-    //
-    // #[tokio::test]
-    // async fn create_file_empty_name_returned_error() {
-    //     // Arrange
-    //
-    //     let service = create_service().await;
-    //
-    //     // Act
-    //
-    //     let actual = service.create_file("  ".into()).await;
-    //
-    //     // Assert
-    //
-    //     assert_eq!(actual, Err("Name cannot be empty!".to_string()));
-    // }
-    //
-    // #[tokio::test]
-    // async fn create_file_existing_file_returned_error() {
-    //     // Arrange
-    //
-    //     let service = create_service().await;
-    //
-    //     // Act
-    //
-    //     service.create_file("file 1".into()).await.unwrap();
-    //     let actual = service.create_file("file 1".into()).await;
-    //
-    //     // Assert
-    //
-    //     assert_eq!(actual, Err("File already exists!".to_string()));
-    // }
-    //
+    use mockall::predicate;
+
+    use super::*;
+    use crate::repositories::user_file_repository::MockUserFileRepository;
+
+    struct TestDependencies {
+        user_file_repository: MockUserFileRepository,
+    }
+
+    fn create_dependencies() -> TestDependencies {
+        TestDependencies {
+            user_file_repository: MockUserFileRepository::new(),
+        }
+    }
+
+    fn create_service(deps: TestDependencies) -> DefaultUserFileServices {
+        DefaultUserFileServices::new(Arc::new(deps.user_file_repository))
+    }
+
+    #[tokio::test]
+    async fn get_user_files_valid_input_returned_user_files() {
+        // Arrange
+
+        let mut deps = create_dependencies();
+        let files: Vec<user_file::Model> = vec![user_file::Model {
+            id: 10,
+            ..Default::default()
+        }];
+        deps.user_file_repository
+            .expect_get_user_files()
+            .return_once(|| Ok(files));
+        let service = create_service(deps);
+
+        // Act
+
+        let actual = service.get_user_files().await.unwrap();
+
+        // Assert
+
+        assert_eq!(actual.len(), 1);
+        assert_eq!(actual[0].id, 10);
+    }
+
+    #[tokio::test]
+    async fn create_folder_nested_path_created_all_folders() {
+        // Arrange
+
+        let mut deps = create_dependencies();
+        deps.user_file_repository
+            .expect_folder_exists()
+            .return_const(Ok(false));
+        deps.user_file_repository
+            .expect_create_folder()
+            .with(predicate::eq("folder 1".to_string()))
+            .times(2)
+            .return_const(Ok(()));
+        deps.user_file_repository
+            .expect_create_folder()
+            .with(predicate::eq("folder 1/folder 2".to_string()))
+            .times(1)
+            .return_const(Ok(()));
+        deps.user_file_repository
+            .expect_create_folder()
+            .with(predicate::eq("folder 1/folder 3".to_string()))
+            .times(1)
+            .return_const(Ok(()));
+        let service = create_service(deps);
+
+        // Act & Assert
+
+        service
+            .create_folder("folder 1/folder 2".into())
+            .await
+            .unwrap();
+        service
+            .create_folder("folder 1/folder 3".into())
+            .await
+            .unwrap();
+    }
+
+    #[tokio::test]
+    async fn create_folder_empty_name_returned_error() {
+        // Arrange
+
+        let deps = create_dependencies();
+        let service = create_service(deps);
+
+        // Act
+
+        let actual = service.create_folder("  ".into()).await;
+
+        // Assert
+
+        assert_eq!(actual, Err("Name cannot be empty!".to_string()));
+    }
+
+    #[tokio::test]
+    async fn create_folder_existing_folder_returned_error() {
+        // Arrange
+
+        let mut deps = create_dependencies();
+        deps.user_file_repository
+            .expect_folder_exists()
+            .return_const(Ok(true));
+        let service = create_service(deps);
+
+        // Act
+
+        let actual = service.create_folder("folder 1".into()).await;
+
+        // Assert
+
+        assert_eq!(actual, Err("Folder already exists!".to_string()));
+    }
+
+    #[tokio::test]
+    async fn create_file_nested_path_created_all_folders() {
+        // Arrange
+
+        let mut deps = create_dependencies();
+        deps.user_file_repository
+            .expect_folder_exists()
+            .return_const(Ok(false));
+        deps.user_file_repository
+            .expect_file_exists()
+            .return_const(Ok(false));
+        deps.user_file_repository
+            .expect_create_folder()
+            .with(predicate::eq("folder 1".to_string()))
+            .times(1)
+            .return_const(Ok(()));
+        deps.user_file_repository
+            .expect_create_folder()
+            .with(predicate::eq("folder 1/folder 2".to_string()))
+            .times(1)
+            .return_const(Ok(()));
+        deps.user_file_repository
+            .expect_create_file()
+            .with(predicate::eq("folder 1/folder 2/file 1".to_string()))
+            .times(1)
+            .return_const(Ok(()));
+        let service = create_service(deps);
+
+        // Act
+
+        service
+            .create_file("folder 1/folder 2/file 1".into())
+            .await
+            .unwrap();
+    }
+
+    #[tokio::test]
+    async fn create_file_empty_name_returned_error() {
+        // Arrange
+
+        let deps = create_dependencies();
+        let service = create_service(deps);
+
+        // Act
+
+        let actual = service.create_file("  ".into()).await;
+
+        // Assert
+
+        assert_eq!(actual, Err("Name cannot be empty!".to_string()));
+    }
+
+    #[tokio::test]
+    async fn create_file_existing_file_returned_error() {
+        // Arrange
+    
+        let mut deps = create_dependencies();
+        deps.user_file_repository
+            .expect_file_exists()
+            .return_const(Ok(true));
+        let service = create_service(deps);
+    
+        // Act
+    
+        let actual = service.create_file("file 1".into()).await;
+    
+        // Assert
+    
+        assert_eq!(actual, Err("File already exists!".to_string()));
+    }
+    
     // #[tokio::test]
     // async fn delete_file_valid_input_deleted_file() {
     //     // Arrange

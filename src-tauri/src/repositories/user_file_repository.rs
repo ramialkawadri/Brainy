@@ -1,3 +1,5 @@
+#[cfg(test)]
+use mockall::{automock, mock, predicate::*};
 use std::sync::Arc;
 
 use async_trait::async_trait;
@@ -7,6 +9,7 @@ use sea_orm::{entity::*, query::*};
 
 use crate::entities::user_file;
 
+#[cfg_attr(test, automock)]
 #[async_trait]
 pub trait UserFileRepository {
     async fn file_exists(&self, path: String) -> Result<bool, String>;
@@ -157,7 +160,7 @@ impl UserFileRepository for DefaultUserFileRepository {
             Err(err) => return Err(err.to_string()),
         }
     }
-    
+
     async fn get_folder_sub_files(&self, id: i32) -> Result<Vec<user_file::Model>, String> {
         let folder = self.get_by_id(id).await?;
         let result = user_file::Entity::find()
@@ -171,13 +174,16 @@ impl UserFileRepository for DefaultUserFileRepository {
     }
 }
 
-
 #[cfg(test)]
 pub mod tests {
     use sea_orm::DatabaseConnection;
 
     use super::*;
-    use crate::{entities::cell::{self, CellType}, repositories::tests::*, services::cell_service::{CellService, DefaultCellService}};
+    use crate::{
+        entities::cell::{self, CellType},
+        repositories::tests::*,
+        services::cell_service::{CellService, DefaultCellService},
+    };
 
     async fn create_repository() -> DefaultUserFileRepository {
         let db = get_db().await;
@@ -222,8 +228,30 @@ pub mod tests {
 
         let actual = repository.get_user_files().await.unwrap();
         assert_eq!(actual.len(), 2);
-        let cell_counts = cell::Entity::find().all(&*repository.db_conn).await.unwrap();
+        let cell_counts = cell::Entity::find()
+            .all(&*repository.db_conn)
+            .await
+            .unwrap();
         assert_eq!(cell_counts.len(), 1);
+    }
+
+    #[tokio::test]
+    async fn create_folder_valid_input_created_folder() {
+        // Arrange
+    
+        let repository = create_repository().await;
+    
+        // Act
+    
+        repository.create_folder("folder 1".into()).await.unwrap();
+    
+        // Assert
+    
+        let actual = repository.get_user_files().await.unwrap();
+        assert_eq!(actual.len(), 1);
+        assert_eq!(actual[0].path, "folder 1");
+        assert_eq!(actual[0].is_folder, true);
+        assert_eq!(actual[0].id, 1);
     }
 
     pub async fn get_id(db: &DatabaseConnection, path: &str, is_folder: bool) -> i32 {

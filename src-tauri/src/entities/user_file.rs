@@ -2,7 +2,7 @@ use sea_orm::entity::prelude::*;
 use serde::ser::SerializeStruct;
 use serde::Serialize;
 
-#[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq)]
+#[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Default)]
 #[sea_orm(table_name = "user_file")]
 pub struct Model {
     #[sea_orm(primary_key)]
