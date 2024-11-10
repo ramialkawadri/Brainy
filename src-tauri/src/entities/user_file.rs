@@ -32,6 +32,12 @@ impl Related<super::cell::Entity> for Entity {
     }
 }
 
+impl Related<super::repetition::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Repetition.def()
+    }
+}
+
 impl ActiveModelBehavior for ActiveModel {}
 
 impl Serialize for Model {

@@ -1,4 +1,5 @@
 use sea_orm::entity::prelude::*;
+use sea_orm::sea_query::ForeignKeyAction;
 use serde::ser::SerializeStruct;
 use serde::{Deserialize, Serialize};
 
@@ -34,8 +35,10 @@ impl RelationTrait for Relation {
             Self::File => Entity::belongs_to(super::user_file::Entity)
                 .from(Column::FileId)
                 .to(super::user_file::Column::Id)
+                .on_delete(ForeignKeyAction::Cascade)
                 .into(),
-            Self::Repetition => Entity::has_many(super::repetition::Entity).into(),
+            Self::Repetition => Entity::has_many(super::repetition::Entity)
+                .into(),
         }
     }
 }
@@ -43,6 +46,12 @@ impl RelationTrait for Relation {
 impl Related<super::user_file::Entity> for Entity {
     fn to() -> RelationDef {
         Relation::File.def()
+    }
+}
+
+impl Related<super::repetition::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Repetition.def()
     }
 }
 

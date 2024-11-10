@@ -268,7 +268,7 @@ function FileTreeItem({folder, path, id, onMarkForDeletion }: IProps) {
                         This folder is empty,
                         <button
                             onClick={() => setCreatingNewFile(true)}
-                            className="link">create a file</button>
+                            className="link">&nbsp;create a file</button>
                     </p>}
                 
                 {folder.subFolders.map(subFolder =>

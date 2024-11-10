@@ -2,10 +2,12 @@ mod apis;
 mod entities;
 mod migration;
 mod models;
+mod repositories;
 mod services;
 
 use std::sync::Arc;
 
+use repositories::user_file_repository::DefaultUserFileRepository;
 use sea_orm::{Database, DatabaseConnection, DbErr};
 use services::{
     cell_service::{CellService, DefaultCellService},
@@ -30,15 +32,17 @@ pub async fn run() -> Result<(), DbErr> {
 
     tauri::Builder::default()
         .setup(|app| {
-            let arc = Arc::new(conn);
+            let conn = Arc::new(conn);
+            let user_file_repository = Arc::new(DefaultUserFileRepository::new(conn.clone()));
+
             app.manage(Mutex::new(AppState {
-                connection: arc.clone(),
+                connection: conn.clone(),
             }));
             app.manage::<Box<dyn UserFileService + Sync + Send>>(Box::new(
-                DefaultUserFileServices::new(arc.clone()),
+                DefaultUserFileServices::new(user_file_repository.clone()),
             ));
             app.manage::<Box<dyn CellService + Sync + Send>>(Box::new(DefaultCellService::new(
-                arc.clone(),
+                conn.clone(),
             )));
             Ok(())
         })

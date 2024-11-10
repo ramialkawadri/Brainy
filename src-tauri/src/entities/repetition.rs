@@ -47,10 +47,12 @@ impl RelationTrait for Relation {
             Self::File => Entity::belongs_to(super::user_file::Entity)
                 .from(Column::FileId)
                 .to(super::user_file::Column::Id)
+                .on_delete(ForeignKeyAction::Cascade)
                 .into(),
             Self::Cell => Entity::belongs_to(super::cell::Entity)
                 .from(Column::CellId)
                 .to(super::cell::Column::Id)
+                .on_delete(ForeignKeyAction::Cascade)
                 .into(),
         }
     }
