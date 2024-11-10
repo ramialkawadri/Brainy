@@ -8,7 +8,7 @@ use prelude::Expr;
 use sea_orm::DatabaseConnection;
 use sea_orm::{entity::*, query::*};
 
-// TODO: use dependency for cell and repetition
+// TODO: use dependency for repository, cell and repetition
 #[async_trait]
 pub trait UserFileService {
     async fn get_user_files(&self) -> Result<Vec<user_file::Model>, String>;

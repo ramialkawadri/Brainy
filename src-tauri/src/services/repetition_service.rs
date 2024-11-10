@@ -4,7 +4,7 @@ use sea_orm::{entity::*, query::*};
 
 use crate::entities::cell::CellType;
 use crate::entities::repetition::{self, State};
-use crate::model::file_repetitions_count::FileRepetitionCounts;
+use crate::models::file_repetitions_count::FileRepetitionCounts;
 
 pub async fn upsert_repetition(
     db: &DatabaseConnection,
