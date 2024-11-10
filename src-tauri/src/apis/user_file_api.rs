@@ -1,4 +1,4 @@
-use crate::{entity::user_file, service::user_file_service::UserFileService};
+use crate::{entities::user_file, services::user_file_service::UserFileService};
 use tauri::State;
 
 #[tauri::command]

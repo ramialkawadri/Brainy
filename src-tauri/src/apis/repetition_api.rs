@@ -1,5 +1,5 @@
-use crate::model::file_repetitions_count::FileRepetitionCounts;
-use crate::service::repetition_service;
+use crate::models::file_repetitions_count::FileRepetitionCounts;
+use crate::services::repetition_service;
 use crate::AppState;
 use tauri::State;
 use tokio::sync::Mutex;

@@ -2,8 +2,8 @@ use sea_orm::sqlx::types::chrono::Utc;
 use sea_orm::DatabaseConnection;
 use sea_orm::{entity::*, query::*};
 
-use crate::entity::cell::CellType;
-use crate::entity::repetition::{self, State};
+use crate::entities::cell::CellType;
+use crate::entities::repetition::{self, State};
 use crate::model::file_repetitions_count::FileRepetitionCounts;
 
 pub async fn upsert_repetition(

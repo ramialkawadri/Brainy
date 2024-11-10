@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
-use crate::entity::repetition;
-use crate::entity::{cell, user_file};
+use crate::entities::repetition;
+use crate::entities::{cell, user_file};
 
 use async_trait::async_trait;
 use prelude::Expr;
@@ -458,11 +458,18 @@ pub mod tests {
     use cell::CellType;
 
     use super::*;
-    use crate::service::{cell_service::create_cell, tests::*};
+    use crate::services::{
+        cell_service::{CellService, DefaultCellService},
+        tests::*,
+    };
 
     async fn create_service() -> DefaultUserFileServices {
         let db = get_db().await;
         DefaultUserFileServices::new(Arc::new(db))
+    }
+
+    fn create_cell_service(db_conn: Arc<DatabaseConnection>) -> DefaultCellService {
+        DefaultCellService::new(db_conn)
     }
 
     #[tokio::test]
@@ -610,14 +617,17 @@ pub mod tests {
         service.create_folder("test".into()).await.unwrap();
         service.create_file("test".into()).await.unwrap();
         service.create_file("test 2".into()).await.unwrap();
+        let cell_service = create_cell_service(service.db_conn.clone());
 
         let file_id = get_id(&service.db_conn, "test", false).await;
-        create_cell(&service.db_conn, file_id, "".into(), CellType::FlashCard, 0)
+        cell_service
+            .create_cell(file_id, "".into(), CellType::FlashCard, 0)
             .await
             .unwrap();
 
         let file_id = get_id(&service.db_conn, "test 2", false).await;
-        create_cell(&service.db_conn, file_id, "".into(), CellType::FlashCard, 0)
+        cell_service
+            .create_cell(file_id, "".into(), CellType::FlashCard, 0)
             .await
             .unwrap();
 
@@ -644,13 +654,16 @@ pub mod tests {
         service.create_folder("test".into()).await.unwrap();
         service.create_file("test/file".into()).await.unwrap();
         let file_id = get_id(&service.db_conn, "test/file", false).await;
-        create_cell(&service.db_conn, file_id, "".into(), CellType::FlashCard, 0)
+        let cell_service = create_cell_service(service.db_conn.clone());
+        cell_service
+            .create_cell(file_id, "".into(), CellType::FlashCard, 0)
             .await
             .unwrap();
 
         service.create_file("test".into()).await.unwrap();
         let file_id = get_id(&service.db_conn, "test", false).await;
-        create_cell(&service.db_conn, file_id, "".into(), CellType::FlashCard, 0)
+        cell_service
+            .create_cell(file_id, "".into(), CellType::FlashCard, 0)
             .await
             .unwrap();
 

@@ -1,20 +1,20 @@
-mod api;
-mod entity;
+mod apis;
+mod entities;
 mod migration;
-mod model;
-mod service;
+mod models;
+mod services;
 
 use std::sync::Arc;
 
 use sea_orm::{Database, DatabaseConnection, DbErr};
-use service::{
+use services::{
     cell_service::{CellService, DefaultCellService},
     user_file_service::{DefaultUserFileServices, UserFileService},
 };
 use tauri::Manager;
 use tokio::sync::Mutex;
 
-use api::*;
+use apis::*;
 
 // TODO: make this into a configuration
 const DATABASE_URL: &str = "sqlite:///home/ramikw/brainy/rami.db?mode=rwc";

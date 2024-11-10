@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
-use crate::entity::cell::{self, CellType};
-use crate::entity::repetition;
-use crate::service::repetition_service;
+use crate::entities::cell::{self, CellType};
+use crate::entities::repetition;
+use crate::services::repetition_service;
 
 use async_trait::async_trait;
 use prelude::Expr;
