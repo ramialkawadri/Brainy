@@ -1,5 +1,5 @@
 #[cfg(test)]
-use mockall::{automock, mock, predicate::*};
+use mockall::{automock, predicate::*};
 use std::sync::Arc;
 
 use async_trait::async_trait;
@@ -252,6 +252,42 @@ pub mod tests {
         assert_eq!(actual[0].path, "folder 1");
         assert_eq!(actual[0].is_folder, true);
         assert_eq!(actual[0].id, 1);
+    }
+
+    #[tokio::test]
+    async fn delete_folder_valid_input_deleted_folder() {
+        // Arrange
+
+        let repository = create_repository().await;
+        repository.create_folder("test".into()).await.unwrap();
+        repository.create_file("test/file".into()).await.unwrap();
+        let file_id = get_id(&repository.db_conn, "test/file", false).await;
+        let cell_service = create_cell_service(repository.db_conn.clone());
+        cell_service
+            .create_cell(file_id, "".into(), CellType::FlashCard, 0)
+            .await
+            .unwrap();
+
+        repository.create_file("test".into()).await.unwrap();
+        let file_id = get_id(&repository.db_conn, "test", false).await;
+        cell_service
+            .create_cell(file_id, "".into(), CellType::FlashCard, 0)
+            .await
+            .unwrap();
+
+        // Act
+
+        repository
+            .delete_folder(get_id(&repository.db_conn, "test", true).await)
+            .await
+            .unwrap();
+
+        // Assert
+
+        let actual = repository.get_user_files().await.unwrap();
+        assert_eq!(actual.len(), 1);
+        let cell_counts = cell::Entity::find().all(&*repository.db_conn).await.unwrap();
+        assert_eq!(cell_counts.len(), 1);
     }
 
     pub async fn get_id(db: &DatabaseConnection, path: &str, is_folder: bool) -> i32 {

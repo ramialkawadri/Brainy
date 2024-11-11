@@ -415,95 +415,56 @@ pub mod tests {
     #[tokio::test]
     async fn create_file_existing_file_returned_error() {
         // Arrange
-    
+
         let mut deps = create_dependencies();
         deps.user_file_repository
             .expect_file_exists()
             .return_const(Ok(true));
         let service = create_service(deps);
-    
+
         // Act
-    
+
         let actual = service.create_file("file 1".into()).await;
-    
+
         // Assert
-    
+
         assert_eq!(actual, Err("File already exists!".to_string()));
     }
-    
-    // #[tokio::test]
-    // async fn delete_file_valid_input_deleted_file() {
-    //     // Arrange
-    //
-    //     let service = create_service().await;
-    //     service.create_folder("test".into()).await.unwrap();
-    //     service.create_file("test".into()).await.unwrap();
-    //     service.create_file("test 2".into()).await.unwrap();
-    //     let cell_service = create_cell_service(service.db_conn.clone());
-    //
-    //     let file_id = get_id(&service.db_conn, "test", false).await;
-    //     cell_service
-    //         .create_cell(file_id, "".into(), CellType::FlashCard, 0)
-    //         .await
-    //         .unwrap();
-    //
-    //     let file_id = get_id(&service.db_conn, "test 2", false).await;
-    //     cell_service
-    //         .create_cell(file_id, "".into(), CellType::FlashCard, 0)
-    //         .await
-    //         .unwrap();
-    //
-    //     // Act
-    //
-    //     service
-    //         .delete_file(get_id(&service.db_conn, "test", false).await)
-    //         .await
-    //         .unwrap();
-    //
-    //     // Assert
-    //
-    //     let actual = service.get_user_files().await.unwrap();
-    //     assert_eq!(actual.len(), 2);
-    //     let cell_counts = cell::Entity::find().all(&*service.db_conn).await.unwrap();
-    //     assert_eq!(cell_counts.len(), 1);
-    // }
-    //
-    // #[tokio::test]
-    // async fn delete_folder_valid_input_deleted_folder() {
-    //     // Arrange
-    //
-    //     let service = create_service().await;
-    //     service.create_folder("test".into()).await.unwrap();
-    //     service.create_file("test/file".into()).await.unwrap();
-    //     let file_id = get_id(&service.db_conn, "test/file", false).await;
-    //     let cell_service = create_cell_service(service.db_conn.clone());
-    //     cell_service
-    //         .create_cell(file_id, "".into(), CellType::FlashCard, 0)
-    //         .await
-    //         .unwrap();
-    //
-    //     service.create_file("test".into()).await.unwrap();
-    //     let file_id = get_id(&service.db_conn, "test", false).await;
-    //     cell_service
-    //         .create_cell(file_id, "".into(), CellType::FlashCard, 0)
-    //         .await
-    //         .unwrap();
-    //
-    //     // Act
-    //
-    //     service
-    //         .delete_folder(get_id(&service.db_conn, "test", true).await)
-    //         .await
-    //         .unwrap();
-    //
-    //     // Assert
-    //
-    //     let actual = service.get_user_files().await.unwrap();
-    //     assert_eq!(actual.len(), 1);
-    //     let cell_counts = cell::Entity::find().all(&*service.db_conn).await.unwrap();
-    //     assert_eq!(cell_counts.len(), 1);
-    // }
-    //
+
+    #[tokio::test]
+    async fn delete_file_valid_input_deleted_file() {
+        // Arrange
+
+        let mut deps = create_dependencies();
+        deps.user_file_repository
+            .expect_delete_file()
+            .with(predicate::eq(10))
+            .once()
+            .return_const(Ok(()));
+        let service = create_service(deps);
+
+        // Act
+
+        service.delete_file(10).await.unwrap();
+    }
+
+    #[tokio::test]
+    async fn delete_folder_valid_input_deleted_folder() {
+        // Arrange
+
+        let mut deps = create_dependencies();
+        deps.user_file_repository
+            .expect_delete_folder()
+            .with(predicate::eq(10))
+            .once()
+            .return_const(Ok(()));
+        let service = create_service(deps);
+
+        // Act
+
+        service.delete_folder(10).await.unwrap();
+    }
+
     // #[tokio::test]
     // async fn move_file_valid_input_moved_file() {
     //     // Arrange
@@ -537,7 +498,7 @@ pub mod tests {
     //         .iter()
     //         .any(|item| item.path == "test 2/test" && !item.is_folder));
     // }
-    //
+
     // #[tokio::test]
     // async fn move_file_move_to_root_moved_file() {
     //     // Arrange
