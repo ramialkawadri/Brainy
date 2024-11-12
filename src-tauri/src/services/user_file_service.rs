@@ -465,108 +465,119 @@ pub mod tests {
         service.delete_folder(10).await.unwrap();
     }
 
-    // #[tokio::test]
-    // async fn move_file_valid_input_moved_file() {
-    //     // Arrange
-    //
-    //     let service = create_service().await;
-    //     service.create_folder("test".into()).await.unwrap();
-    //     service.create_folder("test 2".into()).await.unwrap();
-    //     service.create_file("test".into()).await.unwrap();
-    //
-    //     // Act
-    //
-    //     service
-    //         .move_file(
-    //             get_id(&service.db_conn, "test", false).await,
-    //             get_id(&service.db_conn, "test 2", true).await,
-    //         )
-    //         .await
-    //         .unwrap();
-    //
-    //     // Assert
-    //
-    //     let actual = service.get_user_files().await.unwrap();
-    //     assert_eq!(actual.len(), 3);
-    //     assert!(actual
-    //         .iter()
-    //         .any(|item| item.path == "test" && item.is_folder));
-    //     assert!(actual
-    //         .iter()
-    //         .any(|item| item.path == "test 2" && item.is_folder));
-    //     assert!(actual
-    //         .iter()
-    //         .any(|item| item.path == "test 2/test" && !item.is_folder));
-    // }
+    #[tokio::test]
+    async fn move_file_valid_input_moved_file() {
+        // Arrange
 
-    // #[tokio::test]
-    // async fn move_file_move_to_root_moved_file() {
-    //     // Arrange
-    //
-    //     let service = create_service().await;
-    //     service
-    //         .create_file("test/folder 1/folder 2/file".into())
-    //         .await
-    //         .unwrap();
-    //
-    //     // Act
-    //
-    //     service
-    //         .move_file(
-    //             get_id(&service.db_conn, "test/folder 1/folder 2/file", false).await,
-    //             0,
-    //         )
-    //         .await
-    //         .unwrap();
-    //
-    //     // Assert
-    //
-    //     let actual = service.get_user_files().await.unwrap();
-    //     assert_eq!(actual.len(), 4);
-    //     assert!(actual
-    //         .iter()
-    //         .any(|item| item.path == "test" && item.is_folder));
-    //     assert!(actual
-    //         .iter()
-    //         .any(|item| item.path == "test/folder 1" && item.is_folder));
-    //     assert!(actual
-    //         .iter()
-    //         .any(|item| item.path == "test/folder 1/folder 2" && item.is_folder));
-    //     assert!(actual
-    //         .iter()
-    //         .any(|item| item.path == "file" && !item.is_folder));
-    // }
-    //
-    // #[tokio::test]
-    // async fn move_file_existing_file_error_returned() {
-    //     // Arrange
-    //
-    //     let service = create_service().await;
-    //     service.create_file("test".into()).await.unwrap();
-    //     service.create_file("folder/test".into()).await.unwrap();
-    //
-    //     // Act
-    //
-    //     let actual = service
-    //         .move_file(
-    //             get_id(&service.db_conn, "test", false).await,
-    //             get_id(&service.db_conn, "folder", true).await,
-    //         )
-    //         .await;
-    //
-    //     // Assert
-    //
-    //     assert_eq!(
-    //         actual,
-    //         Err("Another file with the same name exists!".to_string())
-    //     );
-    // }
-    //
+        let mut deps = create_dependencies();
+        let file_id = 1;
+        let destination_folder_id = 2;
+        deps.user_file_repository
+            .expect_get_by_id()
+            .with(predicate::eq(file_id))
+            .return_once(|_| {
+                Ok(user_file::Model {
+                    path: "file".into(),
+                    ..Default::default()
+                })
+            });
+        deps.user_file_repository
+            .expect_get_by_id()
+            .with(predicate::eq(destination_folder_id))
+            .return_once(|_| {
+                Ok(user_file::Model {
+                    path: "test".into(),
+                    ..Default::default()
+                })
+            });
+        deps.user_file_repository
+            .expect_file_exists()
+            .return_const(Ok(false));
+        deps.user_file_repository
+            .expect_update_path()
+            .with(
+                predicate::eq(file_id),
+                predicate::eq("test/file".to_string()),
+            )
+            .return_const(Ok(()))
+            .once();
+        let service = create_service(deps);
+
+        // Act
+
+        service
+            .move_file(file_id, destination_folder_id)
+            .await
+            .unwrap();
+    }
+
+    #[tokio::test]
+    async fn move_file_move_to_root_moved_file() {
+        // Arrange
+
+        let mut deps = create_dependencies();
+        let file_id = 1;
+        deps.user_file_repository
+            .expect_get_by_id()
+            .with(predicate::eq(file_id))
+            .return_once(|_| {
+                Ok(user_file::Model {
+                    path: "folder 1/file".into(),
+                    ..Default::default()
+                })
+            });
+        deps.user_file_repository
+            .expect_file_exists()
+            .return_const(Ok(false));
+        deps.user_file_repository
+            .expect_update_path()
+            .with(predicate::eq(file_id), predicate::eq("file".to_string()))
+            .return_const(Ok(()))
+            .once();
+        let service = create_service(deps);
+
+        // Act
+
+        service.move_file(file_id, 0).await.unwrap();
+    }
+
+    #[tokio::test]
+    async fn move_file_existing_file_error_returned() {
+        // Arrange
+
+        let mut deps = create_dependencies();
+        let file_id = 1;
+        deps.user_file_repository
+            .expect_get_by_id()
+            .with(predicate::eq(file_id))
+            .return_once(|_| {
+                Ok(user_file::Model {
+                    path: "folder 1/file".into(),
+                    ..Default::default()
+                })
+            });
+        deps.user_file_repository
+            .expect_file_exists()
+            .return_const(Ok(true));
+        let service = create_service(deps);
+
+        // Act
+
+        let actual = service.move_file(file_id, 0).await;
+
+        // Assert
+
+        assert_eq!(
+            actual,
+            Err("Another file with the same name exists!".to_string())
+        );
+    }
+
     // #[tokio::test]
     // async fn move_folder_valid_input_moved_folder() {
     //     // Arrange
     //
-    //     let service = create_service().await;
+    //     let mut deps = create_dependencies();
     //     service
     //         .create_folder("test/folder 1/folder 2".into())
     //         .await
@@ -577,6 +588,7 @@ pub mod tests {
     //         .unwrap();
     //     service.create_folder("test 2".into()).await.unwrap();
     //     service.create_file("test".into()).await.unwrap();
+    //     let service = create_service(deps);
     //
     //     // Act
     //
