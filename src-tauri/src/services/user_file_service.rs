@@ -31,9 +31,6 @@ impl DefaultUserFileServices {
     }
 
     async fn create_folder_recursively(&self, path: &String) -> Result<(), String> {
-        if path.is_empty() {
-            return Ok(());
-        }
         let mut current_path = String::new();
 
         for name in path.split("/") {
@@ -197,10 +194,10 @@ impl UserFileService for DefaultUserFileServices {
 
         let sub_files = self.repository.get_folder_sub_files(folder_id).await?;
 
-        self.create_folder_recursively(&get_folder_path(&new_path))
-            .await?;
         self.repository
             .update_path(folder_id, new_path.clone())
+            .await?;
+        self.create_folder_recursively(&get_folder_path(&new_path))
             .await?;
 
         for row in sub_files {
@@ -679,206 +676,219 @@ pub mod tests {
         deps.to_service().move_folder(folder_id, 0).await.unwrap();
     }
 
-    // #[tokio::test]
-    // async fn move_folder_move_to_inner_folder_error_returned() {
-    //     // Arrange
-    //
-    //     service
-    //         .create_folder("test/folder 1/folder 2".into())
-    //         .await
-    //         .unwrap();
-    //
-    //     // Act
-    //
-    //     let actual = service
-    //         .move_folder(
-    //             get_id(&deps.to_service().db_conn, "test", true).await,
-    //             get_id(&deps.to_service().db_conn, "test/folder 1", true).await,
-    //         )
-    //         .await;
-    //
-    //     // Assert
-    //
-    //     assert_eq!(
-    //         actual,
-    //         Err("You cannot move into an inner folder!".to_string())
-    //     );
-    // }
-    //
-    // #[tokio::test]
-    // async fn move_folder_existing_folder_error_returned() {
-    //     // Arrange
-    //
+    #[tokio::test]
+    async fn move_folder_move_to_inner_folder_error_returned() {
+        // Arrange
 
-    //     deps.to_service().create_folder("test".into()).await.unwrap();
-    //     deps.to_service().create_folder("test 2/test".into()).await.unwrap();
-    //
-    //     // Act
-    //
-    //     let actual = service
-    //         .move_folder(
-    //             get_id(&deps.to_service().db_conn, "test", true).await,
-    //             get_id(&deps.to_service().db_conn, "test 2", true).await,
-    //         )
-    //         .await;
-    //
-    //     // Assert
-    //
-    //     assert_eq!(
-    //         actual,
-    //         Err("Another folder with the same name exists!".to_string())
-    //     );
-    // }
-    //
-    // #[tokio::test]
-    // async fn rename_file_valid_input_renamed_file() {
-    //     // Arrange
-    //
+        let mut deps = TestDependencies::new();
+        let folder_id = 1;
+        deps.setup_get_by_id(
+            folder_id,
+            user_file::Model {
+                id: folder_id,
+                path: "test".to_string(),
+                ..Default::default()
+            },
+        );
+        let inner_folder_id = 2;
+        deps.setup_get_by_id(
+            inner_folder_id,
+            user_file::Model {
+                id: inner_folder_id,
+                path: "test/folder".to_string(),
+                ..Default::default()
+            },
+        );
 
-    //     deps.to_service().create_file("test".into()).await.unwrap();
-    //     deps.to_service().create_file("folder 1/test 2".into()).await.unwrap();
-    //     deps.to_service().create_file("folder 1/test 3".into()).await.unwrap();
-    //
-    //     // Act
-    //
-    //     service
-    //         .rename_file(
-    //             get_id(&deps.to_service().db_conn, "test", false).await,
-    //             "new_name".into(),
-    //         )
-    //         .await
-    //         .unwrap();
-    //     service
-    //         .rename_file(
-    //             get_id(&deps.to_service().db_conn, "folder 1/test 2", false).await,
-    //             "new_name_2".into(),
-    //         )
-    //         .await
-    //         .unwrap();
-    //     service
-    //         .rename_file(
-    //             get_id(&deps.to_service().db_conn, "folder 1/test 3", false).await,
-    //             "folder 2/new_name_3".into(),
-    //         )
-    //         .await
-    //         .unwrap();
-    //
-    //     // Assert
-    //
-    //     let actual = deps.to_service().get_user_files().await.unwrap();
-    //     assert_eq!(actual.len(), 5);
-    //     assert!(actual
-    //         .iter()
-    //         .any(|item| item.path == "new_name" && !item.is_folder));
-    //     assert!(actual
-    //         .iter()
-    //         .any(|item| item.path == "folder 1" && item.is_folder));
-    //     assert!(actual
-    //         .iter()
-    //         .any(|item| item.path == "folder 1/new_name_2" && !item.is_folder));
-    //     assert!(actual
-    //         .iter()
-    //         .any(|item| item.path == "folder 1/folder 2" && item.is_folder));
-    //     assert!(actual
-    //         .iter()
-    //         .any(|item| item.path == "folder 1/folder 2/new_name_3" && !item.is_folder));
-    // }
-    //
-    // #[tokio::test]
-    // async fn rename_file_existing_file_error_returned() {
-    //     // Arrange
-    //
+        // Act
 
-    //     deps.to_service().create_file("test".into()).await.unwrap();
-    //     deps.to_service().create_file("test 2".into()).await.unwrap();
-    //
-    //     // Act
-    //
-    //     let actual = service
-    //         .rename_file(
-    //             get_id(&deps.to_service().db_conn, "test", false).await,
-    //             "test 2".into(),
-    //         )
-    //         .await;
-    //
-    //     // Assert
-    //
-    //     assert_eq!(
-    //         actual,
-    //         Err("Another file with the same name already exists!".into())
-    //     );
-    // }
-    //
-    // #[tokio::test]
-    // async fn rename_folder_valid_input_rename_folder() {
-    //     // Arrange
-    //
+        let actual = deps
+            .to_service()
+            .move_folder(folder_id, inner_folder_id)
+            .await;
 
-    //     deps.to_service().create_folder("folder 1".into()).await.unwrap();
-    //     service
-    //         .create_folder("folder 2/folder 3".into())
-    //         .await
-    //         .unwrap();
-    //     deps.to_service().create_file("folder 2/file".into()).await.unwrap();
-    //
-    //     // Act
-    //
-    //     service
-    //         .rename_folder(
-    //             get_id(&deps.to_service().db_conn, "folder 1", true).await,
-    //             "new_name".into(),
-    //         )
-    //         .await
-    //         .unwrap();
-    //     service
-    //         .rename_folder(
-    //             get_id(&deps.to_service().db_conn, "folder 2", true).await,
-    //             "new_name_2".into(),
-    //         )
-    //         .await
-    //         .unwrap();
-    //
-    //     // Assert
-    //
-    //     let actual = deps.to_service().get_user_files().await.unwrap();
-    //     assert_eq!(actual.len(), 4);
-    //     assert!(actual
-    //         .iter()
-    //         .any(|item| item.path == "new_name" && item.is_folder));
-    //     assert!(actual
-    //         .iter()
-    //         .any(|item| item.path == "new_name_2" && item.is_folder));
-    //     assert!(actual
-    //         .iter()
-    //         .any(|item| item.path == "new_name_2/folder 3" && item.is_folder));
-    //     assert!(actual
-    //         .iter()
-    //         .any(|item| item.path == "new_name_2/file" && !item.is_folder));
-    // }
-    //
-    // #[tokio::test]
-    // async fn rename_folder_existing_folder_error_returned() {
-    //     // Arrange
-    //
+        // Assert
 
-    //     deps.to_service().create_folder("test".into()).await.unwrap();
-    //     deps.to_service().create_folder("test 2".into()).await.unwrap();
-    //
-    //     // Act
-    //
-    //     let actual = service
-    //         .rename_folder(
-    //             get_id(&deps.to_service().db_conn, "test", true).await,
-    //             "test 2".into(),
-    //         )
-    //         .await;
-    //
-    //     // Assert
-    //
-    //     assert_eq!(
-    //         actual,
-    //         Err("Another folder with the same name already exists!".into())
-    //     );
-    // }
-    //
+        assert_eq!(
+            actual,
+            Err("You cannot move into an inner folder!".to_string())
+        );
+    }
+
+    #[tokio::test]
+    async fn move_folder_existing_folder_error_returned() {
+        // Arrange
+
+        let mut deps = TestDependencies::new();
+        let folder_id = 1;
+        deps.setup_get_by_id(
+            folder_id,
+            user_file::Model {
+                id: folder_id,
+                path: "folder".to_string(),
+                ..Default::default()
+            },
+        );
+        let destination_folder_id = 2;
+        deps.setup_get_by_id(
+            destination_folder_id,
+            user_file::Model {
+                id: destination_folder_id,
+                path: "test".to_string(),
+                ..Default::default()
+            },
+        );
+        deps.setup_folder_exists("test/folder", true);
+
+        // Act
+
+        let actual = deps
+            .to_service()
+            .move_folder(folder_id, destination_folder_id)
+            .await;
+
+        // Assert
+
+        assert_eq!(
+            actual,
+            Err("Another folder with the same name exists!".to_string())
+        );
+    }
+
+    #[tokio::test]
+    async fn rename_file_valid_input_renamed_file() {
+        // Arrange
+
+        let mut deps = TestDependencies::new();
+        let file_id = 1;
+        deps.setup_get_by_id(
+            file_id,
+            user_file::Model {
+                id: file_id,
+                path: "folder/test".to_string(),
+                ..Default::default()
+            },
+        );
+        deps.setup_file_exists("folder/new name", false);
+        deps.setup_folder_exists("folder", true);
+
+        // Assert
+
+        deps.assert_update_path(file_id, "folder/new name");
+
+        // Act
+
+        deps.to_service()
+            .rename_file(file_id, "new name".into())
+            .await
+            .unwrap();
+    }
+
+    #[tokio::test]
+    async fn rename_file_existing_file_error_returned() {
+        // Arrange
+
+        let mut deps = TestDependencies::new();
+        let file_id = 1;
+        deps.setup_get_by_id(
+            file_id,
+            user_file::Model {
+                id: file_id,
+                path: "folder/test".to_string(),
+                ..Default::default()
+            },
+        );
+        deps.setup_file_exists("folder/new name", true);
+
+        // Act
+
+        let actual = deps
+            .to_service()
+            .rename_file(file_id, "new name".into())
+            .await;
+
+        // Assert
+
+        assert_eq!(
+            actual,
+            Err("Another file with the same name already exists!".into())
+        );
+    }
+
+    #[tokio::test]
+    async fn rename_folder_valid_input_renamed_folder() {
+        // Arrange
+
+        let mut deps = TestDependencies::new();
+        let folder_id = 1;
+        deps.setup_get_by_id(
+            folder_id,
+            user_file::Model {
+                id: folder_id,
+                path: "test/folder 1".into(),
+                ..Default::default()
+            },
+        );
+        let files: Vec<user_file::Model> = vec![
+            user_file::Model {
+                id: 10,
+                path: "test/folder 1/folder 2".into(),
+                ..Default::default()
+            },
+            user_file::Model {
+                id: 11,
+                path: "test/folder 1/folder 2/file".into(),
+                ..Default::default()
+            },
+        ];
+        deps.setup_get_folder_sub_files(folder_id, files);
+        deps.setup_folder_exists("test", true);
+        deps.setup_folder_exists("test/new name", false);
+        deps.setup_folder_exists("test/new name/subfolder", false);
+
+        // Assert
+
+        deps.assert_create_folder("test/new name");
+        deps.assert_update_path(folder_id, "test/new name/subfolder");
+        deps.assert_update_path(10, "test/new name/subfolder/folder 2");
+        deps.assert_update_path(11, "test/new name/subfolder/folder 2/file");
+
+        // Act
+
+        deps.to_service()
+            .rename_folder(folder_id, "new name/subfolder".into())
+            .await
+            .unwrap();
+    }
+
+    #[tokio::test]
+    async fn rename_folder_existing_folder_returned_error() {
+        // Arrange
+
+        let mut deps = TestDependencies::new();
+        let folder_id = 1;
+        deps.setup_get_by_id(
+            folder_id,
+            user_file::Model {
+                id: folder_id,
+                path: "test/folder 1".into(),
+                ..Default::default()
+            },
+        );
+        deps.setup_folder_exists("test/new name", true);
+
+        // Act
+
+        let actual = deps
+            .to_service()
+            .rename_folder(folder_id, "new name".into())
+            .await;
+
+        // Assert
+
+        assert_eq!(
+            actual,
+            Err("Another folder with the same name already exists!".into())
+        );
+    }
 }
