@@ -12,7 +12,13 @@ pub enum CellType {
     Note,
 }
 
-#[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq)]
+impl Default for CellType {
+    fn default() -> Self {
+        CellType::Note
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Default)]
 #[sea_orm(table_name = "cell")]
 pub struct Model {
     #[sea_orm(primary_key)]

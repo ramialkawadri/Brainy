@@ -9,7 +9,6 @@ use sea_orm::{entity::*, query::*};
 
 use crate::entities::cell::{self, CellType};
 
-// TODO: test
 #[cfg_attr(test, automock)]
 #[async_trait]
 pub trait CellRepository {
@@ -120,7 +119,6 @@ impl CellRepository for DefaultCellRepository {
     }
 
     async fn update_cell(&self, cell: cell::ActiveModel) -> Result<(), String> {
-        // TODO: test that active model does not change unset values
         let result = cell::Entity::update(cell).exec(&*self.db_conn).await;
         match result {
             Ok(_) => Ok(()),
@@ -133,8 +131,11 @@ impl CellRepository for DefaultCellRepository {
 mod tests {
     use sea_orm::DatabaseConnection;
 
-    use crate::repositories::{tests::get_db, user_file_repository::{DefaultUserFileRepository, UserFileRepository}};
     use super::*;
+    use crate::repositories::{
+        tests::get_db,
+        user_file_repository::{DefaultUserFileRepository, UserFileRepository},
+    };
 
     async fn create_repository() -> DefaultCellRepository {
         let db = get_db().await;
@@ -146,31 +147,134 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn create_cell_valid_input_created_cells() {
+    async fn get_cell_by_id_valid_input_returned_cell() {
         // Arrange
 
         let repository = create_repository().await;
         let user_repository = create_user_file_repository(repository.db_conn.clone());
-        user_repository.create_file("file 1".into()).await.unwrap();
+        let file_id = user_repository.create_file("file 1".into()).await.unwrap();
+        let cell_id = repository
+            .create_cell(file_id, "test".into(), CellType::FlashCard, 1)
+            .await
+            .unwrap();
 
         // Act
 
-        repository.create_cell(1, "1".into(), CellType::FlashCard, 1)
+        let actual = repository.get_cell_by_id(cell_id).await.unwrap();
+
+        // Assert
+
+        assert_eq!(actual.id, cell_id);
+        assert_eq!(actual.content, "test".to_string());
+    }
+
+    #[tokio::test]
+    async fn increase_cells_index_starting_from_valid_input_increased_indexes() {
+        // Arrange
+
+        let repository = create_repository().await;
+        let user_repository = create_user_file_repository(repository.db_conn.clone());
+        let file_id = user_repository.create_file("file 1".into()).await.unwrap();
+        repository
+            .create_cell(file_id, "1".into(), CellType::FlashCard, 1)
             .await
             .unwrap();
-        repository.create_cell(1, "2".into(), CellType::FlashCard, 2)
+        repository
+            .create_cell(file_id, "2".into(), CellType::FlashCard, 2)
             .await
             .unwrap();
-        repository.create_cell(1, "3".into(), CellType::FlashCard, 3)
+        repository
+            .create_cell(file_id, "3".into(), CellType::FlashCard, 3)
             .await
             .unwrap();
-        repository.create_cell(1, "4".into(), CellType::Note, 4)
+        repository
+            .create_cell(file_id, "4".into(), CellType::Note, 4)
+            .await
+            .unwrap();
+
+        // Act
+
+        repository
+            .increase_cells_index_starting_from(file_id, 2, 1)
             .await
             .unwrap();
 
         // Assert
 
-        let actual = repository.get_file_cells(1).await.unwrap();
+        let actual = repository.get_file_cells(file_id).await.unwrap();
+        assert_eq!(actual.len(), 4);
+        assert_eq!(actual[0].index, 1);
+        assert_eq!(actual[1].index, 3);
+        assert_eq!(actual[2].index, 4);
+        assert_eq!(actual[3].index, 5);
+    }
+
+    #[tokio::test]
+    async fn increase_cells_index_starting_from_negative_number_decreased_indexes() {
+        // Arrange
+
+        let repository = create_repository().await;
+        let user_repository = create_user_file_repository(repository.db_conn.clone());
+        let file_id = user_repository.create_file("file 1".into()).await.unwrap();
+        repository
+            .create_cell(file_id, "1".into(), CellType::FlashCard, 1)
+            .await
+            .unwrap();
+        repository
+            .create_cell(file_id, "3".into(), CellType::FlashCard, 3)
+            .await
+            .unwrap();
+        repository
+            .create_cell(file_id, "4".into(), CellType::Note, 4)
+            .await
+            .unwrap();
+
+        // Act
+
+        repository
+            .increase_cells_index_starting_from(file_id, 3, -1)
+            .await
+            .unwrap();
+
+        // Assert
+
+        let actual = repository.get_file_cells(file_id).await.unwrap();
+        assert_eq!(actual.len(), 3);
+        assert_eq!(actual[0].index, 1);
+        assert_eq!(actual[1].index, 2);
+        assert_eq!(actual[2].index, 3);
+    }
+
+    #[tokio::test]
+    async fn create_cell_valid_input_created_cells() {
+        // Arrange
+
+        let repository = create_repository().await;
+        let user_repository = create_user_file_repository(repository.db_conn.clone());
+        let file_id = user_repository.create_file("file 1".into()).await.unwrap();
+
+        // Act
+
+        repository
+            .create_cell(file_id, "1".into(), CellType::FlashCard, 1)
+            .await
+            .unwrap();
+        repository
+            .create_cell(file_id, "2".into(), CellType::FlashCard, 2)
+            .await
+            .unwrap();
+        repository
+            .create_cell(file_id, "3".into(), CellType::FlashCard, 3)
+            .await
+            .unwrap();
+        repository
+            .create_cell(file_id, "4".into(), CellType::Note, 4)
+            .await
+            .unwrap();
+
+        // Assert
+
+        let actual = repository.get_file_cells(file_id).await.unwrap();
         assert_eq!(actual.len(), 4);
         assert_eq!(actual[0].content, "1");
         assert_eq!(actual[1].content, "2");
@@ -181,5 +285,64 @@ mod tests {
         assert_eq!(actual[1].cell_type, CellType::FlashCard);
         assert_eq!(actual[2].cell_type, CellType::FlashCard);
         assert_eq!(actual[3].cell_type, CellType::Note);
+    }
+
+    #[tokio::test]
+    async fn delete_cell_valid_input_deleted_cell() {
+        // Arrange
+
+        let repository = create_repository().await;
+        let user_repository = create_user_file_repository(repository.db_conn.clone());
+        let file_id = user_repository.create_file("file 1".into()).await.unwrap();
+        let cell_id = repository
+            .create_cell(file_id, "1".into(), CellType::FlashCard, 1)
+            .await
+            .unwrap();
+
+        // Act
+
+        repository.delete_cell(cell_id).await.unwrap();
+
+        // Assert
+
+        let actual = repository.get_file_cells(file_id).await.unwrap();
+        assert_eq!(actual.len(), 0);
+    }
+
+    #[tokio::test]
+    async fn update_cell_valid_input_updated_cell() {
+        // Arrange
+
+        let repository = create_repository().await;
+        let user_repository = create_user_file_repository(repository.db_conn.clone());
+        let file_id = user_repository.create_file("file 1".into()).await.unwrap();
+        let cell_id = repository
+            .create_cell(file_id, "cell 1".into(), CellType::FlashCard, 1)
+            .await
+            .unwrap();
+        repository
+            .create_cell(file_id, "cell 2".into(), CellType::FlashCard, 1)
+            .await
+            .unwrap();
+
+        // Act
+
+        repository
+            .update_cell(cell::ActiveModel {
+                id: Set(cell_id),
+                content: Set("new content".to_string()),
+                ..Default::default()
+            })
+            .await
+            .unwrap();
+
+        // Assert
+
+        let actual = repository.get_file_cells(file_id).await.unwrap();
+        assert_eq!(actual.len(), 2);
+        assert_eq!(actual[0].content, "new content".to_string());
+        assert_eq!(actual[1].content, "cell 2".to_string());
+
+        assert_eq!(actual[0].cell_type, CellType::FlashCard);
     }
 }

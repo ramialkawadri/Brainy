@@ -1,14 +1,13 @@
+use std::sync::Arc;
+
 use crate::models::file_repetitions_count::FileRepetitionCounts;
-use crate::services::repetition_service;
-use crate::AppState;
+use crate::services::repetition_service::RepetitionService;
 use tauri::State;
-use tokio::sync::Mutex;
 
 #[tauri::command]
 pub async fn get_file_repetitions_count(
-    state: State<'_, Mutex<AppState>>,
+    repetition_service: State<'_, Arc<dyn RepetitionService + Sync + Send>>,
     file_id: i32,
 ) -> Result<FileRepetitionCounts, String> {
-    let state = state.lock().await;
-    repetition_service::get_file_repetitions_count(&state.connection, file_id).await
+    repetition_service.get_file_repetitions_count(file_id).await
 }

@@ -16,8 +16,8 @@ pub trait UserFileRepository {
     async fn folder_exists(&self, path: String) -> Result<bool, String>;
     async fn get_by_id(&self, id: i32) -> Result<user_file::Model, String>;
     async fn get_user_files(&self) -> Result<Vec<user_file::Model>, String>;
-    async fn create_folder(&self, path: String) -> Result<(), String>;
-    async fn create_file(&self, path: String) -> Result<(), String>;
+    async fn create_folder(&self, path: String) -> Result<i32, String>;
+    async fn create_file(&self, path: String) -> Result<i32, String>;
     async fn delete_file(&self, file_id: i32) -> Result<(), String>;
     async fn delete_folder(&self, folder_id: i32) -> Result<(), String>;
     async fn update_path(&self, id: i32, new_path: String) -> Result<(), String>;
@@ -78,7 +78,7 @@ impl UserFileRepository for DefaultUserFileRepository {
         }
     }
 
-    async fn create_folder(&self, path: String) -> Result<(), String> {
+    async fn create_folder(&self, path: String) -> Result<i32, String> {
         let active_model = user_file::ActiveModel {
             path: Set(path),
             is_folder: Set(true),
@@ -87,12 +87,12 @@ impl UserFileRepository for DefaultUserFileRepository {
 
         let result = active_model.insert(&*self.db_conn).await;
         match result {
-            Ok(_) => Ok(()),
+            Ok(insert_result) => Ok(insert_result.id),
             Err(err) => Err(err.to_string()),
         }
     }
 
-    async fn create_file(&self, path: String) -> Result<(), String> {
+    async fn create_file(&self, path: String) -> Result<i32, String> {
         let active_model = user_file::ActiveModel {
             path: Set(path),
             is_folder: Set(false),
@@ -101,7 +101,7 @@ impl UserFileRepository for DefaultUserFileRepository {
 
         let result = active_model.insert(&*self.db_conn).await;
         match result {
-            Ok(_) => Ok(()),
+            Ok(insert_result) => Ok(insert_result.id),
             Err(err) => Err(err.to_string()),
         }
     }

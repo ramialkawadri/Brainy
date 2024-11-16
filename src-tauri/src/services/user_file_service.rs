@@ -11,8 +11,8 @@ use async_trait::async_trait;
 #[async_trait]
 pub trait UserFileService {
     async fn get_user_files(&self) -> Result<Vec<user_file::Model>, String>;
-    async fn create_file(&self, path: String) -> Result<(), String>;
-    async fn create_folder(&self, path: String) -> Result<(), String>;
+    async fn create_file(&self, path: String) -> Result<i32, String>;
+    async fn create_folder(&self, path: String) -> Result<i32, String>;
     async fn delete_file(&self, file_id: i32) -> Result<(), String>;
     async fn delete_folder(&self, folder_id: i32) -> Result<(), String>;
     async fn move_file(&self, file_id: i32, destination_folder_id: i32) -> Result<(), String>;
@@ -30,8 +30,10 @@ impl DefaultUserFileServices {
         Self { repository }
     }
 
-    async fn create_folder_recursively(&self, path: &String) -> Result<(), String> {
+    async fn create_folder_recursively(&self, path: &String) -> Result<i32, String> {
         let mut current_path = String::new();
+        // The id of the folder with the full path
+        let mut folder_id = 0;
 
         for name in path.split("/") {
             if !current_path.is_empty() {
@@ -44,13 +46,14 @@ impl DefaultUserFileServices {
                 .folder_exists(current_path.to_string())
                 .await?
             {
-                self.repository
+                folder_id = self
+                    .repository
                     .create_folder(current_path.to_string())
                     .await?;
             }
         }
 
-        Ok(())
+        Ok(folder_id)
     }
 }
 
@@ -60,7 +63,7 @@ impl UserFileService for DefaultUserFileServices {
         self.repository.get_user_files().await
     }
 
-    async fn create_file(&self, path: String) -> Result<(), String> {
+    async fn create_file(&self, path: String) -> Result<i32, String> {
         if path.trim().is_empty() {
             return Err("Name cannot be empty!".into());
         }
@@ -74,7 +77,7 @@ impl UserFileService for DefaultUserFileServices {
         self.repository.create_file(path).await
     }
 
-    async fn create_folder(&self, path: String) -> Result<(), String> {
+    async fn create_folder(&self, path: String) -> Result<i32, String> {
         if path.trim().is_empty() {
             return Err("Name cannot be empty!".into());
         }
@@ -300,7 +303,7 @@ pub mod tests {
                 .expect_create_folder()
                 .with(predicate::eq(path.to_string()))
                 .once()
-                .return_const(Ok(()));
+                .return_const(Ok(1));
         }
 
         fn assert_create_file(&mut self, path: &str) {
@@ -308,7 +311,7 @@ pub mod tests {
                 .expect_create_file()
                 .with(predicate::eq(path.to_string()))
                 .once()
-                .return_const(Ok(()));
+                .return_const(Ok(1));
         }
 
         fn assert_update_path(&mut self, id: i32, path: &str) {

@@ -6,6 +6,8 @@ use crate::repositories::cell_repository::CellRepository;
 use async_trait::async_trait;
 use sea_orm::entity::*;
 
+use super::repetition_service::RepetitionService;
+
 #[async_trait]
 pub trait CellService {
     async fn get_file_cells(&self, file_id: i32) -> Result<Vec<cell::Model>, String>;
@@ -18,16 +20,23 @@ pub trait CellService {
     ) -> Result<(), String>;
     async fn delete_cell(&self, cell_id: i32) -> Result<(), String>;
     async fn move_cell(&self, cell_id: i32, new_index: i32) -> Result<(), String>;
-    async fn update_cell(&self, cell_id: i32, content: String) -> Result<(), String>;
+    async fn update_cell_content(&self, cell_id: i32, content: String) -> Result<(), String>;
 }
 
 pub struct DefaultCellService {
     repository: Arc<dyn CellRepository + Sync + Send>,
+    repetition_service: Arc<dyn RepetitionService + Sync + Send>,
 }
 
 impl DefaultCellService {
-    pub fn new(repository: Arc<dyn CellRepository + Sync + Send>) -> Self {
-        Self { repository }
+    pub fn new(
+        repository: Arc<dyn CellRepository + Sync + Send>,
+        repetition_service: Arc<dyn RepetitionService + Sync + Send>,
+    ) -> Self {
+        Self {
+            repository,
+            repetition_service,
+        }
     }
 }
 
@@ -47,11 +56,13 @@ impl CellService for DefaultCellService {
         self.repository
             .increase_cells_index_starting_from(file_id, index, 1)
             .await?;
-        self.repository
-            .create_cell(file_id, content, cell_type, index)
+        let cell_id = self
+            .repository
+            .create_cell(file_id, content, cell_type.clone(), index)
             .await?;
-        // TODO:
-        // repetition_service::upsert_repetition(&*self.db_conn, file_id, cell_id, cell_type);
+        self.repetition_service
+            .upsert_repetition(file_id, cell_id, cell_type)
+            .await?;
         Ok(())
     }
 
@@ -87,7 +98,7 @@ impl CellService for DefaultCellService {
         Ok(())
     }
 
-    async fn update_cell(&self, cell_id: i32, content: String) -> Result<(), String> {
+    async fn update_cell_content(&self, cell_id: i32, content: String) -> Result<(), String> {
         self.repository
             .update_cell(cell::ActiveModel {
                 id: Set(cell_id),
@@ -100,25 +111,38 @@ impl CellService for DefaultCellService {
 
 #[cfg(test)]
 mod tests {
-    use mockall::{predicate, Predicate};
-
     use super::*;
-    use crate::repositories::cell_repository::MockCellRepository;
-    // TODO:
+    use crate::{
+        repositories::cell_repository::MockCellRepository,
+        services::repetition_service::MockRepetitionService,
+    };
+    use mockall::predicate;
 
     struct TestDependencies {
         cell_repository: MockCellRepository,
+        repetition_serive: MockRepetitionService,
     }
 
     impl TestDependencies {
         fn new() -> Self {
             TestDependencies {
                 cell_repository: MockCellRepository::new(),
+                repetition_serive: MockRepetitionService::new(),
             }
         }
 
         fn to_service(self) -> DefaultCellService {
-            DefaultCellService::new(Arc::new(self.cell_repository))
+            DefaultCellService::new(
+                Arc::new(self.cell_repository),
+                Arc::new(self.repetition_serive),
+            )
+        }
+
+        fn setup_get_by_id(&mut self, cell_id: i32, cell: cell::Model) {
+            self.cell_repository
+                .expect_get_cell_by_id()
+                .with(predicate::eq(cell_id))
+                .return_once(|_| Ok(cell));
         }
 
         fn assert_create_cell(
@@ -156,6 +180,34 @@ mod tests {
                 .once()
                 .return_const(Ok(()));
         }
+
+        fn assert_delete_cell(&mut self, cell_id: i32) {
+            self.cell_repository
+                .expect_delete_cell()
+                .with(predicate::eq(cell_id))
+                .once()
+                .return_const(Ok(()));
+        }
+
+        fn assert_update_cell(&mut self, f: Box<dyn Send + Fn(&cell::ActiveModel) -> bool>) {
+            self.cell_repository
+                .expect_update_cell()
+                .withf(f)
+                .once()
+                .return_const(Ok(()));
+        }
+
+        fn assert_upsert_repetition(&mut self, file_id: i32, cell_id: i32, cell_type: CellType) {
+            self.repetition_serive
+                .expect_upsert_repetition()
+                .with(
+                    predicate::eq(file_id),
+                    predicate::eq(cell_id),
+                    predicate::eq(cell_type),
+                )
+                .once()
+                .return_const(Ok(()));
+        }
     }
 
     #[tokio::test]
@@ -170,6 +222,8 @@ mod tests {
 
         deps.assert_increase_cells_index_starting_from(file_id, index, 1);
         deps.assert_create_cell(file_id, "content".to_string(), CellType::Note, index);
+        // TODO: change from magic number 99 to an argument
+        deps.assert_upsert_repetition(file_id, 99, CellType::Note);
 
         // Act
 
@@ -179,122 +233,115 @@ mod tests {
             .unwrap();
     }
 
-    // #[tokio::test]
-    // pub async fn delete_cell_valid_input_deleted_cell() {
-    //     // Arrange
-    //
-    //     let db = get_db().await;
-    //     create_file(&db, "file 1".into()).await.unwrap();
-    //     let file_id = get_id(&db, "file 1", false).await;
-    //
-    //     create_cell(&db, file_id, "0".into(), CellType::FlashCard, 0)
-    //         .await
-    //         .unwrap();
-    //
-    //     create_cell(&db, file_id, "1".into(), CellType::FlashCard, 1)
-    //         .await
-    //         .unwrap();
-    //
-    //     create_cell(&db, file_id, "2".into(), CellType::FlashCard, 2)
-    //         .await
-    //         .unwrap();
-    //
-    //     let cells = get_cells(&db, file_id).await.unwrap();
-    //
-    //     // Act
-    //
-    //     delete_cell(&db, cells[1].id).await.unwrap();
-    //
-    //     // Assert
-    //
-    //     let cells = get_cells(&db, file_id).await.unwrap();
-    //     assert_eq!(2, cells.len());
-    //     assert_eq!("0".to_string(), cells[0].content);
-    //     assert_eq!(0, cells[0].index);
-    //     assert_eq!("2".to_string(), cells[1].content);
-    //     assert_eq!(1, cells[1].index);
-    // }
-    //
-    // #[tokio::test]
-    // pub async fn move_cell_move_forward_moved_cell() {
-    //     // Arrange
-    //
-    //     let db = get_db().await;
-    //     create_file(&db, "file 1".into()).await.unwrap();
-    //     let file_id = get_id(&db, "file 1", false).await;
-    //
-    //     for i in 0..5 {
-    //         create_cell(&db, file_id, i.to_string(), CellType::FlashCard, i)
-    //             .await
-    //             .unwrap();
-    //     }
-    //
-    //     let cells = get_cells(&db, file_id).await.unwrap();
-    //
-    //     // Act
-    //
-    //     move_cell(&db, cells[1].id, 3).await.unwrap();
-    //
-    //     // Assert
-    //
-    //     let cells = get_cells(&db, file_id).await.unwrap();
-    //     assert_eq!("0".to_string(), cells[0].content);
-    //     assert_eq!("2".to_string(), cells[1].content);
-    //     assert_eq!("1".to_string(), cells[2].content);
-    //     assert_eq!("3".to_string(), cells[3].content);
-    //     assert_eq!("4".to_string(), cells[4].content);
-    // }
-    //
-    // #[tokio::test]
-    // pub async fn move_cell_move_backward_moved_cell() {
-    //     // Arrange
-    //
-    //     let db = get_db().await;
-    //     create_file(&db, "file 1".into()).await.unwrap();
-    //     let file_id = get_id(&db, "file 1", false).await;
-    //
-    //     for i in 0..5 {
-    //         create_cell(&db, file_id, i.to_string(), CellType::FlashCard, i)
-    //             .await
-    //             .unwrap();
-    //     }
-    //
-    //     let cells = get_cells(&db, file_id).await.unwrap();
-    //
-    //     // Act
-    //
-    //     move_cell(&db, cells[3].id, 1).await.unwrap();
-    //
-    //     // Assert
-    //
-    //     let cells = get_cells(&db, file_id).await.unwrap();
-    //     assert_eq!("0".to_string(), cells[0].content);
-    //     assert_eq!("3".to_string(), cells[1].content);
-    //     assert_eq!("1".to_string(), cells[2].content);
-    //     assert_eq!("2".to_string(), cells[3].content);
-    //     assert_eq!("4".to_string(), cells[4].content);
-    // }
-    //
-    // #[tokio::test]
-    // pub async fn update_cell_valid_input_content_updated() {
-    //     // Arrange
-    //
-    //     let db = get_db().await;
-    //     create_file(&db, "file 1".into()).await.unwrap();
-    //     let file_id = get_id(&db, "file 1", false).await;
-    //
-    //     create_cell(&db, file_id, "old".into(), CellType::FlashCard, 0)
-    //         .await
-    //         .unwrap();
-    //     let cells = get_cells(&db, file_id).await.unwrap();
-    //
-    //     // Act
-    //
-    //     update_cell(&db, cells[0].id, "new".into()).await.unwrap();
-    //
-    //     // Assert
-    //
-    //     let cells = get_cells(&db, file_id).await.unwrap();
-    //     assert_eq!("new".to_string(), cells[0].content);
-    // }
+    #[tokio::test]
+    pub async fn delete_cell_valid_input_deleted_cell() {
+        // Arrange
+
+        let mut deps = TestDependencies::new();
+        let cell_id = 1;
+        let file_id = 1;
+        deps.setup_get_by_id(
+            cell_id,
+            cell::Model {
+                id: cell_id,
+                index: 3,
+                file_id,
+                ..Default::default()
+            },
+        );
+
+        // Assert
+
+        deps.assert_increase_cells_index_starting_from(file_id, 3, -1);
+        deps.assert_delete_cell(cell_id);
+
+        // Act
+
+        deps.to_service().delete_cell(cell_id).await.unwrap();
+    }
+
+    #[tokio::test]
+    pub async fn move_cell_move_forward_moved_cell() {
+        // Arrange
+
+        let mut deps = TestDependencies::new();
+        let file_id = 1;
+        let cell_id = 2;
+        let cell_index = 3;
+        deps.setup_get_by_id(
+            cell_id,
+            cell::Model {
+                id: cell_id,
+                index: cell_index,
+                file_id,
+                ..Default::default()
+            },
+        );
+        let new_index = 4;
+
+        // Assert
+
+        deps.assert_increase_cells_index_starting_from(file_id, cell_index + 1, -1);
+        deps.assert_increase_cells_index_starting_from(file_id, new_index - 1, 1);
+        deps.assert_update_cell(Box::new(move |c| c.index == Set(new_index - 1)));
+
+        // Act
+
+        deps.to_service()
+            .move_cell(cell_id, new_index)
+            .await
+            .unwrap();
+    }
+
+    #[tokio::test]
+    pub async fn move_cell_move_backward_moved_cell() {
+        // Arrange
+
+        let mut deps = TestDependencies::new();
+        let file_id = 1;
+        let cell_id = 2;
+        let cell_index = 3;
+        deps.setup_get_by_id(
+            cell_id,
+            cell::Model {
+                id: cell_id,
+                index: cell_index,
+                file_id,
+                ..Default::default()
+            },
+        );
+        let new_index = 2;
+
+        // Assert
+
+        deps.assert_increase_cells_index_starting_from(file_id, cell_index + 1, -1);
+        deps.assert_increase_cells_index_starting_from(file_id, new_index, 1);
+        deps.assert_update_cell(Box::new(move |c| c.index == Set(new_index)));
+
+        // Act
+
+        deps.to_service()
+            .move_cell(cell_id, new_index)
+            .await
+            .unwrap();
+    }
+
+    #[tokio::test]
+    pub async fn update_cell_content_valid_input_content_updated() {
+        // Arrange
+
+        let mut deps = TestDependencies::new();
+        let cell_id = 1;
+
+        // Assert
+
+        deps.assert_update_cell(Box::new(|c| c.content == Set("new".into())));
+
+        // Act
+
+        deps.to_service()
+            .update_cell_content(cell_id, "new".into())
+            .await
+            .unwrap();
+    }
 }
