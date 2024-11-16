@@ -3,11 +3,11 @@ use crate::services::cell_service::CellService;
 use tauri::State;
 
 #[tauri::command]
-pub async fn get_cells(
+pub async fn get_file_cells(
     cell_service: State<'_, Box<dyn CellService + Sync + Send>>,
     file_id: i32,
 ) -> Result<Vec<cell::Model>, String> {
-    cell_service.get_cells(file_id).await
+    cell_service.get_file_cells(file_id).await
 }
 
 #[tauri::command]

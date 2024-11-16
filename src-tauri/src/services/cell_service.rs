@@ -1,18 +1,14 @@
 use std::sync::Arc;
 
 use crate::entities::cell::{self, CellType};
-use crate::entities::repetition;
-use crate::services::repetition_service;
+use crate::repositories::cell_repository::CellRepository;
 
 use async_trait::async_trait;
-use prelude::Expr;
-use sea_orm::DatabaseConnection;
-use sea_orm::{entity::*, query::*};
+use sea_orm::entity::*;
 
-// TODO: use dependency for repetition
 #[async_trait]
 pub trait CellService {
-    async fn get_cells(&self, file_id: i32) -> Result<Vec<cell::Model>, String>;
+    async fn get_file_cells(&self, file_id: i32) -> Result<Vec<cell::Model>, String>;
     async fn create_cell(
         &self,
         file_id: i32,
@@ -26,35 +22,19 @@ pub trait CellService {
 }
 
 pub struct DefaultCellService {
-    db_conn: Arc<DatabaseConnection>,
+    repository: Arc<dyn CellRepository + Sync + Send>,
 }
 
 impl DefaultCellService {
-    pub fn new(db_conn: Arc<DatabaseConnection>) -> Self {
-        Self { db_conn }
-    }
-
-    async fn get_cell_by_id(&self, cell_id: i32) -> Result<cell::Model, String> {
-        let result = cell::Entity::find_by_id(cell_id).one(&*self.db_conn).await;
-        match result {
-            Ok(cell) => Ok(cell.unwrap()),
-            Err(err) => Err(err.to_string()),
-        }
+    pub fn new(repository: Arc<dyn CellRepository + Sync + Send>) -> Self {
+        Self { repository }
     }
 }
 
 #[async_trait]
 impl CellService for DefaultCellService {
-    async fn get_cells(&self, file_id: i32) -> Result<Vec<cell::Model>, String> {
-        let result = cell::Entity::find()
-            .filter(cell::Column::FileId.eq(file_id))
-            .order_by_asc(cell::Column::Index)
-            .all(&*self.db_conn)
-            .await;
-        match result {
-            Ok(result) => Ok(result),
-            Err(err) => Err(err.to_string()),
-        }
+    async fn get_file_cells(&self, file_id: i32) -> Result<Vec<cell::Model>, String> {
+        self.repository.get_file_cells(file_id).await
     }
 
     async fn create_cell(
@@ -64,189 +44,141 @@ impl CellService for DefaultCellService {
         cell_type: CellType,
         index: i32,
     ) -> Result<(), String> {
-        let result = cell::Entity::update_many()
-            .filter(cell::Column::FileId.eq(file_id))
-            .filter(cell::Column::Index.gte(index))
-            .col_expr(cell::Column::Index, Expr::col(cell::Column::Index).add(1))
-            .exec(&*self.db_conn)
-            .await;
-        if let Err(err) = result {
-            return Err(err.to_string());
-        }
-
-        let active_model = cell::ActiveModel {
-            file_id: Set(file_id),
-            cell_type: Set(cell_type.clone()),
-            content: Set(content),
-            index: Set(index),
-            ..Default::default()
-        };
-        let result = cell::Entity::insert(active_model)
-            .exec(&*self.db_conn)
-            .await;
-        match result {
-            Ok(insert_result) => {
-                let cell_id = insert_result.last_insert_id;
-                repetition_service::upsert_repetition(&*self.db_conn, file_id, cell_id, cell_type)
-                    .await?;
-                Ok(())
-            }
-            Err(err) => Err(err.to_string()),
-        }
+        self.repository
+            .increase_cells_index_starting_from(file_id, index, 1)
+            .await?;
+        self.repository
+            .create_cell(file_id, content, cell_type, index)
+            .await?;
+        // TODO:
+        // repetition_service::upsert_repetition(&*self.db_conn, file_id, cell_id, cell_type);
+        Ok(())
     }
 
     async fn delete_cell(&self, cell_id: i32) -> Result<(), String> {
-        // TODO: update test
-        let cell = self.get_cell_by_id(cell_id).await?;
-
-        let txn = match self.db_conn.begin().await {
-            Ok(txn) => txn,
-            Err(err) => return Err(err.to_string()),
-        };
-
-        let result = repetition::Entity::delete_many()
-            .filter(repetition::Column::CellId.eq(cell_id))
-            .exec(&txn)
-            .await;
-        if let Err(err) = result {
-            return Err(err.to_string());
-        }
-
-        let result = cell::Entity::delete_many()
-            .filter(cell::Column::Id.eq(cell_id))
-            .exec(&txn)
-            .await;
-        if let Err(err) = result {
-            return Err(err.to_string());
-        }
-
-        let result = cell::Entity::update_many()
-            .filter(cell::Column::FileId.eq(cell.file_id))
-            .filter(cell::Column::Index.gt(cell.index))
-            .col_expr(cell::Column::Index, Expr::col(cell::Column::Index).sub(1))
-            .exec(&txn)
-            .await;
-        if let Err(err) = result {
-            return Err(err.to_string());
-        }
-
-        let result = txn.commit().await;
-        match result {
-            Ok(_) => Ok(()),
-            Err(err) => Err(err.to_string()),
-        }
+        let cell = self.repository.get_cell_by_id(cell_id).await?;
+        self.repository.delete_cell(cell_id).await?;
+        self.repository
+            .increase_cells_index_starting_from(cell.file_id, cell.index, -1)
+            .await?;
+        Ok(())
     }
 
     async fn move_cell(&self, cell_id: i32, new_index: i32) -> Result<(), String> {
-        let cell = self.get_cell_by_id(cell_id).await?;
-
-        let txn = match self.db_conn.begin().await {
-            Ok(txn) => txn,
-            Err(err) => return Err(err.to_string()),
-        };
-
+        let cell = self.repository.get_cell_by_id(cell_id).await?;
         let new_index = if new_index > cell.index {
             new_index - 1
         } else {
             new_index
         };
-
-        let result = cell::Entity::update_many()
-            .filter(cell::Column::FileId.eq(cell.file_id))
-            .filter(cell::Column::Index.gt(cell.index))
-            .col_expr(cell::Column::Index, Expr::col(cell::Column::Index).sub(1))
-            .exec(&txn)
-            .await;
-        if let Err(err) = result {
-            return Err(err.to_string());
-        }
-
-        let result = cell::Entity::update_many()
-            .filter(cell::Column::FileId.eq(cell.file_id))
-            .filter(cell::Column::Index.gte(new_index))
-            .col_expr(cell::Column::Index, Expr::col(cell::Column::Index).add(1))
-            .exec(&txn)
-            .await;
-        if let Err(err) = result {
-            return Err(err.to_string());
-        }
-
-        let result = cell::Entity::update_many()
-            .filter(cell::Column::Id.eq(cell_id))
-            .col_expr(cell::Column::Index, Expr::value(new_index))
-            .exec(&txn)
-            .await;
-        if let Err(err) = result {
-            return Err(err.to_string());
-        }
-
-        let result = txn.commit().await;
-        match result {
-            Ok(_) => Ok(()),
-            Err(err) => Err(err.to_string()),
-        }
+        self.repository
+            .increase_cells_index_starting_from(cell.file_id, cell.index + 1, -1)
+            .await?;
+        self.repository
+            .increase_cells_index_starting_from(cell.file_id, new_index, 1)
+            .await?;
+        self.repository
+            .update_cell(cell::ActiveModel {
+                id: Set(cell_id),
+                index: Set(new_index),
+                ..Default::default()
+            })
+            .await?;
+        Ok(())
     }
 
     async fn update_cell(&self, cell_id: i32, content: String) -> Result<(), String> {
-        let result = cell::Entity::update_many()
-            .filter(cell::Column::Id.eq(cell_id))
-            .col_expr(cell::Column::Content, Expr::value(content))
-            .exec(&*self.db_conn)
-            .await;
-
-        match result {
-            Ok(_) => Ok(()),
-            Err(err) => Err(err.to_string()),
-        }
+        self.repository
+            .update_cell(cell::ActiveModel {
+                id: Set(cell_id),
+                content: Set(content),
+                ..Default::default()
+            })
+            .await
     }
 }
 
 #[cfg(test)]
 mod tests {
-    // use super::*;
-    // use crate::service::tests::*;
-    // use crate::service::user_file_service::tests::*;
-    // use crate::service::user_file_service::*;
+    use mockall::{predicate, Predicate};
+
+    use super::*;
+    use crate::repositories::cell_repository::MockCellRepository;
     // TODO:
-    //
-    // #[tokio::test]
-    // async fn create_cell_valid_input_created_cells() {
-    //     // Arrange
-    //
-    //     let db = get_db().await;
-    //     create_file(&db, "file 1".into()).await.unwrap();
-    //     let file_id = get_id(&db, "file 1", false).await;
-    //
-    //     // Act
-    //
-    //     create_cell(&db, file_id, "1".into(), CellType::FlashCard, 0)
-    //         .await
-    //         .unwrap();
-    //     create_cell(&db, file_id, "2".into(), CellType::FlashCard, 0)
-    //         .await
-    //         .unwrap();
-    //     create_cell(&db, file_id, "3".into(), CellType::FlashCard, 0)
-    //         .await
-    //         .unwrap();
-    //     create_cell(&db, file_id, "4".into(), CellType::Note, 0)
-    //         .await
-    //         .unwrap();
-    //
-    //     // Assert
-    //
-    //     let actual = get_cells(&db, file_id).await.unwrap();
-    //     assert_eq!(actual.len(), 4);
-    //     assert_eq!(actual[0].content, "4");
-    //     assert_eq!(actual[1].content, "3");
-    //     assert_eq!(actual[2].content, "2");
-    //     assert_eq!(actual[3].content, "1");
-    //
-    //     assert_eq!(actual[0].cell_type, CellType::Note);
-    //     assert_eq!(actual[1].cell_type, CellType::FlashCard);
-    //     assert_eq!(actual[2].cell_type, CellType::FlashCard);
-    //     assert_eq!(actual[3].cell_type, CellType::FlashCard);
-    // }
-    //
+
+    struct TestDependencies {
+        cell_repository: MockCellRepository,
+    }
+
+    impl TestDependencies {
+        fn new() -> Self {
+            TestDependencies {
+                cell_repository: MockCellRepository::new(),
+            }
+        }
+
+        fn to_service(self) -> DefaultCellService {
+            DefaultCellService::new(Arc::new(self.cell_repository))
+        }
+
+        fn assert_create_cell(
+            &mut self,
+            file_id: i32,
+            content: String,
+            cell_type: CellType,
+            index: i32,
+        ) {
+            self.cell_repository
+                .expect_create_cell()
+                .with(
+                    predicate::eq(file_id),
+                    predicate::eq(content),
+                    predicate::eq(cell_type),
+                    predicate::eq(index),
+                )
+                .once()
+                .return_const(Ok(99));
+        }
+
+        fn assert_increase_cells_index_starting_from(
+            &mut self,
+            file_id: i32,
+            start_index: i32,
+            value: i32,
+        ) {
+            self.cell_repository
+                .expect_increase_cells_index_starting_from()
+                .with(
+                    predicate::eq(file_id),
+                    predicate::eq(start_index),
+                    predicate::eq(value),
+                )
+                .once()
+                .return_const(Ok(()));
+        }
+    }
+
+    #[tokio::test]
+    async fn create_cell_valid_input_created_cells() {
+        // Arrange
+
+        let mut deps = TestDependencies::new();
+        let file_id = 1;
+        let index = 2;
+
+        // Assert
+
+        deps.assert_increase_cells_index_starting_from(file_id, index, 1);
+        deps.assert_create_cell(file_id, "content".to_string(), CellType::Note, index);
+
+        // Act
+
+        deps.to_service()
+            .create_cell(file_id, "content".into(), CellType::Note, index)
+            .await
+            .unwrap();
+    }
+
     // #[tokio::test]
     // pub async fn delete_cell_valid_input_deleted_cell() {
     //     // Arrange

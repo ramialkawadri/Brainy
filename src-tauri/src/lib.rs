@@ -7,7 +7,7 @@ mod services;
 
 use std::sync::Arc;
 
-use repositories::user_file_repository::DefaultUserFileRepository;
+use repositories::{cell_repository::DefaultCellRepository, user_file_repository::DefaultUserFileRepository};
 use sea_orm::{Database, DatabaseConnection, DbErr};
 use services::{
     cell_service::{CellService, DefaultCellService},
@@ -34,6 +34,7 @@ pub async fn run() -> Result<(), DbErr> {
         .setup(|app| {
             let conn = Arc::new(conn);
             let user_file_repository = Arc::new(DefaultUserFileRepository::new(conn.clone()));
+            let cell_repository = Arc::new(DefaultCellRepository::new(conn.clone()));
 
             app.manage(Mutex::new(AppState {
                 connection: conn.clone(),
@@ -42,14 +43,14 @@ pub async fn run() -> Result<(), DbErr> {
                 DefaultUserFileServices::new(user_file_repository.clone()),
             ));
             app.manage::<Box<dyn CellService + Sync + Send>>(Box::new(DefaultCellService::new(
-                conn.clone(),
+                cell_repository.clone()
             )));
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
             create_cell,
             delete_cell,
-            get_cells,
+            get_file_cells,
             move_cell,
             update_cell,
 

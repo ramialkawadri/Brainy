@@ -181,8 +181,7 @@ pub mod tests {
     use super::*;
     use crate::{
         entities::cell::{self, CellType},
-        repositories::tests::*,
-        services::cell_service::{CellService, DefaultCellService},
+        repositories::{cell_repository::{CellRepository, DefaultCellRepository}, tests::*},
     };
 
     async fn create_repository() -> DefaultUserFileRepository {
@@ -190,9 +189,146 @@ pub mod tests {
         DefaultUserFileRepository::new(Arc::new(db))
     }
 
-    // TODO: use repository instead
-    fn create_cell_service(db_conn: Arc<DatabaseConnection>) -> DefaultCellService {
-        DefaultCellService::new(db_conn)
+    fn create_cell_repository(db_conn: Arc<DatabaseConnection>) -> DefaultCellRepository {
+        DefaultCellRepository::new(db_conn)
+    }
+
+    #[tokio::test]
+    async fn file_exists_existing_file_returned_true() {
+        // Arrange
+
+        let repository = create_repository().await;
+        repository.create_file("test".into()).await.unwrap();
+
+        // Act
+
+        let actual = repository.file_exists("test".to_string()).await.unwrap();
+
+        // Assert
+
+        assert_eq!(true, actual);
+    }
+
+    #[tokio::test]
+    async fn file_exists_non_existing_file_returned_false() {
+        // Arrange
+
+        let repository = create_repository().await;
+        repository.create_folder("test".into()).await.unwrap();
+
+        // Act
+
+        let actual = repository.file_exists("test".to_string()).await.unwrap();
+
+        // Assert
+
+        assert_eq!(false, actual);
+    }
+
+    #[tokio::test]
+    async fn folder_exists_existing_file_returned_true() {
+        // Arrange
+
+        let repository = create_repository().await;
+        repository.create_folder("test".into()).await.unwrap();
+
+        // Act
+
+        let actual = repository.folder_exists("test".to_string()).await.unwrap();
+
+        // Assert
+
+        assert_eq!(true, actual);
+    }
+
+    #[tokio::test]
+    async fn folder_exists_non_existing_file_returned_false() {
+        // Arrange
+
+        let repository = create_repository().await;
+        repository.create_file("test".into()).await.unwrap();
+
+        // Act
+
+        let actual = repository.folder_exists("test".to_string()).await.unwrap();
+
+        // Assert
+
+        assert_eq!(false, actual);
+    }
+
+    #[tokio::test]
+    async fn get_by_id_valid_input_returned_file() {
+        // Arrange
+
+        let repository = create_repository().await;
+        repository.create_file("test".into()).await.unwrap();
+
+        // Act
+
+        let actual = repository.get_by_id(1).await.unwrap();
+
+        // Assert
+
+        assert_eq!(1, actual.id);
+        assert_eq!("test".to_string(), actual.path);
+    }
+
+    #[tokio::test]
+    async fn get_user_files_valid_input_returned_files() {
+        // Arrange
+
+        let repository = create_repository().await;
+        repository.create_file("file".into()).await.unwrap();
+        repository.create_folder("folder".into()).await.unwrap();
+
+        // Act
+
+        let actual = repository.get_user_files().await.unwrap();
+
+        // Assert
+
+        assert_eq!(actual.len(), 2);
+        assert!(actual.iter().any(|f| f.path == "file".to_string()));
+        assert!(actual.iter().any(|f| f.path == "folder".to_string()));
+    }
+
+    #[tokio::test]
+    async fn create_folder_valid_input_created_folder() {
+        // Arrange
+
+        let repository = create_repository().await;
+
+        // Act
+
+        repository.create_folder("folder 1".into()).await.unwrap();
+
+        // Assert
+
+        let actual = repository.get_user_files().await.unwrap();
+        assert_eq!(actual.len(), 1);
+        assert_eq!(actual[0].path, "folder 1");
+        assert_eq!(actual[0].is_folder, true);
+        assert_eq!(actual[0].id, 1);
+    }
+
+    #[tokio::test]
+    async fn create_file_valid_input_created_file() {
+        // Arrange
+
+        let repository = create_repository().await;
+
+        // Act
+
+        repository.create_file("file".into()).await.unwrap();
+
+        // Assert
+
+        let actual = repository.get_user_files().await.unwrap();
+        assert_eq!(actual.len(), 1);
+        assert_eq!(actual[0].path, "file");
+        assert_eq!(actual[0].is_folder, false);
+        assert_eq!(actual[0].id, 1);
     }
 
     #[tokio::test]
@@ -203,16 +339,16 @@ pub mod tests {
         repository.create_folder("test".into()).await.unwrap();
         repository.create_file("test".into()).await.unwrap();
         repository.create_file("test 2".into()).await.unwrap();
-        let cell_service = create_cell_service(repository.db_conn.clone());
+        let cell_repository = create_cell_repository(repository.db_conn.clone());
 
         let file_id = get_id(&repository.db_conn, "test", false).await;
-        cell_service
+        cell_repository
             .create_cell(file_id, "".into(), CellType::FlashCard, 0)
             .await
             .unwrap();
 
         let file_id = get_id(&repository.db_conn, "test 2", false).await;
-        cell_service
+        cell_repository
             .create_cell(file_id, "".into(), CellType::FlashCard, 0)
             .await
             .unwrap();
@@ -236,25 +372,6 @@ pub mod tests {
     }
 
     #[tokio::test]
-    async fn create_folder_valid_input_created_folder() {
-        // Arrange
-    
-        let repository = create_repository().await;
-    
-        // Act
-    
-        repository.create_folder("folder 1".into()).await.unwrap();
-    
-        // Assert
-    
-        let actual = repository.get_user_files().await.unwrap();
-        assert_eq!(actual.len(), 1);
-        assert_eq!(actual[0].path, "folder 1");
-        assert_eq!(actual[0].is_folder, true);
-        assert_eq!(actual[0].id, 1);
-    }
-
-    #[tokio::test]
     async fn delete_folder_valid_input_deleted_folder() {
         // Arrange
 
@@ -262,15 +379,15 @@ pub mod tests {
         repository.create_folder("test".into()).await.unwrap();
         repository.create_file("test/file".into()).await.unwrap();
         let file_id = get_id(&repository.db_conn, "test/file", false).await;
-        let cell_service = create_cell_service(repository.db_conn.clone());
-        cell_service
+        let cell_repository = create_cell_repository(repository.db_conn.clone());
+        cell_repository
             .create_cell(file_id, "".into(), CellType::FlashCard, 0)
             .await
             .unwrap();
 
         repository.create_file("test".into()).await.unwrap();
         let file_id = get_id(&repository.db_conn, "test", false).await;
-        cell_service
+        cell_repository
             .create_cell(file_id, "".into(), CellType::FlashCard, 0)
             .await
             .unwrap();
@@ -286,18 +403,73 @@ pub mod tests {
 
         let actual = repository.get_user_files().await.unwrap();
         assert_eq!(actual.len(), 1);
-        let cell_counts = cell::Entity::find().all(&*repository.db_conn).await.unwrap();
+        let cell_counts = cell::Entity::find()
+            .all(&*repository.db_conn)
+            .await
+            .unwrap();
         assert_eq!(cell_counts.len(), 1);
     }
 
+    #[tokio::test]
+    async fn update_path_valid_input_updated_path() {
+        // Arrange
+
+        let repository = create_repository().await;
+        repository.create_file("file".into()).await.unwrap();
+
+        // Act
+
+        repository
+            .update_path(1, "new path".to_string())
+            .await
+            .unwrap();
+
+        // Assert
+
+        let actual = repository.get_user_files().await.unwrap();
+        assert_eq!(actual[0].path, "new path");
+    }
+
+    #[tokio::test]
+    async fn get_folder_sub_files() {
+        // Arrange
+
+        let repository = create_repository().await;
+        repository.create_folder("folder".into()).await.unwrap();
+        repository
+            .create_folder("folder/folder 2".into())
+            .await
+            .unwrap();
+        repository.create_file("folder/file".into()).await.unwrap();
+        repository
+            .create_file("folder/folder 2/file".into())
+            .await
+            .unwrap();
+
+        // Act
+
+        let actual = repository.get_folder_sub_files(1).await.unwrap();
+
+        // Assert
+
+        assert_eq!(3, actual.len());
+        assert!(actual.iter().any(|f| f.path == "folder/file".to_string()));
+        assert!(actual
+            .iter()
+            .any(|f| f.path == "folder/folder 2".to_string()));
+        assert!(actual
+            .iter()
+            .any(|f| f.path == "folder/folder 2/file".to_string()));
+    }
+
     pub async fn get_id(db: &DatabaseConnection, path: &str, is_folder: bool) -> i32 {
-        return user_file::Entity::find()
+        user_file::Entity::find()
             .filter(user_file::Column::Path.eq(path))
             .filter(user_file::Column::IsFolder.eq(is_folder))
             .one(db)
             .await
             .unwrap()
             .unwrap()
-            .id;
+            .id
     }
 }

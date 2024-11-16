@@ -1,4 +1,5 @@
 pub mod user_file_repository;
+pub mod cell_repository;
 
 #[cfg(test)]
 mod tests {

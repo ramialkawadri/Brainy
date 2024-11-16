@@ -23,7 +23,7 @@ function App() {
 
     const fetchFileCells = useCallback(async () => {
         try {
-            const fetchedCells: Cell[] = await invoke("get_cells", {
+            const fetchedCells: Cell[] = await invoke("get_file_cells", {
                 fileId: selectedFileId
             });
             setCells(fetchedCells);

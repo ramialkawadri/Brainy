@@ -37,8 +37,7 @@ impl RelationTrait for Relation {
                 .to(super::user_file::Column::Id)
                 .on_delete(ForeignKeyAction::Cascade)
                 .into(),
-            Self::Repetition => Entity::has_many(super::repetition::Entity)
-                .into(),
+            Self::Repetition => Entity::has_many(super::repetition::Entity).into(),
         }
     }
 }
