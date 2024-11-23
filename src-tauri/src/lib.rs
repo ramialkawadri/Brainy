@@ -63,7 +63,7 @@ pub async fn run() -> Result<(), DbErr> {
             move_folder,
             rename_file,
             rename_folder,
-            get_file_repetitions_count,
+            get_study_repetitions,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

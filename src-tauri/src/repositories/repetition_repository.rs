@@ -10,11 +10,10 @@ use sea_orm::{entity::*, query::*};
 use crate::entities::repetition::{self, State};
 use crate::models::file_repetitions_count::FileRepetitionCounts;
 
-// TODO: test
 #[cfg_attr(test, automock)]
 #[async_trait]
 pub trait RepetitionRepository {
-    async fn get_file_repetitions_count(
+    async fn get_study_repetitions(
         &self,
         file_id: i32,
     ) -> Result<FileRepetitionCounts, String>;
@@ -40,7 +39,7 @@ impl DefaultRepetitionRepository {
 
 #[async_trait]
 impl RepetitionRepository for DefaultRepetitionRepository {
-    async fn get_file_repetitions_count(
+    async fn get_study_repetitions(
         &self,
         file_id: i32,
     ) -> Result<FileRepetitionCounts, String> {
@@ -111,5 +110,128 @@ impl RepetitionRepository for DefaultRepetitionRepository {
             Ok(_) => Ok(()),
             Err(err) => Err(err.to_string()),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use chrono::Duration;
+
+    use super::*;
+    use crate::entities::cell::CellType;
+    use crate::repositories::cell_repository::{CellRepository, DefaultCellRepository};
+    use crate::repositories::tests::get_db;
+    use crate::repositories::user_file_repository::{
+        DefaultUserFileRepository, UserFileRepository,
+    };
+
+    async fn create_repository() -> DefaultRepetitionRepository {
+        let db = get_db().await;
+        DefaultRepetitionRepository::new(Arc::new(db))
+    }
+
+    async fn create_file_cell(repository: &DefaultRepetitionRepository) -> (i32, i32) {
+        let file_repository = DefaultUserFileRepository::new(repository.db_conn.clone());
+        let cell_repository = DefaultCellRepository::new(repository.db_conn.clone());
+        let file_id = file_repository.create_file("file".into()).await.unwrap();
+        let cell_id = cell_repository
+            .create_cell(file_id, "".into(), CellType::Note, 0)
+            .await
+            .unwrap();
+        (file_id, cell_id)
+    }
+
+    #[tokio::test]
+    async fn get_study_repetitions_valid_input_returned_count() {
+        // Arrange
+
+        let repository = create_repository().await;
+        let (file_id, cell_id) = create_file_cell(&repository).await;
+        for _ in 0..2 {
+            repository
+                .insert_repetitions(vec![repetition::ActiveModel {
+                    cell_id: Set(cell_id),
+                    file_id: Set(file_id),
+                    state: Set(State::New),
+                    ..Default::default()
+                }])
+                .await
+                .unwrap();
+        }
+
+        repository
+            .insert_repetitions(vec![
+                repetition::ActiveModel {
+                    cell_id: Set(cell_id),
+                    file_id: Set(file_id),
+                    state: Set(State::Review),
+                    ..Default::default()
+                },
+                repetition::ActiveModel {
+                    cell_id: Set(cell_id),
+                    file_id: Set(file_id),
+                    state: Set(State::Learning),
+                    ..Default::default()
+                },
+                repetition::ActiveModel {
+                    cell_id: Set(cell_id),
+                    file_id: Set(file_id),
+                    state: Set(State::Learning),
+                    due: Set((Utc::now() + Duration::days(1)).naive_utc()),
+                    ..Default::default()
+                },
+            ])
+            .await
+            .unwrap();
+
+        // Act
+
+        let actual = repository
+            .get_study_repetitions(file_id)
+            .await
+            .unwrap();
+
+        // Assert
+
+        assert_eq!(2, actual.new);
+        assert_eq!(1, actual.learning);
+        assert_eq!(0, actual.relearning);
+        assert_eq!(1, actual.review);
+    }
+
+    #[tokio::test]
+    async fn get_repetitions_by_cell_id_valid_input_returned_repetitions() {
+        // Arrange
+
+        let repository = create_repository().await;
+        let (file_id, cell_id) = create_file_cell(&repository).await;
+        repository
+            .insert_repetitions(vec![
+                repetition::ActiveModel {
+                    cell_id: Set(cell_id),
+                    file_id: Set(file_id),
+                    state: Set(State::Learning),
+                    ..Default::default()
+                },
+                repetition::ActiveModel {
+                    cell_id: Set(cell_id),
+                    file_id: Set(file_id),
+                    state: Set(State::Relearning),
+                    ..Default::default()
+                },
+            ])
+            .await
+            .unwrap();
+
+        // Act
+
+        let actual = repository
+            .get_repetitions_by_cell_id(cell_id)
+            .await
+            .unwrap();
+
+        // Assert
+
+        assert_eq!(2, actual.len());
     }
 }

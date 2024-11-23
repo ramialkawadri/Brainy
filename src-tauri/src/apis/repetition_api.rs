@@ -5,9 +5,9 @@ use crate::services::repetition_service::RepetitionService;
 use tauri::State;
 
 #[tauri::command]
-pub async fn get_file_repetitions_count(
+pub async fn get_study_repetitions(
     repetition_service: State<'_, Arc<dyn RepetitionService + Sync + Send>>,
     file_id: i32,
 ) -> Result<FileRepetitionCounts, String> {
-    repetition_service.get_file_repetitions_count(file_id).await
+    repetition_service.get_study_repetitions(file_id).await
 }

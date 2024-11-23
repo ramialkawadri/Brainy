@@ -61,7 +61,7 @@ impl CellService for DefaultCellService {
             .create_cell(file_id, content, cell_type.clone(), index)
             .await?;
         self.repetition_service
-            .upsert_repetition(file_id, cell_id, cell_type)
+            .update_repetitions_for_cell(file_id, cell_id, cell_type)
             .await?;
         Ok(())
     }
@@ -151,6 +151,7 @@ mod tests {
             content: String,
             cell_type: CellType,
             index: i32,
+            cell_id: i32,
         ) {
             self.cell_repository
                 .expect_create_cell()
@@ -161,7 +162,7 @@ mod tests {
                     predicate::eq(index),
                 )
                 .once()
-                .return_const(Ok(99));
+                .return_const(Ok(cell_id));
         }
 
         fn assert_increase_cells_index_starting_from(
@@ -197,9 +198,9 @@ mod tests {
                 .return_const(Ok(()));
         }
 
-        fn assert_upsert_repetition(&mut self, file_id: i32, cell_id: i32, cell_type: CellType) {
+        fn assert_update_repetitions_for_cell(&mut self, file_id: i32, cell_id: i32, cell_type: CellType) {
             self.repetition_serive
-                .expect_upsert_repetition()
+                .expect_update_repetitions_for_cell()
                 .with(
                     predicate::eq(file_id),
                     predicate::eq(cell_id),
@@ -217,13 +218,19 @@ mod tests {
         let mut deps = TestDependencies::new();
         let file_id = 1;
         let index = 2;
+        let cell_id = 10;
 
         // Assert
 
         deps.assert_increase_cells_index_starting_from(file_id, index, 1);
-        deps.assert_create_cell(file_id, "content".to_string(), CellType::Note, index);
-        // TODO: change from magic number 99 to an argument
-        deps.assert_upsert_repetition(file_id, 99, CellType::Note);
+        deps.assert_create_cell(
+            file_id,
+            "content".to_string(),
+            CellType::Note,
+            index,
+            cell_id,
+        );
+        deps.assert_update_repetitions_for_cell(file_id, cell_id, CellType::Note);
 
         // Act
 

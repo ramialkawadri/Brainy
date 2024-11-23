@@ -55,7 +55,7 @@ function Editor({ cells, onError, onCellsUpdate, fetchFileCells, onStudyButtonCl
 
     useEffect(() => {
         void (async () => {
-            setRepetitionCounts(await invoke("get_file_repetitions_count", {
+            setRepetitionCounts(await invoke("get_study_repetitions", {
                 fileId: selectedFileId
             }));
         })();
