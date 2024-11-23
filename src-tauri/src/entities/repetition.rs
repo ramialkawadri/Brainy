@@ -17,7 +17,13 @@ pub enum State {
     Review,
 }
 
-#[derive(Clone, Debug, PartialEq, DeriveEntityModel)]
+impl Default for State {
+    fn default() -> Self {
+        State::New
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, DeriveEntityModel, Default)]
 #[sea_orm(table_name = "repetition")]
 pub struct Model {
     #[sea_orm(primary_key)]

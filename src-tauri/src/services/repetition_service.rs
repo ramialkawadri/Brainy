@@ -35,7 +35,6 @@ impl DefaultRepetitionService {
 
 #[async_trait]
 impl RepetitionService for DefaultRepetitionService {
-    // TODO: test
     async fn update_repetitions_for_cell(
         &self,
         file_id: i32,
@@ -95,6 +94,81 @@ mod tests {
                 .with(predicate::eq(file_id))
                 .return_once(|_| Ok(repetitions));
         }
+
+        fn setup_get_repetitions_by_cell_id(
+            &mut self,
+            cell_id: i32,
+            repetitions: Vec<repetition::Model>,
+        ) {
+            self.repetition_repository
+                .expect_get_repetitions_by_cell_id()
+                .with(predicate::eq(cell_id))
+                .return_once(|_| Ok(repetitions));
+        }
+
+        fn assert_insert_repetitions(
+            &mut self,
+            file_id: i32,
+            cell_id: i32,
+            expected_length: usize,
+        ) {
+            self.repetition_repository
+                .expect_insert_repetitions()
+                .withf(move |repetitions| {
+                    repetitions.len() == expected_length
+                        && repetitions.iter().all(|repetition| {
+                            repetition.file_id == Set(file_id) && repetition.cell_id == Set(cell_id)
+                        })
+                })
+                .return_const(Ok(()));
+        }
+    }
+
+    #[tokio::test]
+    async fn update_repetitions_for_cell_flash_card_with_no_repetitions_added_repetition() {
+        // Arrange
+
+        let mut deps = TestDependencies::new();
+        let cell_id = 1;
+        let file_id = 1;
+        deps.setup_get_repetitions_by_cell_id(cell_id, vec![]);
+
+        // Assert
+
+        deps.assert_insert_repetitions(file_id, cell_id, 1);
+
+        // Act
+
+        deps.to_service()
+            .update_repetitions_for_cell(file_id, cell_id, CellType::FlashCard)
+            .await
+            .unwrap();
+    }
+
+    #[tokio::test]
+    async fn update_repetitions_for_cell_flash_card_with_repetitions_no_repetition_added() {
+        // Arrange
+
+        let mut deps = TestDependencies::new();
+        let cell_id = 1;
+        let file_id = 1;
+        deps.setup_get_repetitions_by_cell_id(
+            cell_id,
+            vec![repetition::Model {
+                ..Default::default()
+            }],
+        );
+
+        // Assert
+
+        deps.assert_insert_repetitions(file_id, cell_id, 0);
+
+        // Act
+
+        deps.to_service()
+            .update_repetitions_for_cell(file_id, cell_id, CellType::FlashCard)
+            .await
+            .unwrap();
     }
 
     #[tokio::test]
