@@ -1,3 +1,4 @@
+import { useCallback, useMemo } from "react";
 import Cell from "../../entities/cell";
 import FlashCard from "../../types/flashCard";
 import RichTextEditor from "../../ui/richTextEditor/RichTextEditor";
@@ -10,19 +11,19 @@ interface IProps {
 }
 
 function FlashCardCell({ cell, onUpdate, editable }: IProps) {
-    const flashCard = JSON.parse(cell.content) as FlashCard ?? {};
+    const flashCard = useMemo(() => JSON.parse(cell.content) as FlashCard ?? {}, [cell.content]);
 
-    const handleQuestionUpdate = (html: string) =>
+    const handleQuestionUpdate = useCallback((html: string) =>
         onUpdate(JSON.stringify({
             question: html,
             answer: flashCard.answer,
-        }));
+        })), [flashCard.answer, onUpdate]);
 
-    const handleAnswerUpdate = (html: string) => 
+    const handleAnswerUpdate = useCallback((html: string) => 
         onUpdate(JSON.stringify({
             question: flashCard.question,
             answer: html,
-        }));
+        })), [flashCard.question, onUpdate]);
 
     return (
         <div className={styles.flashCard}>

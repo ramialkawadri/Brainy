@@ -32,7 +32,7 @@ function App() {
             if (e instanceof Error) setErrorMessage(e.message);
             else setErrorMessage(e as string);
         }
-    }, [setCells, selectedFileId]);
+    }, [selectedFileId]);
 
     useEffect(() => {
         void fetchFileCells();

@@ -16,6 +16,9 @@ import getCellIcon from "../../utils/getCellIcon";
 import EditorCell from "../editorCell/EditorCell";
 import { mdiPlus } from "@mdi/js";
 import FileRepetitionCounts from "../../entities/fileRepetitionCounts";
+import useBeforeUnload from "../../hooks/useBeforeUnload";
+
+const autoSaveDelayInMilliSeconds = 5000;
 
 interface IProps {
     cells: Cell[],
@@ -42,6 +45,8 @@ function Editor({ cells, onError, onCellsUpdate, fetchFileCells, onStudyButtonCl
     const selectedFileId = useAppSelector(selectSelectedFileId)!;
     const addNewCellPopupRef = useRef<HTMLDivElement>(null);
     const editorRef = useRef<HTMLDivElement>(null);
+    const autoSaveTimeoutId = useRef(-1);
+    const changedCellsIndices = useRef(new Set<number>());
 
     useOutsideClick(editorRef as React.MutableRefObject<HTMLElement>,
         () => setShowInsertNewCell(false));
@@ -53,6 +58,7 @@ function Editor({ cells, onError, onCellsUpdate, fetchFileCells, onStudyButtonCl
         }
     });
 
+    // TODO: fix this called on every update
     useEffect(() => {
         void (async () => {
             setRepetitionCounts(await invoke("get_study_repetitions", {
@@ -63,16 +69,41 @@ function Editor({ cells, onError, onCellsUpdate, fetchFileCells, onStudyButtonCl
         // We need to refetch the count on cells or file changing!
     }, [selectedFileId, cells]);
 
-    const handleUpdate = async (cell: Cell, content: string, index: number) => {
-        await executeRequest(async () => {
+    const saveChanges = useCallback(async () => {
+        for (const index of changedCellsIndices.current) {
             await invoke("update_cell", {
-                cellId: cell.id,
-                content,
+                cellId: cells[index].id,
+                content: cells[index].content,
             });
-            cells[index].content = content;
-            onCellsUpdate(cells);
-        });
+        }
+        changedCellsIndices.current.clear();
+    }, [cells]);
+
+    const handleUpdate = (content: string, index: number) => {
+        changedCellsIndices.current.add(index);
+        const newCells = [...cells];
+        newCells[index].content = content;
+        onCellsUpdate(newCells);
+
+        if (autoSaveTimeoutId.current !== -1) clearTimeout(autoSaveTimeoutId.current);
+        autoSaveTimeoutId.current =  setTimeout(() => {
+            autoSaveTimeoutId.current = -1;
+            void saveChanges();
+        }, autoSaveDelayInMilliSeconds);
     };
+
+    const forceSave = useCallback(() => {
+        if (autoSaveTimeoutId.current !== -1) {
+            clearTimeout(autoSaveTimeoutId.current);
+            void saveChanges();
+        }
+    }, [saveChanges]);
+
+    useEffect(() => {
+        forceSave();
+    }, [selectedFileId, saveChanges, forceSave]);
+
+    useBeforeUnload(forceSave);
 
     const executeRequest = useCallback(async (cb: () => Promise<unknown>) => {
         try {
@@ -192,7 +223,7 @@ function Editor({ cells, onError, onCellsUpdate, fetchFileCells, onStudyButtonCl
                         <EditorCell
                             cell={cell}
                             editable={draggedCellIndex === -1}
-                            onUpdate={content => void handleUpdate(cell, content, i)} />
+                            onUpdate={content => handleUpdate(content, i)} />
                     </div>
                 )}
                 

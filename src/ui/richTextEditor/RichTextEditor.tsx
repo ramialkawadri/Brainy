@@ -31,7 +31,7 @@ interface IProps {
     editable?: boolean
 }
 
-function RichTextEditor({ content, title, editable, onUpdate, }: IProps) {
+function RichTextEditor({ content, title, editable, onUpdate }: IProps) {
     const editor = useEditor({
         extensions,
         content,
