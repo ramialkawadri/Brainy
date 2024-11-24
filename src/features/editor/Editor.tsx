@@ -175,7 +175,6 @@ function Editor({ cells, onError, onCellsUpdate, fetchFileCells, onStudyButtonCl
         });
     };
 
-    // TODO: autofocus on text field when changing focus
     return (
         <div className={styles.container}>
             {showDeleteDialog && <ConfirmationDialog

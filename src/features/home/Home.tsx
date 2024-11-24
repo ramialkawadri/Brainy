@@ -1,14 +1,12 @@
+import Folder from "../../types/folder";
 import styles from "./styles.module.css";
 import Tree from "./Tree";
-import IFolder from "../fileSystem/Folder";
 
 interface IProps {
-    rootFolder: IFolder,
+    rootFolder: Folder,
 }
 
 function Home({ rootFolder }: IProps) {
-
-    // TODO: spinner on loading
     return (
         <div className={styles.box}>
             <div className={styles.row + " " + styles.header}>

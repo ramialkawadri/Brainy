@@ -20,7 +20,6 @@ interface IProps {
     onError: (message: string) => void,
 }
 
-// TODO: Make params configurable
 const params = generatorParameters({ enable_fuzz: true, enable_short_term: false });
 const fsrs = new FSRS(params);
 

@@ -8,8 +8,6 @@ import { setErrorMessage,} from "../../store/reducers/fileSystemReducers";
 import { useMemo, useState } from "react";
 import searchFolder from "../../utils/searchFolder";
 
-// TODO: expand/hide sidebar
-// TODO: Add Home button, recents, search button (in all cells), add settings button
 function SideBar() {
     const [searchText, setSearchText] = useState<string | null>(null);
     const rootFolder = useAppSelector(selectRootFolder);
