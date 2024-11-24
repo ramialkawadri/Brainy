@@ -1,8 +1,8 @@
 import { Card, State } from "ts-fsrs";
 import { CellRepetitionDto, State as DtoState } from "../../services/backendApi";
-import createCardFromCellRepetitionDto from "../../utils/createCardFromCellRepetitionDto";
+import createCardFromRepetition from "../../utils/createCardFromRepetition";
 
-describe(createCardFromCellRepetitionDto, () => {
+describe(createCardFromRepetition, () => {
     it("Returns correct on all status", () => {
         // Arrange
         
@@ -40,7 +40,7 @@ describe(createCardFromCellRepetitionDto, () => {
                 elapsed_days: 5,
                 scheduled_days: 6,
             }
-            const actual = createCardFromCellRepetitionDto(dto);
+            const actual = createCardFromRepetition(dto);
             expect(actual).toStrictEqual(expected);
         }
     });

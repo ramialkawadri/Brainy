@@ -98,13 +98,19 @@ impl CellService for DefaultCellService {
         Ok(())
     }
 
+    // TODO: update test
     async fn update_cell_content(&self, cell_id: i32, content: String) -> Result<(), String> {
+        let cell = self.repository.get_cell_by_id(cell_id).await?;
         self.repository
             .update_cell(cell::ActiveModel {
                 id: Set(cell_id),
                 content: Set(content),
                 ..Default::default()
             })
+            .await?;
+
+        self.repetition_service
+            .update_repetitions_for_cell(cell.file_id, cell_id, cell.cell_type)
             .await
     }
 }

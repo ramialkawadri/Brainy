@@ -1,8 +1,8 @@
 use sea_orm::entity::prelude::*;
-use serde::ser::SerializeStruct;
-use serde::Serialize;
+use serde::{Serialize, Deserialize};
 
-#[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Default)]
+#[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Default, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 #[sea_orm(table_name = "user_file")]
 pub struct Model {
     #[sea_orm(primary_key)]
@@ -39,16 +39,3 @@ impl Related<super::repetition::Entity> for Entity {
 }
 
 impl ActiveModelBehavior for ActiveModel {}
-
-impl Serialize for Model {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        let mut state = serializer.serialize_struct("UserFile", 3)?;
-        state.serialize_field("id", &self.id)?;
-        state.serialize_field("path", &self.path)?;
-        state.serialize_field("isFolder", &self.is_folder)?;
-        state.end()
-    }
-}

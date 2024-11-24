@@ -29,6 +29,8 @@ pub trait RepetitionRepository {
     ) -> Result<(), String>;
 
     async fn get_file_repetitions(&self, file_id: i32) -> Result<Vec<repetition::Model>, String>;
+
+    async fn update_repetition(&self, repetition: repetition::Model) -> Result<(), String>;
 }
 
 pub struct DefaultRepetitionRepository {
@@ -52,7 +54,7 @@ impl RepetitionRepository for DefaultRepetitionRepository {
             .column(repetition::Column::State)
             .column_as(repetition::Column::State.count(), "count")
             .filter(repetition::Column::FileId.eq(file_id))
-            .filter(repetition::Column::Due.lte(Utc::now().naive_utc()))
+            .filter(repetition::Column::Due.lte(Utc::now().to_utc()))
             .group_by(repetition::Column::State)
             .into_tuple::<(State, i32)>()
             .all(&*self.db_conn)
@@ -116,6 +118,7 @@ impl RepetitionRepository for DefaultRepetitionRepository {
         }
     }
 
+    // TODO: test
     async fn get_file_repetitions(&self, file_id: i32) -> Result<Vec<repetition::Model>, String> {
         let result = repetition::Entity::find()
             .filter(repetition::Column::FileId.eq(file_id))
@@ -124,6 +127,28 @@ impl RepetitionRepository for DefaultRepetitionRepository {
 
         match result {
             Ok(result) => Ok(result),
+            Err(err) => Err(err.to_string()),
+        }
+    }
+
+    async fn update_repetition(&self, repetition: repetition::Model) -> Result<(), String> {
+        let active_entity = repetition::ActiveModel {
+            id: Set(repetition.id),
+            file_id: Set(repetition.file_id),
+            cell_id: Set(repetition.cell_id),
+            due: Set(repetition.due),
+            stability: Set(repetition.stability),
+            difficulty: Set(repetition.difficulty),
+            elapsed_days: Set(repetition.elapsed_days),
+            scheduled_days: Set(repetition.scheduled_days),
+            reps: Set(repetition.reps),
+            lapses: Set(repetition.lapses),
+            state: Set(repetition.state),
+            last_review: Set(repetition.last_review),
+        };
+        let result = active_entity.update(&*self.db_conn).await;
+        match result {
+            Ok(_) => Ok(()),
             Err(err) => Err(err.to_string()),
         }
     }
@@ -193,7 +218,7 @@ mod tests {
                     cell_id: Set(cell_id),
                     file_id: Set(file_id),
                     state: Set(State::Learning),
-                    due: Set((Utc::now() + Duration::days(1)).naive_utc()),
+                    due: Set((Utc::now() + Duration::days(1)).to_utc()),
                     ..Default::default()
                 },
             ])

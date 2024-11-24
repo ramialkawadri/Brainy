@@ -1,7 +1,7 @@
 import { Card, createEmptyCard, State } from "ts-fsrs";
 import Repetition from "../entities/repetition";
 
-function createCardFromCellRepetitionDto(repetition: Repetition): Card {
+function createCardFromRepetition(repetition: Repetition): Card {
     const card = createEmptyCard();
     card.due = new Date(repetition.due);
     card.reps = repetition.reps;
@@ -29,4 +29,4 @@ function createCardFromCellRepetitionDto(repetition: Repetition): Card {
     return card;
 }
 
-export default createCardFromCellRepetitionDto;
+export default createCardFromRepetition;

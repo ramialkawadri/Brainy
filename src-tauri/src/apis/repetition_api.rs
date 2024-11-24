@@ -22,3 +22,11 @@ pub async fn get_file_repetitions(
 ) -> Result<Vec<repetition::Model>, String> {
     repetition_service.get_file_repetitions(file_id).await
 }
+
+#[tauri::command()]
+pub async fn update_repetition(
+    repetition_service: State<'_, Arc<dyn RepetitionService + Sync + Send>>,
+    repetition: repetition::Model,
+) -> Result<(), String> {
+    repetition_service.update_repetition(repetition).await
+}

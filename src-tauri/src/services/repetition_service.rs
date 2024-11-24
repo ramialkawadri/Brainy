@@ -26,6 +26,8 @@ pub trait RepetitionService {
     ) -> Result<FileRepetitionCounts, String>;
 
     async fn get_file_repetitions(&self, file_id: i32) -> Result<Vec<repetition::Model>, String>;
+
+    async fn update_repetition(&self, repetition: repetition::Model) -> Result<(), String>;
 }
 
 pub struct DefaultRepetitionService {
@@ -65,6 +67,7 @@ impl RepetitionService for DefaultRepetitionService {
             .await
     }
 
+    // TODO: test
     async fn get_study_repetitions_counts(
         &self,
         file_id: i32,
@@ -74,6 +77,10 @@ impl RepetitionService for DefaultRepetitionService {
 
     async fn get_file_repetitions(&self, file_id: i32) -> Result<Vec<repetition::Model>, String> {
         self.repository.get_file_repetitions(file_id).await
+    }
+
+    async fn update_repetition(&self, repetition: repetition::Model) -> Result<(), String> {
+        self.repository.update_repetition(repetition).await
     }
 }
 

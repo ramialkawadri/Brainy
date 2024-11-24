@@ -2,7 +2,7 @@ mod cell_api;
 mod repetition_api;
 mod user_file_api;
 
-pub use repetition_api::{get_study_repetitions_counts, get_file_repetitions};
+pub use repetition_api::{get_study_repetitions_counts, get_file_repetitions, update_repetition};
 
 pub use cell_api::{create_cell, delete_cell, get_file_cells, move_cell, update_cell};
 

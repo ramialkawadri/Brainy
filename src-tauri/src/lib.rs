@@ -66,6 +66,7 @@ pub async fn run() -> Result<(), DbErr> {
 
             get_study_repetitions_counts,
             get_file_repetitions,
+            update_repetition,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

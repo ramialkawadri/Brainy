@@ -1,6 +1,5 @@
 use sea_orm::entity::prelude::*;
 use sea_orm::sea_query::ForeignKeyAction;
-use serde::ser::SerializeStruct;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum, Serialize, Deserialize)]
@@ -18,7 +17,8 @@ impl Default for CellType {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Default)]
+#[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Default, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 #[sea_orm(table_name = "cell")]
 pub struct Model {
     #[sea_orm(primary_key)]
@@ -61,18 +61,3 @@ impl Related<super::repetition::Entity> for Entity {
 }
 
 impl ActiveModelBehavior for ActiveModel {}
-
-impl Serialize for Model {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        let mut state = serializer.serialize_struct("Cell", 5)?;
-        state.serialize_field("id", &self.id)?;
-        state.serialize_field("fileId", &self.file_id)?;
-        state.serialize_field("index", &self.index)?;
-        state.serialize_field("content", &self.content)?;
-        state.serialize_field("cellType", &self.cell_type)?;
-        state.end()
-    }
-}

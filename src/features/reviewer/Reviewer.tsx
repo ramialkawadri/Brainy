@@ -3,8 +3,8 @@ import styles from "./styles.module.css";
 import ReviewerCell from "../reviewerCell/ReviewerCell";
 import Icon from "@mdi/react";
 import { mdiClockOutline, mdiPencilOutline } from "@mdi/js";
-import { createEmptyCard, FSRS, generatorParameters, Rating } from "ts-fsrs";
-import createCardFromCellRepetitionDto from "../../utils/createCardFromCellRepetitionDto";
+import { createEmptyCard, FSRS, generatorParameters, Grade, Rating, RecordLog } from "ts-fsrs";
+import createCardFromCellRepetitionDto from "../../utils/createCardFromRepetition";
 import durationToString from "../../utils/durationToString";
 import useGlobalKey from "../../hooks/useGlobalKey";
 import Cell from "../../entities/cell";
@@ -12,6 +12,7 @@ import Repetition from "../../entities/repetition";
 import { invoke } from "@tauri-apps/api/core";
 import useAppSelector from "../../hooks/useAppSelector";
 import { selectSelectedFileId } from "../../store/selectors/fileSystemSelectors";
+import createRepetitionFromCard from "../../utils/createRepetitionFromCard";
 
 interface IProps {
     cells: Cell[],
@@ -20,7 +21,7 @@ interface IProps {
     onError: (message: string) => void,
 }
 
-const params = generatorParameters({ enable_fuzz: true, enable_short_term: false });
+const params = generatorParameters();
 const fsrs = new FSRS(params);
 
 function Reviewer({
@@ -52,24 +53,27 @@ function Reviewer({
         })();
     }, [selectedFileId]);
 
-    const handleRatingSubmit = async (rating: Rating) => {
+    const dueToday = cellRepetitions.filter(c => new Date(c.due) <= now.current);
+    const currentCard = isLoading
+        ? createEmptyCard()
+        : createCardFromCellRepetitionDto(dueToday[currentCellIndex]);
+
+    const schedulingCards: RecordLog = useMemo(
+        () => fsrs.repeat(currentCard, now.current), [currentCard, now]);
+
+    const handleGradeSubmit = async (grade: Grade) => {
         if (isSendingRequest) {
             return;
         }
         setIsSendingRequest(true);
         try {
-            // TODO: fix
-            // const response = await api(backendApi.registerCellRepetitionReview({
-            //     filePath,
-            //     cellId: dueToday[currentCellIndex].cellId,
-            //     rating: rating,
-            // }));
-            //
-            // if (response.status !== 200) {
-            //     const errorMessage = getErrorFromAxiosResponse<ProblemDetails>(
-            //         response).detail;
-            //     onError(errorMessage ?? "An error happened!");
-            // }
+            const card = schedulingCards[grade].card;
+            const repetition = createRepetitionFromCard(
+                card,
+                dueToday[currentCellIndex].id,
+                dueToday[currentCellIndex].fileId,
+                dueToday[currentCellIndex].cellId);
+            await invoke("update_repetition", { repetition });
         } catch (e) {
             onError("An error happened!");
             console.error(e);
@@ -96,28 +100,21 @@ function Reviewer({
             return;
         }
         if (e.key === "1") {
-            void handleRatingSubmit(Rating.Again);
+            void handleGradeSubmit(Rating.Again);
         } else if (e.key === "2") {
-            void handleRatingSubmit(Rating.Hard);
+            void handleGradeSubmit(Rating.Hard);
         } else if (e.key === "3") {
-            void handleRatingSubmit(Rating.Good);
+            void handleGradeSubmit(Rating.Good);
         } else if (e.key === "4") {
-            void handleRatingSubmit(Rating.Easy);
+            void handleGradeSubmit(Rating.Easy);
         }
     });
 
-    const dueToday = cellRepetitions.filter(c => new Date(c.due) <= now.current);
     const isCurrentCellNew = !isLoading && dueToday[currentCellIndex].state === "New";
     const isCurrentCellLearning = !isLoading && (
         dueToday[currentCellIndex].state === "Learning" ||
         dueToday[currentCellIndex].state === "Relearning");
     const isCurrentCellReview = !isLoading && dueToday[currentCellIndex].state === "Review";
-    const currentCard = isLoading
-        ? createEmptyCard()
-        : createCardFromCellRepetitionDto(dueToday[currentCellIndex]);
-
-    const schedulingCards = useMemo(
-        () => fsrs.repeat(currentCard, now.current), [currentCard, now]);
 
     const counts = {
         new: 0,
@@ -192,7 +189,7 @@ function Reviewer({
                             )}</p>
                             <button
                                 className={styles.againButton}
-                                onClick={() => void handleRatingSubmit(Rating.Again)}
+                                onClick={() => void handleGradeSubmit(Rating.Again)}
                                 disabled={isSendingRequest}>
                                 Again
                             </button>
@@ -203,7 +200,7 @@ function Reviewer({
                             )}</p>
                             <button
                                 className={styles.hardButton}
-                                onClick={() => void handleRatingSubmit(Rating.Hard)}
+                                onClick={() => void handleGradeSubmit(Rating.Hard)}
                                 disabled={isSendingRequest}>
                                 Hard
                             </button>
@@ -214,7 +211,7 @@ function Reviewer({
                             )}</p>
                             <button
                                 className={styles.goodButton}
-                                onClick={() => void handleRatingSubmit(Rating.Good)}
+                                onClick={() => void handleGradeSubmit(Rating.Good)}
                                 disabled={isSendingRequest}>
                                 Good
                             </button>
@@ -225,7 +222,7 @@ function Reviewer({
                             )}</p>
                             <button
                                 className={styles.easyButton}
-                                onClick={() => void handleRatingSubmit(Rating.Easy)}
+                                onClick={() => void handleGradeSubmit(Rating.Easy)}
                                 disabled={isSendingRequest}>
                                 Easy
                             </button>
