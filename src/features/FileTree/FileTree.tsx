@@ -1,11 +1,10 @@
 import { useState } from "react";
-import ConfirmationDialog from "../../ui/confirmationDialog/ConfirmationDialog";
-import useAppDispatch from "../../hooks/useAppDispatch";
+import ConfirmationDialog from "../../ui/ConfirmationDialog/ConfirmationDialog.tsx";
+import useAppDispatch from "../../hooks/useAppDispatch.ts";
 import { deleteFile, deleteFolder } from "../../store/actions/fileSystemActions.ts";
-import FileTreeItem from "./FileTreeItem";
+import FileTreeItem from "./FileTreeItem.tsx";
 import UiFolder from "../../types/uiFolder.ts";
 
-// TODO: on file click stop reviewing
 interface IProps {
 	folder: UiFolder;
 }

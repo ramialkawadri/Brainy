@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from "react";
 import Cell from "../../entities/cell";
 import FlashCard from "../../types/flashCard";
-import RichTextEditor from "../../ui/richTextEditor/RichTextEditor";
+import RichTextEditor from "../../ui/RichTextEditor/RichTextEditor";
 import styles from "./styles.module.css";
 
 interface IProps {

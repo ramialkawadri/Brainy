@@ -1,6 +1,6 @@
 import styles from "./styles.module.css";
-import ErrorBox from "../../ui/errorBox/ErrorBox";
-import FileTree from "../fileTree/FileTree";
+import ErrorBox from "../../ui/ErrorBox/ErrorBox";
+import FileTree from "../FileTree/FileTree";
 import useAppSelector from "../../hooks/useAppSelector";
 import useAppDispatch from "../../hooks/useAppDispatch";
 import { selectError, selectRootFolder } from "../../store/selectors/fileSystemSelectors";

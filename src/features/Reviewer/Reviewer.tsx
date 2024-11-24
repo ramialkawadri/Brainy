@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import styles from "./styles.module.css";
-import ReviewerCell from "../reviewerCell/ReviewerCell";
+import ReviewerCell from "../ReviewerCell/ReviewerCell";
 import Icon from "@mdi/react";
 import { mdiClockOutline, mdiPencilOutline } from "@mdi/js";
 import {

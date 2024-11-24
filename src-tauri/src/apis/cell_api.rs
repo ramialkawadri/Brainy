@@ -5,7 +5,7 @@ use crate::services::cell_service::CellService;
 use tauri::State;
 
 #[tauri::command]
-pub async fn get_file_cells(
+pub async fn get_file_cells_ordered_by_index(
     cell_service: State<'_, Arc<dyn CellService + Sync + Send>>,
     file_id: i32,
 ) -> Result<Vec<cell::Model>, String> {
@@ -19,7 +19,7 @@ pub async fn create_cell(
     content: String,
     cell_type: CellType,
     index: i32,
-) -> Result<(), String> {
+) -> Result<i32, String> {
     cell_service
         .create_cell(file_id, content, cell_type, index)
         .await

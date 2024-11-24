@@ -181,7 +181,10 @@ pub mod tests {
     use super::*;
     use crate::{
         entities::cell::{self, CellType},
-        repositories::{cell_repository::{CellRepository, DefaultCellRepository}, tests::*},
+        repositories::{
+            cell_repository::{CellRepository, DefaultCellRepository},
+            tests::*,
+        },
     };
 
     async fn create_repository() -> DefaultUserFileRepository {

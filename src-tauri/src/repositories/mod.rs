@@ -1,6 +1,6 @@
-pub mod user_file_repository;
 pub mod cell_repository;
 pub mod repetition_repository;
+pub mod user_file_repository;
 
 #[cfg(test)]
 mod tests {

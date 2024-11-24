@@ -17,7 +17,7 @@ pub trait CellService {
         content: String,
         cell_type: CellType,
         index: i32,
-    ) -> Result<(), String>;
+    ) -> Result<i32, String>;
     async fn delete_cell(&self, cell_id: i32) -> Result<(), String>;
     async fn move_cell(&self, cell_id: i32, new_index: i32) -> Result<(), String>;
     async fn update_cell_content(&self, cell_id: i32, content: String) -> Result<(), String>;
@@ -43,7 +43,7 @@ impl DefaultCellService {
 #[async_trait]
 impl CellService for DefaultCellService {
     async fn get_file_cells(&self, file_id: i32) -> Result<Vec<cell::Model>, String> {
-        self.repository.get_file_cells(file_id).await
+        self.repository.get_file_cells_ordered_by_index(file_id).await
     }
 
     async fn create_cell(
@@ -52,9 +52,9 @@ impl CellService for DefaultCellService {
         content: String,
         cell_type: CellType,
         index: i32,
-    ) -> Result<(), String> {
+    ) -> Result<i32, String> {
         self.repository
-            .increase_cells_index_starting_from(file_id, index, 1)
+            .increase_cells_indices_starting_from(file_id, index, 1)
             .await?;
         let cell_id = self
             .repository
@@ -63,14 +63,14 @@ impl CellService for DefaultCellService {
         self.repetition_service
             .update_repetitions_for_cell(file_id, cell_id, cell_type)
             .await?;
-        Ok(())
+        Ok(cell_id)
     }
 
     async fn delete_cell(&self, cell_id: i32) -> Result<(), String> {
         let cell = self.repository.get_cell_by_id(cell_id).await?;
         self.repository.delete_cell(cell_id).await?;
         self.repository
-            .increase_cells_index_starting_from(cell.file_id, cell.index, -1)
+            .increase_cells_indices_starting_from(cell.file_id, cell.index, -1)
             .await?;
         Ok(())
     }
@@ -83,10 +83,10 @@ impl CellService for DefaultCellService {
             new_index
         };
         self.repository
-            .increase_cells_index_starting_from(cell.file_id, cell.index + 1, -1)
+            .increase_cells_indices_starting_from(cell.file_id, cell.index + 1, -1)
             .await?;
         self.repository
-            .increase_cells_index_starting_from(cell.file_id, new_index, 1)
+            .increase_cells_indices_starting_from(cell.file_id, new_index, 1)
             .await?;
         self.repository
             .update_cell(cell::ActiveModel {
@@ -170,14 +170,14 @@ mod tests {
                 .return_const(Ok(cell_id));
         }
 
-        fn assert_increase_cells_index_starting_from(
+        fn assert_increase_cells_indices_starting_from(
             &mut self,
             file_id: i32,
             start_index: i32,
             value: i32,
         ) {
             self.cell_repository
-                .expect_increase_cells_index_starting_from()
+                .expect_increase_cells_indices_starting_from()
                 .with(
                     predicate::eq(file_id),
                     predicate::eq(start_index),
@@ -232,7 +232,7 @@ mod tests {
 
         // Assert
 
-        deps.assert_increase_cells_index_starting_from(file_id, index, 1);
+        deps.assert_increase_cells_indices_starting_from(file_id, index, 1);
         deps.assert_create_cell(
             file_id,
             "content".to_string(),
@@ -269,7 +269,7 @@ mod tests {
 
         // Assert
 
-        deps.assert_increase_cells_index_starting_from(file_id, 3, -1);
+        deps.assert_increase_cells_indices_starting_from(file_id, 3, -1);
         deps.assert_delete_cell(cell_id);
 
         // Act
@@ -298,8 +298,8 @@ mod tests {
 
         // Assert
 
-        deps.assert_increase_cells_index_starting_from(file_id, cell_index + 1, -1);
-        deps.assert_increase_cells_index_starting_from(file_id, new_index - 1, 1);
+        deps.assert_increase_cells_indices_starting_from(file_id, cell_index + 1, -1);
+        deps.assert_increase_cells_indices_starting_from(file_id, new_index - 1, 1);
         deps.assert_update_cell(Box::new(move |c| c.index == Set(new_index - 1)));
 
         // Act
@@ -331,8 +331,8 @@ mod tests {
 
         // Assert
 
-        deps.assert_increase_cells_index_starting_from(file_id, cell_index + 1, -1);
-        deps.assert_increase_cells_index_starting_from(file_id, new_index, 1);
+        deps.assert_increase_cells_indices_starting_from(file_id, cell_index + 1, -1);
+        deps.assert_increase_cells_indices_starting_from(file_id, new_index, 1);
         deps.assert_update_cell(Box::new(move |c| c.index == Set(new_index)));
 
         // Act

@@ -1,9 +1,9 @@
-import Editor from "../editor/Editor";
+import Editor from "../Editor/Editor";
 import styles from "./styles.module.css";
 import { useCallback, useEffect, useState } from "react";
-import ErrorBox from "../../ui/errorBox/ErrorBox";
-import Reviewer from "../reviewer/Reviewer";
-import Home from "../home/Home";
+import ErrorBox from "../../ui/ErrorBox/ErrorBox";
+import Reviewer from "../Reviewer/Reviewer";
+import Home from "../Home/Home";
 import useAppDispatch from "../../hooks/useAppDispatch";
 import useAppSelector from "../../hooks/useAppSelector";
 import {
@@ -11,7 +11,7 @@ import {
 	selectSelectedFileId,
 } from "../../store/selectors/fileSystemSelectors";
 import { fetchFiles } from "../../store/actions/fileSystemActions";
-import SideBar from "../sideBar/SideBar";
+import SideBar from "../SideBar/SideBar";
 import Cell from "../../entities/cell";
 import { invoke } from "@tauri-apps/api/core";
 
@@ -25,7 +25,7 @@ function App() {
 
 	const fetchFileCells = useCallback(async () => {
 		try {
-			const fetchedCells: Cell[] = await invoke("get_file_cells", {
+			const fetchedCells: Cell[] = await invoke("get_file_cells_ordered_by_index", {
 				fileId: selectedFileId,
 			});
 			setCells(fetchedCells);
@@ -40,6 +40,10 @@ function App() {
 		void fetchFileCells();
 		void dispatch(fetchFiles());
 	}, [fetchFileCells, dispatch]);
+
+    useEffect(() => {
+        setIsReviewing(false);
+    }, [selectedFileId]);
 
 	return (
 		<div className={`${styles.workspace}`}>

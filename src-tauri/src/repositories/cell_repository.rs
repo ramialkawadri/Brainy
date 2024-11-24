@@ -13,8 +13,11 @@ use crate::entities::cell::{self, CellType};
 #[async_trait]
 pub trait CellRepository {
     async fn get_cell_by_id(&self, cell_id: i32) -> Result<cell::Model, String>;
-    async fn get_file_cells(&self, file_id: i32) -> Result<Vec<cell::Model>, String>;
-    async fn increase_cells_index_starting_from(
+    async fn get_file_cells_ordered_by_index(
+        &self,
+        file_id: i32,
+    ) -> Result<Vec<cell::Model>, String>;
+    async fn increase_cells_indices_starting_from(
         &self,
         file_id: i32,
         start_index: i32,
@@ -51,7 +54,10 @@ impl CellRepository for DefaultCellRepository {
         }
     }
 
-    async fn get_file_cells(&self, file_id: i32) -> Result<Vec<cell::Model>, String> {
+    async fn get_file_cells_ordered_by_index(
+        &self,
+        file_id: i32,
+    ) -> Result<Vec<cell::Model>, String> {
         let result = cell::Entity::find()
             .filter(cell::Column::FileId.eq(file_id))
             .order_by_asc(cell::Column::Index)
@@ -63,7 +69,7 @@ impl CellRepository for DefaultCellRepository {
         }
     }
 
-    async fn increase_cells_index_starting_from(
+    async fn increase_cells_indices_starting_from(
         &self,
         file_id: i32,
         start_index: i32,
@@ -169,7 +175,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn increase_cells_index_starting_from_valid_input_increased_indexes() {
+    async fn increase_cells_indices_starting_from_valid_input_increased_indexes() {
         // Arrange
 
         let repository = create_repository().await;
@@ -195,13 +201,16 @@ mod tests {
         // Act
 
         repository
-            .increase_cells_index_starting_from(file_id, 2, 1)
+            .increase_cells_indices_starting_from(file_id, 2, 1)
             .await
             .unwrap();
 
         // Assert
 
-        let actual = repository.get_file_cells(file_id).await.unwrap();
+        let actual = repository
+            .get_file_cells_ordered_by_index(file_id)
+            .await
+            .unwrap();
         assert_eq!(actual.len(), 4);
         assert_eq!(actual[0].index, 1);
         assert_eq!(actual[1].index, 3);
@@ -232,13 +241,16 @@ mod tests {
         // Act
 
         repository
-            .increase_cells_index_starting_from(file_id, 3, -1)
+            .increase_cells_indices_starting_from(file_id, 3, -1)
             .await
             .unwrap();
 
         // Assert
 
-        let actual = repository.get_file_cells(file_id).await.unwrap();
+        let actual = repository
+            .get_file_cells_ordered_by_index(file_id)
+            .await
+            .unwrap();
         assert_eq!(actual.len(), 3);
         assert_eq!(actual[0].index, 1);
         assert_eq!(actual[1].index, 2);
@@ -274,7 +286,10 @@ mod tests {
 
         // Assert
 
-        let actual = repository.get_file_cells(file_id).await.unwrap();
+        let actual = repository
+            .get_file_cells_ordered_by_index(file_id)
+            .await
+            .unwrap();
         assert_eq!(actual.len(), 4);
         assert_eq!(actual[0].content, "1");
         assert_eq!(actual[1].content, "2");
@@ -305,7 +320,10 @@ mod tests {
 
         // Assert
 
-        let actual = repository.get_file_cells(file_id).await.unwrap();
+        let actual = repository
+            .get_file_cells_ordered_by_index(file_id)
+            .await
+            .unwrap();
         assert_eq!(actual.len(), 0);
     }
 
@@ -338,7 +356,10 @@ mod tests {
 
         // Assert
 
-        let actual = repository.get_file_cells(file_id).await.unwrap();
+        let actual = repository
+            .get_file_cells_ordered_by_index(file_id)
+            .await
+            .unwrap();
         assert_eq!(actual.len(), 2);
         assert_eq!(actual[0].content, "new content".to_string());
         assert_eq!(actual[1].content, "cell 2".to_string());

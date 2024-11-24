@@ -18,7 +18,6 @@
 	flex-direction: column;
 	background-color: var(--default-background-color);
 	height: 100%;
-	box-shadow: var(--default-box-shadow);
 
 	& ol,
 	& ul {

@@ -50,10 +50,9 @@ pub async fn run() -> Result<(), DbErr> {
         .invoke_handler(tauri::generate_handler![
             create_cell,
             delete_cell,
-            get_file_cells,
+            get_file_cells_ordered_by_index,
             move_cell,
             update_cell,
-
             create_file,
             create_folder,
             delete_file,
@@ -63,8 +62,7 @@ pub async fn run() -> Result<(), DbErr> {
             move_folder,
             rename_file,
             rename_folder,
-
-            get_study_repetitions_counts,
+            get_study_repetition_counts,
             get_file_repetitions,
             update_repetition,
         ])

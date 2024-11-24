@@ -6,6 +6,7 @@ interface IProps {
 	rootFolder: Folder;
 }
 
+// TODO: rename from Home to something else!
 function Home({ rootFolder }: IProps) {
 	return (
 		<div className={styles.box}>

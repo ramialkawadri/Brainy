@@ -4,7 +4,7 @@ import useOutsideClick from "../../hooks/useOutsideClick";
 import createDefaultCell from "../../utils/createDefaultCell";
 import TitleBar from "./TitleBar";
 import styles from "./styles.module.css";
-import ConfirmationDialog from "../../ui/confirmationDialog/ConfirmationDialog";
+import ConfirmationDialog from "../../ui/ConfirmationDialog/ConfirmationDialog";
 import { invoke } from "@tauri-apps/api/core";
 import useAppSelector from "../../hooks/useAppSelector";
 import { selectSelectedFileId } from "../../store/selectors/fileSystemSelectors";
@@ -13,7 +13,7 @@ import FocusTools from "./FocusTools";
 import NewCellTypeSelector from "./NewCellTypeSelector";
 import Icon from "@mdi/react";
 import getCellIcon from "../../utils/getCellIcon";
-import EditorCell from "../editorCell/EditorCell";
+import EditorCell from "../EditorCell/EditorCell";
 import { mdiPlus } from "@mdi/js";
 import FileRepetitionCounts from "../../entities/fileRepetitionCounts";
 import useBeforeUnload from "../../hooks/useBeforeUnload";
@@ -70,7 +70,7 @@ function Editor({
 
 	const retrieveRepetitionCounts = useCallback(async () => {
 		setRepetitionCounts(
-			await invoke("get_study_repetitions_counts", {
+			await invoke("get_study_repetition_counts", {
 				fileId: selectedFileId,
 			}),
 		);

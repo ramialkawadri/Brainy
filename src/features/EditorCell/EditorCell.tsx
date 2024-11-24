@@ -1,5 +1,5 @@
 import Cell from "../../entities/cell";
-import RichTextEditor from "../../ui/richTextEditor/RichTextEditor";
+import RichTextEditor from "../../ui/RichTextEditor/RichTextEditor";
 import FlashCardCell from "./FlashCardCell";
 
 interface IProps {

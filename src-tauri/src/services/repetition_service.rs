@@ -20,7 +20,7 @@ pub trait RepetitionService {
         cell_type: CellType,
     ) -> Result<(), String>;
 
-    async fn get_study_repetitions_counts(
+    async fn get_study_repetition_counts(
         &self,
         file_id: i32,
     ) -> Result<FileRepetitionCounts, String>;
@@ -67,7 +67,7 @@ impl RepetitionService for DefaultRepetitionService {
             .await
     }
 
-    async fn get_study_repetitions_counts(
+    async fn get_study_repetition_counts(
         &self,
         file_id: i32,
     ) -> Result<FileRepetitionCounts, String> {
@@ -209,7 +209,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn get_study_repetitions_counts_valid_input_returned_repetitions() {
+    async fn get_study_repetition_counts_valid_input_returned_repetitions() {
         // Arrange
 
         let mut deps = TestDependencies::new();
@@ -224,7 +224,7 @@ mod tests {
 
         let actual = deps
             .to_service()
-            .get_study_repetitions_counts(file_id)
+            .get_study_repetition_counts(file_id)
             .await
             .unwrap();
 
