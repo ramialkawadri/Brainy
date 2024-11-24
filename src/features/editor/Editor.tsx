@@ -138,6 +138,7 @@ function Editor({
 			await fetchFileCells();
 			setShowInsertNewCell(false);
 			setShowAddNewCellPopup(false);
+            await retrieveRepetitionCounts();
 		});
 	};
 
@@ -148,6 +149,7 @@ function Editor({
 				cellId: cells[selectedCellIndex].id,
 			});
 			await fetchFileCells();
+            await retrieveRepetitionCounts();
 		});
 	};
 

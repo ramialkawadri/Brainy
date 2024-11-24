@@ -98,7 +98,6 @@ impl CellService for DefaultCellService {
         Ok(())
     }
 
-    // TODO: update test
     async fn update_cell_content(&self, cell_id: i32, content: String) -> Result<(), String> {
         let cell = self.repository.get_cell_by_id(cell_id).await?;
         self.repository
@@ -204,7 +203,12 @@ mod tests {
                 .return_const(Ok(()));
         }
 
-        fn assert_update_repetitions_for_cell(&mut self, file_id: i32, cell_id: i32, cell_type: CellType) {
+        fn assert_update_repetitions_for_cell(
+            &mut self,
+            file_id: i32,
+            cell_id: i32,
+            cell_type: CellType,
+        ) {
             self.repetition_serive
                 .expect_update_repetitions_for_cell()
                 .with(
@@ -345,10 +349,21 @@ mod tests {
 
         let mut deps = TestDependencies::new();
         let cell_id = 1;
+        let file_id = 1;
+        let cell_type = CellType::FlashCard;
+        deps.setup_get_by_id(
+            cell_id,
+            cell::Model {
+                file_id,
+                cell_type: cell_type.clone(),
+                ..Default::default()
+            },
+        );
 
         // Assert
 
         deps.assert_update_cell(Box::new(|c| c.content == Set("new".into())));
+        deps.assert_update_repetitions_for_cell(file_id, cell_id, cell_type);
 
         // Act
 

@@ -118,7 +118,6 @@ impl RepetitionRepository for DefaultRepetitionRepository {
         }
     }
 
-    // TODO: test
     async fn get_file_repetitions(&self, file_id: i32) -> Result<Vec<repetition::Model>, String> {
         let result = repetition::Entity::find()
             .filter(repetition::Column::FileId.eq(file_id))
@@ -171,10 +170,13 @@ mod tests {
         DefaultRepetitionRepository::new(Arc::new(db))
     }
 
-    async fn create_file_cell(repository: &DefaultRepetitionRepository) -> (i32, i32) {
+    async fn create_file_cell(
+        repository: &DefaultRepetitionRepository,
+        file_name: &str,
+    ) -> (i32, i32) {
         let file_repository = DefaultUserFileRepository::new(repository.db_conn.clone());
         let cell_repository = DefaultCellRepository::new(repository.db_conn.clone());
-        let file_id = file_repository.create_file("file".into()).await.unwrap();
+        let file_id = file_repository.create_file(file_name.into()).await.unwrap();
         let cell_id = cell_repository
             .create_cell(file_id, "".into(), CellType::Note, 0)
             .await
@@ -187,7 +189,7 @@ mod tests {
         // Arrange
 
         let repository = create_repository().await;
-        let (file_id, cell_id) = create_file_cell(&repository).await;
+        let (file_id, cell_id) = create_file_cell(&repository, "test").await;
         for _ in 0..2 {
             repository
                 .insert_repetitions(vec![repetition::ActiveModel {
@@ -245,7 +247,7 @@ mod tests {
         // Arrange
 
         let repository = create_repository().await;
-        let (file_id, cell_id) = create_file_cell(&repository).await;
+        let (file_id, cell_id) = create_file_cell(&repository, "test").await;
         repository
             .insert_repetitions(vec![
                 repetition::ActiveModel {
@@ -274,5 +276,101 @@ mod tests {
         // Assert
 
         assert_eq!(2, actual.len());
+    }
+
+    #[tokio::test]
+    async fn get_file_repetitions_valid_input_returned_repetitions() {
+        // Arrange
+
+        let repository = create_repository().await;
+        let (file_id, cell_id) = create_file_cell(&repository, "test 1").await;
+        let (file_id_2, cell_id_2) = create_file_cell(&repository, "test 2").await;
+        repository
+            .insert_repetitions(vec![
+                repetition::ActiveModel {
+                    file_id: Set(file_id),
+                    cell_id: Set(cell_id),
+                    ..Default::default()
+                },
+                repetition::ActiveModel {
+                    file_id: Set(file_id_2),
+                    cell_id: Set(cell_id_2),
+                    ..Default::default()
+                },
+            ])
+            .await
+            .unwrap();
+
+        // Act
+
+        let actual = repository.get_file_repetitions(file_id).await.unwrap();
+
+        // Assert
+
+        assert_eq!(actual.len(), 1);
+    }
+
+    #[tokio::test]
+    async fn update_repetition_valid_input_updated_repetition() {
+        // Arrange
+
+        let repository = create_repository().await;
+        let (file_id, cell_id) = create_file_cell(&repository, "test 1").await;
+        repository
+            .insert_repetitions(vec![repetition::ActiveModel {
+                file_id: Set(file_id),
+                cell_id: Set(cell_id),
+                ..Default::default()
+            }])
+            .await
+            .unwrap();
+        let repetition_id = repetition::Entity::find()
+            .one(&*repository.db_conn)
+            .await
+            .unwrap()
+            .unwrap()
+            .id;
+        let date = Utc::now().to_utc();
+        let repetition = repetition::Model {
+            id: repetition_id,
+            file_id,
+            cell_id,
+            due: date,
+            reps: 1,
+            stability: 2.1f32,
+            difficulty: 4.2f32,
+            elapsed_days: 5,
+            scheduled_days: 6,
+            lapses: 7,
+            state: State::New,
+            last_review: date,
+        };
+
+        // Act
+
+        repository
+            .update_repetition(repetition.clone())
+            .await
+            .unwrap();
+
+        // Assert
+
+        let actual = repetition::Entity::find()
+            .one(&*repository.db_conn)
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(actual.id, repetition.id);
+        assert_eq!(actual.file_id, repetition.file_id);
+        assert_eq!(actual.cell_id, repetition.cell_id);
+        assert_eq!(actual.due, repetition.due);
+        assert_eq!(actual.reps, repetition.reps);
+        assert_eq!(actual.stability, repetition.stability);
+        assert_eq!(actual.difficulty, repetition.difficulty);
+        assert_eq!(actual.elapsed_days, repetition.elapsed_days);
+        assert_eq!(actual.scheduled_days, repetition.scheduled_days);
+        assert_eq!(actual.lapses, repetition.lapses);
+        assert_eq!(actual.state, repetition.state);
+        assert_eq!(actual.last_review, repetition.last_review);
     }
 }

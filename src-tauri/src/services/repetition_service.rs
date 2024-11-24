@@ -67,7 +67,6 @@ impl RepetitionService for DefaultRepetitionService {
             .await
     }
 
-    // TODO: test
     async fn get_study_repetitions_counts(
         &self,
         file_id: i32,
@@ -114,6 +113,17 @@ mod tests {
                 .return_once(|_| Ok(repetitions));
         }
 
+        fn setup_get_file_repetitions(
+            &mut self,
+            file_id: i32,
+            repetitions: Vec<repetition::Model>,
+        ) {
+            self.repetition_repository
+                .expect_get_file_repetitions()
+                .with(predicate::eq(file_id))
+                .return_once(|_| Ok(repetitions));
+        }
+
         fn setup_get_repetitions_by_cell_id(
             &mut self,
             cell_id: i32,
@@ -140,6 +150,14 @@ mod tests {
                         })
                 })
                 .return_const(Ok(()));
+        }
+
+        fn assert_update_repetition(&mut self, repetition: repetition::Model) {
+            self.repetition_repository
+                .expect_update_repetition()
+                .with(predicate::eq(repetition))
+                .once()
+                .return_once(|_| Ok(()));
         }
     }
 
@@ -196,11 +214,11 @@ mod tests {
 
         let mut deps = TestDependencies::new();
         let file_id = 1;
-        let repetitions = FileRepetitionCounts {
+        let repetition_counts = FileRepetitionCounts {
             new: 5,
             ..Default::default()
         };
-        deps.setup_get_study_repetitions(file_id, repetitions);
+        deps.setup_get_study_repetitions(file_id, repetition_counts);
 
         // Act
 
@@ -213,5 +231,57 @@ mod tests {
         // Assert
 
         assert_eq!(5, actual.new);
+    }
+
+    #[tokio::test]
+    async fn get_file_repetitions_valid_input_returned_repetitions() {
+        // Arrange
+
+        let mut deps = TestDependencies::new();
+        let file_id = 1;
+        deps.setup_get_file_repetitions(
+            file_id,
+            vec![
+                repetition::Model {
+                    ..Default::default()
+                },
+                repetition::Model {
+                    ..Default::default()
+                },
+            ],
+        );
+
+        // Act
+
+        let actual = deps
+            .to_service()
+            .get_file_repetitions(file_id)
+            .await
+            .unwrap();
+
+        // Assert
+
+        assert_eq!(actual.len(), 2);
+    }
+
+    #[tokio::test]
+    async fn update_repetition_valid_input_updated_repetition() {
+        // Arrange
+
+        let mut deps = TestDependencies::new();
+        let repetition = repetition::Model {
+            ..Default::default()
+        };
+
+        // Assert
+
+        deps.assert_update_repetition(repetition.clone());
+
+        // Act
+
+        deps.to_service()
+            .update_repetition(repetition)
+            .await
+            .unwrap();
     }
 }
