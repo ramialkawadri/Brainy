@@ -6,6 +6,7 @@ import FileTreeItem from "./FileTreeItem";
 import UiFolder from "../../types/uiFolder.ts";
 
 
+// TODO: on file click stop reviewing
 interface IProps {
     folder: UiFolder,
 }

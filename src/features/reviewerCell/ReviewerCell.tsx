@@ -1,14 +1,15 @@
+import Cell from "../../entities/cell";
 import FlashCard from "./FlashCard";
 
 interface IProps {
-    cellInfo: CellInfoDto,
+    cell: Cell,
     showAnswer: boolean,
 };
 
-function ReviewerCell({ cellInfo, showAnswer }: IProps) {
-    switch (cellInfo.type) {
-        case CellType.FlashCard:
-            return <FlashCard cellInfo={cellInfo} showAnswer={showAnswer} />
+function ReviewerCell({ cell, showAnswer }: IProps) {
+    switch (cell.cellType) {
+        case "FlashCard":
+            return <FlashCard cell={cell} showAnswer={showAnswer} />
     }
 }
 

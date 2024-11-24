@@ -54,6 +54,7 @@ pub async fn run() -> Result<(), DbErr> {
             get_file_cells,
             move_cell,
             update_cell,
+
             create_file,
             create_folder,
             delete_file,
@@ -63,7 +64,9 @@ pub async fn run() -> Result<(), DbErr> {
             move_folder,
             rename_file,
             rename_folder,
-            get_study_repetitions,
+
+            get_study_repetitions_counts,
+            get_file_repetitions,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

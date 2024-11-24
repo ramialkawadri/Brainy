@@ -13,18 +13,22 @@ use crate::models::file_repetitions_count::FileRepetitionCounts;
 #[cfg_attr(test, automock)]
 #[async_trait]
 pub trait RepetitionRepository {
-    async fn get_study_repetitions(
+    async fn get_study_repetitions_counts(
         &self,
         file_id: i32,
     ) -> Result<FileRepetitionCounts, String>;
+
     async fn get_repetitions_by_cell_id(
         &self,
         cell_id: i32,
     ) -> Result<Vec<repetition::Model>, String>;
+
     async fn insert_repetitions(
         &self,
         repetitions: Vec<repetition::ActiveModel>,
     ) -> Result<(), String>;
+
+    async fn get_file_repetitions(&self, file_id: i32) -> Result<Vec<repetition::Model>, String>;
 }
 
 pub struct DefaultRepetitionRepository {
@@ -39,7 +43,7 @@ impl DefaultRepetitionRepository {
 
 #[async_trait]
 impl RepetitionRepository for DefaultRepetitionRepository {
-    async fn get_study_repetitions(
+    async fn get_study_repetitions_counts(
         &self,
         file_id: i32,
     ) -> Result<FileRepetitionCounts, String> {
@@ -111,6 +115,18 @@ impl RepetitionRepository for DefaultRepetitionRepository {
             Err(err) => Err(err.to_string()),
         }
     }
+
+    async fn get_file_repetitions(&self, file_id: i32) -> Result<Vec<repetition::Model>, String> {
+        let result = repetition::Entity::find()
+            .filter(repetition::Column::FileId.eq(file_id))
+            .all(&*self.db_conn)
+            .await;
+
+        match result {
+            Ok(result) => Ok(result),
+            Err(err) => Err(err.to_string()),
+        }
+    }
 }
 
 #[cfg(test)]
@@ -142,7 +158,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn get_study_repetitions_valid_input_returned_count() {
+    async fn get_study_repetitions_counts_valid_input_returned_count() {
         // Arrange
 
         let repository = create_repository().await;
@@ -187,7 +203,7 @@ mod tests {
         // Act
 
         let actual = repository
-            .get_study_repetitions(file_id)
+            .get_study_repetitions_counts(file_id)
             .await
             .unwrap();
 

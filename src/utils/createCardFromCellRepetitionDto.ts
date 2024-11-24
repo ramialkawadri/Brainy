@@ -1,27 +1,28 @@
 import { Card, createEmptyCard, State } from "ts-fsrs";
+import Repetition from "../entities/repetition";
 
-function createCardFromCellRepetitionDto(dto: CellRepetitionDto): Card {
+function createCardFromCellRepetitionDto(repetition: Repetition): Card {
     const card = createEmptyCard();
-    card.due = new Date(dto.due!);
-    card.reps = dto.reps!;
-    card.lapses = dto.lapses!;
-    card.difficulty = dto.difficulty!;
-    card.elapsed_days = dto.elapsedDays!;
-    card.last_review = new Date(dto.lastReview!);
-    card.stability = dto.stability!;
-    card.scheduled_days = dto.scheduledDays!;
+    card.due = new Date(repetition.due);
+    card.reps = repetition.reps;
+    card.lapses = repetition.lapses;
+    card.difficulty = repetition.difficulty;
+    card.elapsed_days = repetition.elapsedDays;
+    card.last_review = new Date(repetition.lastReview);
+    card.stability = repetition.stability;
+    card.scheduled_days = repetition.scheduledDays;
 
-    switch (dto.state) {
-        case DtoState.New:
+    switch (repetition.state) {
+        case "New":
             card.state = State.New;
             break;
-        case DtoState.Learning:
+        case "Learning":
             card.state = State.Learning;
             break;
-        case DtoState.Relearning:
+        case "Relearning":
             card.state = State.Relearning;
             break;
-        case DtoState.Review:
+        case "Review":
             card.state = State.Review;
             break;
     }

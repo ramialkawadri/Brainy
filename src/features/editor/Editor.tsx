@@ -58,7 +58,7 @@ function Editor({ cells, onError, onCellsUpdate, fetchFileCells, onStudyButtonCl
     });
 
     const retrieveRepetitionCounts = useCallback(async () => {
-        setRepetitionCounts(await invoke("get_study_repetitions", {
+        setRepetitionCounts(await invoke("get_study_repetitions_counts", {
             fileId: selectedFileId
         }));
     }, [selectedFileId]);

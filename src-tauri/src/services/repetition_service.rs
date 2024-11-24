@@ -20,7 +20,12 @@ pub trait RepetitionService {
         cell_type: CellType,
     ) -> Result<(), String>;
 
-    async fn get_study_repetitions(&self, file_id: i32) -> Result<FileRepetitionCounts, String>;
+    async fn get_study_repetitions_counts(
+        &self,
+        file_id: i32,
+    ) -> Result<FileRepetitionCounts, String>;
+
+    async fn get_file_repetitions(&self, file_id: i32) -> Result<Vec<repetition::Model>, String>;
 }
 
 pub struct DefaultRepetitionService {
@@ -60,8 +65,15 @@ impl RepetitionService for DefaultRepetitionService {
             .await
     }
 
-    async fn get_study_repetitions(&self, file_id: i32) -> Result<FileRepetitionCounts, String> {
-        self.repository.get_study_repetitions(file_id).await
+    async fn get_study_repetitions_counts(
+        &self,
+        file_id: i32,
+    ) -> Result<FileRepetitionCounts, String> {
+        self.repository.get_study_repetitions_counts(file_id).await
+    }
+
+    async fn get_file_repetitions(&self, file_id: i32) -> Result<Vec<repetition::Model>, String> {
+        self.repository.get_file_repetitions(file_id).await
     }
 }
 
@@ -90,7 +102,7 @@ mod tests {
 
         fn setup_get_study_repetitions(&mut self, file_id: i32, repetitions: FileRepetitionCounts) {
             self.repetition_repository
-                .expect_get_study_repetitions()
+                .expect_get_study_repetitions_counts()
                 .with(predicate::eq(file_id))
                 .return_once(|_| Ok(repetitions));
         }
@@ -172,7 +184,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn get_study_repetitions_valid_input_returned_repetitions() {
+    async fn get_study_repetitions_counts_valid_input_returned_repetitions() {
         // Arrange
 
         let mut deps = TestDependencies::new();
@@ -187,7 +199,7 @@ mod tests {
 
         let actual = deps
             .to_service()
-            .get_study_repetitions(file_id)
+            .get_study_repetitions_counts(file_id)
             .await
             .unwrap();
 

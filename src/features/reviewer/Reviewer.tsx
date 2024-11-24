@@ -3,11 +3,15 @@ import styles from "./styles.module.css";
 import ReviewerCell from "../reviewerCell/ReviewerCell";
 import Icon from "@mdi/react";
 import { mdiClockOutline, mdiPencilOutline } from "@mdi/js";
-import { FSRS, generatorParameters, Rating } from "ts-fsrs";
+import { createEmptyCard, FSRS, generatorParameters, Rating } from "ts-fsrs";
 import createCardFromCellRepetitionDto from "../../utils/createCardFromCellRepetitionDto";
 import durationToString from "../../utils/durationToString";
 import useGlobalKey from "../../hooks/useGlobalKey";
 import Cell from "../../entities/cell";
+import Repetition from "../../entities/repetition";
+import { invoke } from "@tauri-apps/api/core";
+import useAppSelector from "../../hooks/useAppSelector";
+import { selectSelectedFileId } from "../../store/selectors/fileSystemSelectors";
 
 interface IProps {
     cells: Cell[],
@@ -25,21 +29,37 @@ function Reviewer({
 }: IProps) {
 
     const [showAnswer, setShowAnswer] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
     const [currentCellIndex, setCurrentCellIndex] = useState(0);
     const [isSendingRequest, setIsSendingRequest] = useState(false);
+    const [cellRepetitions, setCellRepetitions] = useState<Repetition[]>([]);
     const [timerTime, setTimerTime] = useState(0);
     const now = useRef(new Date());
+    const selectedFileId = useAppSelector(selectSelectedFileId)!;
+
     useEffect(() => {
         const intervalId = setInterval(() => setTimerTime(timerTime + 1), 1000);
         return () => clearInterval(intervalId);
     }, [timerTime]);
 
-    const handleRatingSubmit = async (rating: DtoRating) => {
+    useEffect(() => {
+        void (async () => {
+            setIsLoading(true);
+            const repetitions: Repetition[] = await invoke("get_file_repetitions", {
+                fileId: selectedFileId,
+            });
+            setCellRepetitions(repetitions);
+            setIsLoading(false);
+        })();
+    }, [selectedFileId]);
+
+    const handleRatingSubmit = async (rating: Rating) => {
         if (isSendingRequest) {
             return;
         }
         setIsSendingRequest(true);
         try {
+            // TODO: fix
             // const response = await api(backendApi.registerCellRepetitionReview({
             //     filePath,
             //     cellId: dueToday[currentCellIndex].cellId,
@@ -77,23 +97,26 @@ function Reviewer({
             return;
         }
         if (e.key === "1") {
-            void handleRatingSubmit(DtoRating.Again);
+            void handleRatingSubmit(Rating.Again);
         } else if (e.key === "2") {
-            void handleRatingSubmit(DtoRating.Hard);
+            void handleRatingSubmit(Rating.Hard);
         } else if (e.key === "3") {
-            void handleRatingSubmit(DtoRating.Good);
+            void handleRatingSubmit(Rating.Good);
         } else if (e.key === "4") {
-            void handleRatingSubmit(DtoRating.Easy);
+            void handleRatingSubmit(Rating.Easy);
         }
     });
 
-    const dueToday = cellRepetitions.filter(c => new Date(c.due!) <= now.current);
-    const isCurrentCellNew = dueToday[currentCellIndex].state === State.New;
-    const isCurrentCellLearning =
-        dueToday[currentCellIndex].state === State.Learning ||
-        dueToday[currentCellIndex].state === State.Relearning;
-    const isCurrentCellReview = dueToday[currentCellIndex].state === State.Review;
-    const currentCard = createCardFromCellRepetitionDto(dueToday[currentCellIndex]);
+    const dueToday = cellRepetitions.filter(c => new Date(c.due) <= now.current);
+    const isCurrentCellNew = !isLoading && dueToday[currentCellIndex].state === "New";
+    const isCurrentCellLearning = !isLoading && (
+        dueToday[currentCellIndex].state === "Learning" ||
+        dueToday[currentCellIndex].state === "Relearning");
+    const isCurrentCellReview = !isLoading && dueToday[currentCellIndex].state === "Review";
+    const currentCard = isLoading
+        ? createEmptyCard()
+        : createCardFromCellRepetitionDto(dueToday[currentCellIndex]);
+
     const schedulingCards = useMemo(
         () => fsrs.repeat(currentCard, now.current), [currentCard, now]);
 
@@ -106,15 +129,15 @@ function Reviewer({
         if (i < currentCellIndex) {
             return;
         }
-        switch (c.state!) {
-            case State.New:
+        switch (c.state) {
+            case "New":
                 counts.new += 1;
             break;
-            case State.Learning:
-            case State.Relearning:
+            case "Learning":
+            case "Relearning":
                 counts.learning += 1;
             break;
-            case State.Review:
+            case "Review":
                 counts.review += 1;
             break;
         }
@@ -123,9 +146,9 @@ function Reviewer({
     return (
         <div className={styles.reviewer}>
             <div className={`${styles.container}`}>
-                <ReviewerCell
-                    cellInfo={cells.find(c => c.id === dueToday[currentCellIndex].cellId)!}
-                    showAnswer={showAnswer} />
+                {!isLoading && <ReviewerCell
+                    cell={cells.find(c => c.id === dueToday[currentCellIndex].cellId)!}
+                    showAnswer={showAnswer} />}
             </div>
 
             <div className={styles.bottomBar}>
@@ -170,7 +193,7 @@ function Reviewer({
                             )}</p>
                             <button
                                 className={styles.againButton}
-                                onClick={() => void handleRatingSubmit(DtoRating.Again)}
+                                onClick={() => void handleRatingSubmit(Rating.Again)}
                                 disabled={isSendingRequest}>
                                 Again
                             </button>
@@ -181,7 +204,7 @@ function Reviewer({
                             )}</p>
                             <button
                                 className={styles.hardButton}
-                                onClick={() => void handleRatingSubmit(DtoRating.Hard)}
+                                onClick={() => void handleRatingSubmit(Rating.Hard)}
                                 disabled={isSendingRequest}>
                                 Hard
                             </button>
@@ -192,7 +215,7 @@ function Reviewer({
                             )}</p>
                             <button
                                 className={styles.goodButton}
-                                onClick={() => void handleRatingSubmit(DtoRating.Good)}
+                                onClick={() => void handleRatingSubmit(Rating.Good)}
                                 disabled={isSendingRequest}>
                                 Good
                             </button>
@@ -203,7 +226,7 @@ function Reviewer({
                             )}</p>
                             <button
                                 className={styles.easyButton}
-                                onClick={() => void handleRatingSubmit(DtoRating.Easy)}
+                                onClick={() => void handleRatingSubmit(Rating.Easy)}
                                 disabled={isSendingRequest}>
                                 Easy
                             </button>

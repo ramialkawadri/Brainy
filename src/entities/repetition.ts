@@ -2,15 +2,15 @@ export type RepetitionState = "New" | "Learning" | "Relearning" | "Review";
 
 export default interface Repetition {
     id: number,
-    file_id: number,
-    cell_id: number,
+    fileId: number,
+    cellId: number,
     due: string,
     stability: number,
     difficulty: number,
-    elapsed_days: number,
-    scheduled_days: number,
+    elapsedDays: number,
+    scheduledDays: number,
     reps: number,
     lapses: number,
     state: RepetitionState,
-    last_review: string,
+    lastReview: string,
 }

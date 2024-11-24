@@ -1,13 +1,14 @@
-import { CellInfoDto } from "../../services/backendApi";
-import IFlashCard from "../../types/cells/FlashCard";
+import Cell from "../../entities/cell";
+// TODO: better
+import FlashCardType from "../../types/flashCard";
 
 interface IProps {
-    cellInfo: CellInfoDto,
+    cell: Cell,
     showAnswer: boolean,
 };
 
-function FlashCard({ cellInfo, showAnswer }: IProps) {
-    const flashCard = cellInfo.data as IFlashCard;
+function FlashCard({ cell, showAnswer }: IProps) {
+    const flashCard = JSON.parse(cell.content) as FlashCardType;
 
     return (
         <>
