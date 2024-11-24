@@ -3,14 +3,14 @@ import styles from "./styles.module.css";
 import Icon from "@mdi/react";
 import { mdiMinus, mdiPlus } from "@mdi/js";
 
-interface IProps {
+interface Props {
 	folder?: IFolder;
 	file?: IFile;
 	name: string;
 	depthLevel: number;
 }
 
-function Tree({ name, folder, file, depthLevel }: IProps) {
+function Tree({ name, folder, file, depthLevel }: Props) {
 	const [isExpanded, setIsExpanded] = useState(!name);
 	// const newCount = file
 	//     ? file.repetitionCounts.new

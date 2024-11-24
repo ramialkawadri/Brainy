@@ -1,13 +1,13 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 import Folder from "../../types/folder";
 
-interface IFileSystemState {
+interface FileSystemState {
 	error: string | null;
 	rootFolder: Folder;
 	selectedFileId: number | null;
 }
 
-const initialState: IFileSystemState = {
+const initialState: FileSystemState = {
 	error: null,
 	rootFolder: { id: 0, files: [], name: "", subFolders: [] },
 	selectedFileId: null,

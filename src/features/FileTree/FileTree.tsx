@@ -5,11 +5,11 @@ import { deleteFile, deleteFolder } from "../../store/actions/fileSystemActions.
 import FileTreeItem from "./FileTreeItem.tsx";
 import UiFolder from "../../types/uiFolder.ts";
 
-interface IProps {
+interface Props {
 	folder: UiFolder;
 }
 
-function FileTree({ folder }: IProps) {
+function FileTree({ folder }: Props) {
 	const [fileMarkedForDeletion, setFileMarkedForDeletion] = useState<number | null>(
 		null,
 	);

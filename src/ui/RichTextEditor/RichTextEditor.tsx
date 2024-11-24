@@ -33,14 +33,14 @@ const extensions = [
 	Superscript,
 ];
 
-interface IProps {
+interface Props {
 	content: string;
 	title?: string;
 	editable?: boolean;
 	onUpdate: (html: string) => void;
 }
 
-function RichTextEditor({ content, title, editable, onUpdate }: IProps) {
+function RichTextEditor({ content, title, editable, onUpdate }: Props) {
 	const editor = useEditor(
 		{
 			extensions,

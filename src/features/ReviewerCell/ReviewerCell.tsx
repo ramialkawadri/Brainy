@@ -1,12 +1,12 @@
 import Cell from "../../entities/cell";
 import FlashCard from "./FlashCard";
 
-interface IProps {
+interface Props {
 	cell: Cell;
 	showAnswer: boolean;
 }
 
-function ReviewerCell({ cell, showAnswer }: IProps) {
+function ReviewerCell({ cell, showAnswer }: Props) {
 	switch (cell.cellType) {
 		case "FlashCard":
 			return <FlashCard cell={cell} showAnswer={showAnswer} />;

@@ -2,12 +2,12 @@ import Folder from "../../types/folder";
 import styles from "./styles.module.css";
 import Tree from "./Tree";
 
-interface IProps {
+interface Props {
 	rootFolder: Folder;
 }
 
 // TODO: rename from Home to something else!
-function Home({ rootFolder }: IProps) {
+function Home({ rootFolder }: Props) {
 	return (
 		<div className={styles.box}>
 			<div className={styles.row + " " + styles.header}>

@@ -14,15 +14,14 @@ import {
 import createCardFromCellRepetitionDto from "../../utils/createCardFromRepetition";
 import durationToString from "../../utils/durationToString";
 import useGlobalKey from "../../hooks/useGlobalKey";
-import Cell from "../../entities/cell";
 import Repetition from "../../entities/repetition";
 import { invoke } from "@tauri-apps/api/core";
 import useAppSelector from "../../hooks/useAppSelector";
 import { selectSelectedFileId } from "../../store/selectors/fileSystemSelectors";
 import createRepetitionFromCard from "../../utils/createRepetitionFromCard";
+import { selectSelectedFileCells } from "../../store/selectors/selectedFileCellsSelectors";
 
-interface IProps {
-	cells: Cell[];
+interface Props {
 	onEditButtonClick: () => void;
 	onReviewEnd: () => void;
 	onError: (message: string) => void;
@@ -31,13 +30,14 @@ interface IProps {
 const params = generatorParameters();
 const fsrs = new FSRS(params);
 
-function Reviewer({ cells, onEditButtonClick, onError, onReviewEnd }: IProps) {
+function Reviewer({ onEditButtonClick, onError, onReviewEnd }: Props) {
 	const [showAnswer, setShowAnswer] = useState(false);
 	const [isLoading, setIsLoading] = useState(true);
 	const [currentCellIndex, setCurrentCellIndex] = useState(0);
 	const [isSendingRequest, setIsSendingRequest] = useState(false);
 	const [cellRepetitions, setCellRepetitions] = useState<Repetition[]>([]);
 	const [timerTime, setTimerTime] = useState(0);
+    const cells = useAppSelector(selectSelectedFileCells);
 	const now = useRef(new Date());
 	const selectedFileId = useAppSelector(selectSelectedFileId)!;
 

@@ -2,12 +2,12 @@ import Cell from "../../entities/cell";
 // TODO: better
 import FlashCardType from "../../types/flashCard";
 
-interface IProps {
+interface Props {
 	cell: Cell;
 	showAnswer: boolean;
 }
 
-function FlashCard({ cell, showAnswer }: IProps) {
+function FlashCard({ cell, showAnswer }: Props) {
 	const flashCard = JSON.parse(cell.content) as FlashCardType;
 
 	return (

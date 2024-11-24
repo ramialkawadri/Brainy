@@ -12,7 +12,7 @@ import {
 	mdiPencilOutline,
 } from "@mdi/js";
 import React, { useState } from "react";
-import ActionsMenu, { IAction } from "./ActionsMenu";
+import ActionsMenu, { Action } from "./ActionsMenu";
 import useAppDispatch from "../../hooks/useAppDispatch";
 import useAppSelector from "../../hooks/useAppSelector";
 import { selectSelectedFileId } from "../../store/selectors/fileSystemSelectors";
@@ -31,7 +31,7 @@ import UiFolder from "../../types/uiFolder";
 const dragFormatForFolder = "brainy/folderpath";
 const dragFormatForFile = "brainy/filepath";
 
-interface IProps {
+interface Props {
 	folder: UiFolder | null;
 	path: string;
 	id: number;
@@ -42,7 +42,7 @@ interface IProps {
  * Displays a folder or a file based on whether the folder parameter is given
  * or not.
  */
-function FileTreeItem({ folder, path, id, onMarkForDeletion }: IProps) {
+function FileTreeItem({ folder, path, id, onMarkForDeletion }: Props) {
 	const isRoot = path === "";
 	const selectedFileId = useAppSelector(selectSelectedFileId);
 	const [showActions, setShowActions] = useState(false);
@@ -58,7 +58,7 @@ function FileTreeItem({ folder, path, id, onMarkForDeletion }: IProps) {
 	const isExpanded = isRoot || isOpen;
 	const isSelected = selectedFileId === id && !isRoot;
 
-	const actions: IAction[] = [];
+	const actions: Action[] = [];
 
 	if (folder) {
 		actions.push(

@@ -3,14 +3,14 @@ import styles from "./styles.module.css";
 import Icon from "@mdi/react";
 import useGlobalKey from "../../hooks/useGlobalKey";
 
-interface IProps {
+interface Props {
 	title: string;
 	text: string;
 	onCancel: () => void;
 	onConfirm: () => void;
 }
 
-function ConfirmationDialog({ title, text, onCancel, onConfirm }: IProps) {
+function ConfirmationDialog({ title, text, onCancel, onConfirm }: Props) {
 	useGlobalKey(handleKeyUp);
 
 	function handleKeyUp(e: KeyboardEvent) {

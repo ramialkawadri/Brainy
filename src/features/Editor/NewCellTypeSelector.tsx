@@ -4,13 +4,13 @@ import Icon from "@mdi/react";
 import getCellIcon from "../../utils/getCellIcon";
 import { allCellTypes, CellType } from "../../entities/cell";
 
-interface IProps {
+interface Props {
 	className?: string;
 	onClick: (cellType: CellType) => void;
 }
 
-const NewCellTypeSelector = forwardRef<HTMLDivElement, IProps>(
-	({ className, onClick }: IProps, ref) => {
+const NewCellTypeSelector = forwardRef<HTMLDivElement, Props>(
+	({ className, onClick }: Props, ref) => {
 		const [searchText, setSearchText] = useState("");
 
 		return (

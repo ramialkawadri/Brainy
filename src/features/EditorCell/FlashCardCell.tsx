@@ -4,13 +4,13 @@ import FlashCard from "../../types/flashCard";
 import RichTextEditor from "../../ui/RichTextEditor/RichTextEditor";
 import styles from "./styles.module.css";
 
-interface IProps {
+interface Props {
 	cell: Cell;
 	editable: boolean;
 	onUpdate: (content: string) => void;
 }
 
-function FlashCardCell({ cell, editable, onUpdate }: IProps) {
+function FlashCardCell({ cell, editable, onUpdate }: Props) {
 	const flashCard = useMemo(
 		() => (JSON.parse(cell.content) as FlashCard) ?? {},
 		[cell.content],

@@ -8,12 +8,12 @@ import {
 } from "../../store/selectors/fileSystemSelectors";
 import FileRepetitionCounts from "../../entities/fileRepetitionCounts";
 
-interface IProps {
+interface Props {
 	repetitionCounts: FileRepetitionCounts;
 	onStudyButtonClick: () => void;
 }
 
-function TitleBar({ repetitionCounts, onStudyButtonClick }: IProps) {
+function TitleBar({ repetitionCounts, onStudyButtonClick }: Props) {
 	const selectedFileId = useAppSelector(selectSelectedFileId);
 	const selectedFile = useAppSelector(state => selectFileById(state, selectedFileId!));
 

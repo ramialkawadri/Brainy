@@ -1,6 +1,6 @@
 import Editor from "../Editor/Editor";
 import styles from "./styles.module.css";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import ErrorBox from "../../ui/ErrorBox/ErrorBox";
 import Reviewer from "../Reviewer/Reviewer";
 import Home from "../Home/Home";
@@ -12,38 +12,23 @@ import {
 } from "../../store/selectors/fileSystemSelectors";
 import { fetchFiles } from "../../store/actions/fileSystemActions";
 import SideBar from "../SideBar/SideBar";
-import Cell from "../../entities/cell";
-import { invoke } from "@tauri-apps/api/core";
+import { retrieveSelectedFileCells } from "../../store/actions/selectedFileCellsActions";
 
 function App() {
 	const [isReviewing, setIsReviewing] = useState(false);
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
-	const [cells, setCells] = useState<Cell[]>([]);
 	const rootFolder = useAppSelector(selectRootFolder);
 	const selectedFileId = useAppSelector(selectSelectedFileId);
 	const dispatch = useAppDispatch();
 
-	const fetchFileCells = useCallback(async () => {
-		try {
-			const fetchedCells: Cell[] = await invoke("get_file_cells_ordered_by_index", {
-				fileId: selectedFileId,
-			});
-			setCells(fetchedCells);
-		} catch (e) {
-			console.error(e);
-			if (e instanceof Error) setErrorMessage(e.message);
-			else setErrorMessage(e as string);
-		}
-	}, [selectedFileId]);
+	useEffect(() => {
+		void dispatch(fetchFiles());
+	}, [dispatch]);
 
 	useEffect(() => {
-		void fetchFileCells();
-		void dispatch(fetchFiles());
-	}, [fetchFileCells, dispatch]);
-
-    useEffect(() => {
-        setIsReviewing(false);
-    }, [selectedFileId]);
+        void dispatch(retrieveSelectedFileCells());
+		setIsReviewing(false);
+	}, [dispatch, selectedFileId]);
 
 	return (
 		<div className={`${styles.workspace}`}>
@@ -63,17 +48,13 @@ function App() {
 
 				{selectedFileId && !isReviewing && (
 					<Editor
-						cells={cells}
 						onError={setErrorMessage}
-						onCellsUpdate={setCells}
-						fetchFileCells={fetchFileCells}
 						onStudyButtonClick={() => setIsReviewing(true)}
 					/>
 				)}
 
 				{selectedFileId && isReviewing && (
 					<Reviewer
-						cells={cells}
 						onEditButtonClick={() => setIsReviewing(false)}
 						onReviewEnd={() => setIsReviewing(false)}
 						onError={setErrorMessage}

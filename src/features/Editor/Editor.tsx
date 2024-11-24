@@ -8,7 +8,7 @@ import ConfirmationDialog from "../../ui/ConfirmationDialog/ConfirmationDialog";
 import { invoke } from "@tauri-apps/api/core";
 import useAppSelector from "../../hooks/useAppSelector";
 import { selectSelectedFileId } from "../../store/selectors/fileSystemSelectors";
-import Cell, { CellType } from "../../entities/cell";
+import { CellType } from "../../entities/cell";
 import FocusTools from "./FocusTools";
 import NewCellTypeSelector from "./NewCellTypeSelector";
 import Icon from "@mdi/react";
@@ -17,25 +17,24 @@ import EditorCell from "../EditorCell/EditorCell";
 import { mdiPlus } from "@mdi/js";
 import FileRepetitionCounts from "../../entities/fileRepetitionCounts";
 import useBeforeUnload from "../../hooks/useBeforeUnload";
+import { selectSelectedFileCells } from "../../store/selectors/selectedFileCellsSelectors";
+import useAppDispatch from "../../hooks/useAppDispatch";
+import { setSelectedFileCells } from "../../store/reducers/selectedFileCellsReducers";
+import { retrieveSelectedFileCells } from "../../store/actions/selectedFileCellsActions";
 
 const autoSaveDelayInMilliSeconds = 1200;
 
-interface IProps {
-	cells: Cell[];
-	onCellsUpdate: (cells: Cell[]) => void;
+interface Props {
 	onError: (error: string) => void;
 	onStudyButtonClick: () => void;
-	// TODO: find better name
-	fetchFileCells: () => Promise<void>;
 }
 
+// TODO: move the rest of invoke requests to the selectedFIleCellsActions.ts
+
 function Editor({
-	cells,
 	onError,
-	onCellsUpdate,
-	fetchFileCells,
 	onStudyButtonClick,
-}: IProps) {
+}: Props) {
 	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 	// Used for the focus tools.
 	const [showInsertNewCell, setShowInsertNewCell] = useState(false);
@@ -50,6 +49,8 @@ function Editor({
 		relearning: 0,
 		review: 0,
 	});
+    const dispatch = useAppDispatch();
+    const cells = useAppSelector(selectSelectedFileCells);
 	const selectedFileId = useAppSelector(selectSelectedFileId)!;
 	const addNewCellPopupRef = useRef<HTMLDivElement>(null);
 	const editorRef = useRef<HTMLDivElement>(null);
@@ -92,13 +93,16 @@ function Editor({
 	const handleUpdate = (content: string, index: number) => {
 		changedCellsIds.current.add(cells[index].id);
 		const newCells = [...cells];
-		newCells[index].content = content;
-		onCellsUpdate(newCells);
+		newCells[index] = {
+            ...newCells[index],
+            content
+        };
+        dispatch(setSelectedFileCells(newCells));
 
 		if (autoSaveTimeoutId.current !== -1) clearTimeout(autoSaveTimeoutId.current);
 		autoSaveTimeoutId.current = setTimeout(() => {
-			autoSaveTimeoutId.current = -1;
 			void saveChanges();
+            autoSaveTimeoutId.current = -1;
 		}, autoSaveDelayInMilliSeconds);
 	};
 
@@ -135,10 +139,10 @@ function Editor({
 			await invoke("create_cell", {
 				...createDefaultCell(cellType, selectedFileId, index),
 			});
-			await fetchFileCells();
+			await dispatch(retrieveSelectedFileCells());
+            await retrieveRepetitionCounts();
 			setShowInsertNewCell(false);
 			setShowAddNewCellPopup(false);
-            await retrieveRepetitionCounts();
 		});
 	};
 
@@ -148,8 +152,8 @@ function Editor({
 			await invoke("delete_cell", {
 				cellId: cells[selectedCellIndex].id,
 			});
-			await fetchFileCells();
-            await retrieveRepetitionCounts();
+			await dispatch(retrieveSelectedFileCells());
+			await retrieveRepetitionCounts();
 		});
 	};
 
@@ -186,7 +190,7 @@ function Editor({
 				cellId: cells[draggedCellIndex].id,
 				newIndex: index,
 			});
-			await fetchFileCells();
+			await dispatch(retrieveSelectedFileCells());
 			const dropIndex = index > draggedCellIndex ? index - 1 : index;
 			if (selectedCellIndex === draggedCellIndex) {
 				setSelectedCellIndex(dropIndex);

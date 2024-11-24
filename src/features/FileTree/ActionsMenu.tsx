@@ -3,19 +3,19 @@ import styles from "./styles.module.css";
 import { useRef } from "react";
 import useOutsideClick from "../../hooks/useOutsideClick";
 
-export interface IAction {
+export interface Action {
 	iconName: string;
 	text: string;
 	shortcut?: string;
 	onClick: () => void;
 }
 
-interface IProps {
-	actions: IAction[];
+interface Props {
+	actions: Action[];
 	onOutsideClick?: () => void;
 }
 
-function ActionsMenu({ onOutsideClick, actions }: IProps) {
+function ActionsMenu({ onOutsideClick, actions }: Props) {
 	const containerRef = useRef<HTMLDivElement>(null);
 	useOutsideClick(
 		containerRef as React.MutableRefObject<HTMLElement>,
