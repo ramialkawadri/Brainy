@@ -2,19 +2,19 @@ import File from "../types/file";
 import Folder from "../types/folder";
 
 function getFileOrFolderById(folder: Folder, id: number): File | Folder | null {
-    let queue = [folder];
+	let queue = [folder];
 
-    while (queue.length > 0) {
-        const folder = queue.pop()!;
-        if (folder.id === id) return folder;
+	while (queue.length > 0) {
+		const folder = queue.pop()!;
+		if (folder.id === id) return folder;
 
-        for (const file of folder.files) {
-            if (file.id === id) return file;
-        }
-        queue = [...queue, ...folder.subFolders];
-    }
+		for (const file of folder.files) {
+			if (file.id === id) return file;
+		}
+		queue = [...queue, ...folder.subFolders];
+	}
 
-    return null;
-};
+	return null;
+}
 
 export default getFileOrFolderById;

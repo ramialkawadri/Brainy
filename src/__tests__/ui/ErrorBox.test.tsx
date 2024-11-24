@@ -2,24 +2,22 @@ import { act, render, screen, waitFor } from "@testing-library/react";
 import ErrorBox from "../../ui/errorBox/ErrorBox";
 
 describe(ErrorBox, () => {
-    it("Calls function on close", async () => {
-        // Arrange
+	it("Calls function on close", async () => {
+		// Arrange
 
-        const fn = vi.fn();
-        render(
-            <ErrorBox message="Error" onClose={fn} />
-        );
+		const fn = vi.fn();
+		render(<ErrorBox message="Error" onClose={fn} />);
 
-        // Act
+		// Act
 
-        act(() => {
-            screen.getByRole("button").click();
-        });
+		act(() => {
+			screen.getByRole("button").click();
+		});
 
-        // Assert
+		// Assert
 
-        await waitFor(() => {
-            expect(fn).toBeCalled();
-        });
-    });
+		await waitFor(() => {
+			expect(fn).toBeCalled();
+		});
+	});
 });

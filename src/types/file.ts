@@ -1,5 +1,5 @@
 export default interface File {
-    id: number,
-    name: string,
-    // repetitionCounts: CellRepetitionCountsDto,
+	id: number;
+	name: string;
+	// repetitionCounts: CellRepetitionCountsDto,
 }

@@ -5,58 +5,62 @@ import { deleteFile, deleteFolder } from "../../store/actions/fileSystemActions.
 import FileTreeItem from "./FileTreeItem";
 import UiFolder from "../../types/uiFolder.ts";
 
-
 // TODO: on file click stop reviewing
 interface IProps {
-    folder: UiFolder,
+	folder: UiFolder;
 }
 
 function FileTree({ folder }: IProps) {
-    const [fileMarkedForDeletion, setFileMarkedForDeletion] =
-        useState<number | null>(null);
-    const [folderMarkedForDeletion, setFolderMarkedForDeletion] =
-        useState<number | null>(null);
-    const dispatch = useAppDispatch();
+	const [fileMarkedForDeletion, setFileMarkedForDeletion] = useState<number | null>(
+		null,
+	);
+	const [folderMarkedForDeletion, setFolderMarkedForDeletion] = useState<number | null>(
+		null,
+	);
+	const dispatch = useAppDispatch();
 
-    const handleDelete = async () => {
-        if (folderMarkedForDeletion) {
-            await dispatch(deleteFolder(folderMarkedForDeletion));
-            setFolderMarkedForDeletion(null);
-        }
-        if (fileMarkedForDeletion) {
-            await dispatch(deleteFile(fileMarkedForDeletion));
-            setFileMarkedForDeletion(null);
-        }
+	const handleDelete = async () => {
+		if (folderMarkedForDeletion) {
+			await dispatch(deleteFolder(folderMarkedForDeletion));
+			setFolderMarkedForDeletion(null);
+		}
+		if (fileMarkedForDeletion) {
+			await dispatch(deleteFile(fileMarkedForDeletion));
+			setFileMarkedForDeletion(null);
+		}
+	};
 
-    };
+	const handleDeleteCancel = () => {
+		setFileMarkedForDeletion(null);
+		setFolderMarkedForDeletion(null);
+	};
 
-    const handleDeleteCancel = () => {
-        setFileMarkedForDeletion(null);
-        setFolderMarkedForDeletion(null);
-    };
+	const handleMarkForDeletion = (id: number, isFolder: boolean) => {
+		if (isFolder) setFolderMarkedForDeletion(id);
+		else setFileMarkedForDeletion(id);
+	};
 
-    const handleMarkForDeletion = (id: number, isFolder: boolean) => {
-        if (isFolder) setFolderMarkedForDeletion(id);
-        else setFileMarkedForDeletion(id);
-    };
+	return (
+		<>
+			{(fileMarkedForDeletion ?? folderMarkedForDeletion) && (
+				<ConfirmationDialog
+					text={`Are you sure you want to delete the selected ${
+						fileMarkedForDeletion ? "file" : "folder"
+					}?`}
+					title="Delete"
+					onCancel={handleDeleteCancel}
+					onConfirm={() => void handleDelete()}
+				/>
+			)}
 
-    return (
-        <>
-            {(fileMarkedForDeletion ?? folderMarkedForDeletion) &&
-                <ConfirmationDialog
-                    text={`Are you sure you want to delete the selected ${
-                        fileMarkedForDeletion ? "file" : "folder"}?`}
-                    title="Delete"
-                    onCancel={handleDeleteCancel}
-                    onConfirm={() => void handleDelete()} />}
-
-            <FileTreeItem
-                path=""
-                folder={folder}
-                onMarkForDeletion={handleMarkForDeletion}
-                id={0} />
-        </>
-    );
+			<FileTreeItem
+				path=""
+				folder={folder}
+				onMarkForDeletion={handleMarkForDeletion}
+				id={0}
+			/>
+		</>
+	);
 }
 
 export default FileTree;

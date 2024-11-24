@@ -4,12 +4,12 @@
 	display: flex;
 	flex-direction: column;
 	justify-content: space-between;
-    border-right: 1px solid var(--border-color);
-    background-color: #f4f6f8;
+	border-right: 1px solid var(--border-color);
+	background-color: #f4f6f8;
 
-    & * {
-        font-size: 1.6rem;
-    }
+	& * {
+		font-size: 1.6rem;
+	}
 }
 
 .side-bar-search {
@@ -20,11 +20,11 @@
 
 .side-bar-search:focus,
 .side-bar-search:not(:placeholder-shown) {
-    background-color: var(--default-background-color);
+	background-color: var(--default-background-color);
 	border-color: var(--primary-color);
 }
 
-.search-bar {
+.search-bar  {
 	display: flex;
 	align-items: center;
 	gap: 0.8rem;

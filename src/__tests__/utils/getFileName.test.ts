@@ -1,31 +1,31 @@
 import getFileName from "../../utils/getFileName";
 
 describe(getFileName, () => {
-    it("Works on full path", () => {
-        // Arrange
+	it("Works on full path", () => {
+		// Arrange
 
-        const path = "file 1/file 2";
+		const path = "file 1/file 2";
 
-        // Act
+		// Act
 
-        const actual = getFileName(path);
+		const actual = getFileName(path);
 
-        // Assert
-        
-        expect(actual).toBe("file 2");
-    });
+		// Assert
 
-    it("Works on just a file name", () => {
-        // Arrange
+		expect(actual).toBe("file 2");
+	});
 
-        const path = "file 1";
+	it("Works on just a file name", () => {
+		// Arrange
 
-        // Act
+		const path = "file 1";
 
-        const actual = getFileName(path);
+		// Act
 
-        // Assert
-        
-        expect(actual).toBe("file 1");
-    });
+		const actual = getFileName(path);
+
+		// Assert
+
+		expect(actual).toBe("file 1");
+	});
 });

@@ -1,5 +1,5 @@
 .flash-card {
-    display: flex;
-    flex-direction: column;
-    gap: var(--default-padding);
+	display: flex;
+	flex-direction: column;
+	gap: var(--default-padding);
 }

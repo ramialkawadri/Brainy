@@ -5,34 +5,40 @@ import getCellIcon from "../../utils/getCellIcon";
 import { allCellTypes, CellType } from "../../entities/cell";
 
 interface IProps {
-    className?: string,
-    onClick: (cellType: CellType) => void,
+	className?: string;
+	onClick: (cellType: CellType) => void;
 }
 
 const NewCellTypeSelector = forwardRef<HTMLDivElement, IProps>(
-    ({ className, onClick }: IProps, ref) => {
-    const [searchText, setSearchText] = useState("");
+	({ className, onClick }: IProps, ref) => {
+		const [searchText, setSearchText] = useState("");
 
-    return (
-        <div className={`${className} ${styles.newCellSelector}`} ref={ref}>
-            <label htmlFor="search-type">Insert New Cell</label>
-            <input id="search-type" type="text" placeholder="Search"
-                onChange={(e) => setSearchText(e.target.value)} autoFocus />
+		return (
+			<div className={`${className} ${styles.newCellSelector}`} ref={ref}>
+				<label htmlFor="search-type">Insert New Cell</label>
+				<input
+					id="search-type"
+					type="text"
+					placeholder="Search"
+					onChange={e => setSearchText(e.target.value)}
+					autoFocus
+				/>
 
-            {allCellTypes
-                .filter(key => key.toLowerCase().includes(searchText.toLowerCase()))
-                .map(cellType =>
-                    <button
-                        key={cellType}
-                        className="transparent"
-                        onClick={() => onClick(cellType)}>
-                        <Icon path={getCellIcon(cellType)} size={1} />
-                        <span>{cellType}</span>
-                    </button>
-                )}
-        </div>
-    );
-});
+				{allCellTypes
+					.filter(key => key.toLowerCase().includes(searchText.toLowerCase()))
+					.map(cellType => (
+						<button
+							key={cellType}
+							className="transparent"
+							onClick={() => onClick(cellType)}>
+							<Icon path={getCellIcon(cellType)} size={1} />
+							<span>{cellType}</span>
+						</button>
+					))}
+			</div>
+		);
+	},
+);
 
 NewCellTypeSelector.displayName = "NewCellTypeSelector";
 

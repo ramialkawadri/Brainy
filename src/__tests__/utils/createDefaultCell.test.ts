@@ -3,46 +3,46 @@ import { CellInfoDto, CellType } from "../../services/backendApi";
 import createDefaultCell from "../../utils/createDefaultCell";
 
 describe(createDefaultCell, () => {
-    const mockedId = "mocked-guid";
-    
-    beforeAll(() => {
-        const uuidv4Spy = vi.spyOn(uuid, "v4");
-        uuidv4Spy.mockReturnValue(mockedId);
-    });
+	const mockedId = "mocked-guid";
 
-    it("Note", () => {
-        // Arrange
-        
-        const expected: CellInfoDto = {
-            id: mockedId,
-            type: CellType.Note,
-            data: "",
-        };
+	beforeAll(() => {
+		const uuidv4Spy = vi.spyOn(uuid, "v4");
+		uuidv4Spy.mockReturnValue(mockedId);
+	});
 
-        // Act
-        
-        const actual = createDefaultCell(CellType.Note);
+	it("Note", () => {
+		// Arrange
 
-        // Assert
+		const expected: CellInfoDto = {
+			id: mockedId,
+			type: CellType.Note,
+			data: "",
+		};
 
-        expect(actual).toStrictEqual(expected);
-    });
+		// Act
 
-    it("Flash Card", () => {
-        // Arrange
-        
-        const expected: CellInfoDto = {
-            id: mockedId,
-            type: CellType.FlashCard,
-            data: { question: "", answer: "" },
-        };
+		const actual = createDefaultCell(CellType.Note);
 
-        // Act
-        
-        const actual = createDefaultCell(CellType.FlashCard);
+		// Assert
 
-        // Assert
+		expect(actual).toStrictEqual(expected);
+	});
 
-        expect(actual).toStrictEqual(expected);
-    });
+	it("Flash Card", () => {
+		// Arrange
+
+		const expected: CellInfoDto = {
+			id: mockedId,
+			type: CellType.FlashCard,
+			data: { question: "", answer: "" },
+		};
+
+		// Act
+
+		const actual = createDefaultCell(CellType.FlashCard);
+
+		// Assert
+
+		expect(actual).toStrictEqual(expected);
+	});
 });

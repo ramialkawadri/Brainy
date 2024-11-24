@@ -2,81 +2,89 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
 import ConfirmationDialog from "../../ui/confirmationDialog/ConfirmationDialog";
 
 describe(ConfirmationDialog, () => {
-    it("Calls on cancel on 'Escape' press", async () => {
-        // Arrange
+	it("Calls on cancel on 'Escape' press", async () => {
+		// Arrange
 
-        const cancelFn = vi.fn();
-        const confirmFn = vi.fn();
-        render(
-            <div data-testid="container">
-                <ConfirmationDialog
-                   title=""
-                   text=""
-                   onCancel={cancelFn}
-                   onConfirm={confirmFn} />
-            </div>);
+		const cancelFn = vi.fn();
+		const confirmFn = vi.fn();
+		render(
+			<div data-testid="container">
+				<ConfirmationDialog
+					title=""
+					text=""
+					onCancel={cancelFn}
+					onConfirm={confirmFn}
+				/>
+			</div>,
+		);
 
-        // Act
+		// Act
 
-        act(() => {
-            const element = screen.getByTestId("container");
-            fireEvent.keyUp(element, {
-                key: "Escape"
-            });
-        });
+		act(() => {
+			const element = screen.getByTestId("container");
+			fireEvent.keyUp(element, {
+				key: "Escape",
+			});
+		});
 
-        // Assert
+		// Assert
 
-        await waitFor(() => {
-            expect(cancelFn).toHaveBeenCalled();
-        });
-    });
+		await waitFor(() => {
+			expect(cancelFn).toHaveBeenCalled();
+		});
+	});
 
-    it("Calls cancel correct", async () => {
-        // Arrange
+	it("Calls cancel correct", async () => {
+		// Arrange
 
-        const cancelFn = vi.fn();
-        const confirmFn = vi.fn();
-        render(<ConfirmationDialog
-               title=""
-               text=""
-               onCancel={cancelFn}
-               onConfirm={confirmFn} />);
+		const cancelFn = vi.fn();
+		const confirmFn = vi.fn();
+		render(
+			<ConfirmationDialog
+				title=""
+				text=""
+				onCancel={cancelFn}
+				onConfirm={confirmFn}
+			/>,
+		);
 
-        // Act
+		// Act
 
-        act(() => {
-            screen.getByText("No").click();
-        });
+		act(() => {
+			screen.getByText("No").click();
+		});
 
-        // Assert
+		// Assert
 
-        await waitFor(() => {
-            expect(cancelFn).toHaveBeenCalled();
-        });
-    });
+		await waitFor(() => {
+			expect(cancelFn).toHaveBeenCalled();
+		});
+	});
 
-    it("Calls confirm correct", async () => {
-        // Arrange
+	it("Calls confirm correct", async () => {
+		// Arrange
 
-        const cancelFn = vi.fn();
-        const confirmFn = vi.fn();
-        render(<ConfirmationDialog
-               title=""
-               text=""
-               onCancel={cancelFn}
-               onConfirm={confirmFn} />);
+		const cancelFn = vi.fn();
+		const confirmFn = vi.fn();
+		render(
+			<ConfirmationDialog
+				title=""
+				text=""
+				onCancel={cancelFn}
+				onConfirm={confirmFn}
+			/>,
+		);
 
-        // Act
+		// Act
 
-        act(() => {
-            screen.getByText("Yes").click();
-        });
+		act(() => {
+			screen.getByText("Yes").click();
+		});
 
-        // Assert
+		// Assert
 
-        await waitFor(() => {
-            expect(confirmFn).toHaveBeenCalled();
-        });
-    });
+		await waitFor(() => {
+			expect(confirmFn).toHaveBeenCalled();
+		});
+	});
 });

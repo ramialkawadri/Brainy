@@ -5,19 +5,23 @@ import persistStore from "redux-persist/es/persistStore";
 import fileSystemReducer from "./reducers/fileSystemReducers";
 
 const reducers = combineReducers({
-    fileSystem: fileSystemReducer,
+	fileSystem: fileSystemReducer,
 });
 
-const persistedReducer = persistReducer({
-    key: "root",
-    storage
-}, reducers);
+const persistedReducer = persistReducer(
+	{
+		key: "root",
+		storage,
+	},
+	reducers,
+);
 
 export const store = configureStore({
-    reducer: persistedReducer,
-    middleware: getDefaultMiddleware => getDefaultMiddleware({
-        serializableCheck: false,
-    }),
+	reducer: persistedReducer,
+	middleware: getDefaultMiddleware =>
+		getDefaultMiddleware({
+			serializableCheck: false,
+		}),
 });
 export const persistor = persistStore(store);
 

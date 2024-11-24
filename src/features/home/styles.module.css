@@ -1,57 +1,57 @@
 .box {
-    max-width: 500px;
-    width: 100%;
-    background: var(--default-background-color);
-    margin: 2.4rem auto;
-    border-radius: var(--default-border-radius);
-    box-shadow: var(--default-box-shadow);
-    padding: var(--default-padding);
+	max-width: 500px;
+	width: 100%;
+	background: var(--default-background-color);
+	margin: 2.4rem auto;
+	border-radius: var(--default-border-radius);
+	box-shadow: var(--default-box-shadow);
+	padding: var(--default-padding);
 }
 
 .header {
-    border-bottom: 1px solid var(--border-color);
-    margin: var(--default-padding);
-    font-weight: 400;
+	border-bottom: 1px solid var(--border-color);
+	margin: var(--default-padding);
+	font-weight: 400;
 }
 
 .row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: var(--small-padding);
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: var(--small-padding);
 
-    & .buttons {
-        display: grid;
-        grid-template-columns: 1.6rem 1fr;
-        gap: 4px;
-        width: 100%;
+	& .buttons {
+		display: grid;
+		grid-template-columns: 1.6rem 1fr;
+		gap: 4px;
+		width: 100%;
 
-        & button {
-            display: flex;
-            align-items: center;
-        }
-    }
+		& button {
+			display: flex;
+			align-items: center;
+		}
+	}
 
-    & .columns {
-        display: grid;
-        grid-template-columns: repeat(3, 5rem);
-        gap: 1rem;
-        text-align: center;
-    }
+	& .columns {
+		display: grid;
+		grid-template-columns: repeat(3, 5rem);
+		gap: 1rem;
+		text-align: center;
+	}
 
-    & button {
-        padding: 0;
-    }
+	& button {
+		padding: 0;
+	}
 }
 
 .tree {
-    & .tree-row {
-        border-radius: var(--default-border-radius);
-        transition: all var(--default-transition-time);
-        cursor: pointer;
+	& .tree-row {
+		border-radius: var(--default-border-radius);
+		transition: all var(--default-transition-time);
+		cursor: pointer;
 
-        &:hover {
-            background-color: var(--grey-background-color);
-        }
-    }
+		&:hover {
+			background-color: var(--grey-background-color);
+		}
+	}
 }

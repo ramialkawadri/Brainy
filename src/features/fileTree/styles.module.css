@@ -1,11 +1,11 @@
 .outer-container {
-    padding: 1px;
-    border: 2px solid transparent;
-    border-radius: var(--default-border-radius);
+	padding: 1px;
+	border: 2px solid transparent;
+	border-radius: var(--default-border-radius);
 
-    &.drag-over {
-        border-color: var(--primary-color);
-    }
+	&.drag-over {
+		border-color: var(--primary-color);
+	}
 }
 
 .file-tree-item {
@@ -15,21 +15,21 @@
 	border-radius: var(--default-border-radius);
 	position: relative;
 
-    & form {
-        width: 100%;
-    }
+	& form {
+		width: 100%;
+	}
 }
 
 .file-tree-button {
 	width: 100%;
-    padding: 8px;
+	padding: 8px;
 
-    & p {
-        width: 80%;
-        text-align: left;
-        text-overflow: ellipsis;
-        overflow: hidden;
-    }
+	& p {
+		width: 80%;
+		text-align: left;
+		text-overflow: ellipsis;
+		overflow: hidden;
+	}
 }
 
 .file-tree-button,
@@ -40,13 +40,13 @@
 }
 
 .file-tree-new-item-row {
-    padding: var(--default-padding);
+	padding: var(--default-padding);
 }
 
 .file-tree-new-item-row input {
-    width: 100%;
+	width: 100%;
 	padding: 2px var(--default-padding);
-    border-width: 1px;
+	border-width: 1px;
 }
 
 .file-tree-dots {
@@ -83,7 +83,7 @@
 .file-tree-children {
 	margin-left: var(--default-padding);
 	padding-left: var(--default-padding);
-    border-left: 1px solid var(--border-color);
+	border-left: 1px solid var(--border-color);
 	transition: var(--default-transition-time);
 }
 
@@ -97,7 +97,7 @@
 	right: 0;
 	padding: var(--default-padding);
 	border-radius: var(--default-border-radius);
-    background-color: var(--default-background-color);
+	background-color: var(--default-background-color);
 	box-shadow: var(--default-box-shadow);
 	min-width: 18rem;
 	display: grid;
@@ -109,13 +109,12 @@
 	width: 100%;
 	text-align: left;
 	display: grid;
-    grid-template-columns: 1fr 7fr 3.6rem;
+	grid-template-columns: 1fr 7fr 3.6rem;
 	gap: var(--small-padding);
-    align-items: center;
+	align-items: center;
 }
 
 .actions-menu button * {
-    text-overflow: ellipsis;
-    overflow: hidden;
+	text-overflow: ellipsis;
+	overflow: hidden;
 }
-

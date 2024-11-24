@@ -4,28 +4,28 @@ import Icon from "@mdi/react";
 import { mdiMinus, mdiPlus } from "@mdi/js";
 
 interface IProps {
-    folder?: IFolder,
-    file?: IFile,
-    name: string,
-    depthLevel: number,
+	folder?: IFolder;
+	file?: IFile;
+	name: string;
+	depthLevel: number;
 }
 
 function Tree({ name, folder, file, depthLevel }: IProps) {
-    const [isExpanded, setIsExpanded] = useState(!name);
-    // const newCount = file
-    //     ? file.repetitionCounts.new
-    //     : folder!.repetitionCounts.new;
-    // const learningCount = file
-    //     ? (file.repetitionCounts.learning! + file.repetitionCounts.relearning!)
-    //     : (folder!.repetitionCounts.learning! + folder!.repetitionCounts.relearning!);
-    // const reviewCount = file
-    //     ? file.repetitionCounts.review
-    //     : folder!.repetitionCounts.review;
-    //
-    // TODO: the row css class must be each own component
-    return (
-        <div className={name && styles.tree}>
-            {/*TODO: 
+	const [isExpanded, setIsExpanded] = useState(!name);
+	// const newCount = file
+	//     ? file.repetitionCounts.new
+	//     : folder!.repetitionCounts.new;
+	// const learningCount = file
+	//     ? (file.repetitionCounts.learning! + file.repetitionCounts.relearning!)
+	//     : (folder!.repetitionCounts.learning! + folder!.repetitionCounts.relearning!);
+	// const reviewCount = file
+	//     ? file.repetitionCounts.review
+	//     : folder!.repetitionCounts.review;
+	//
+	// TODO: the row css class must be each own component
+	return (
+		<div className={name && styles.tree}>
+			{/*TODO: 
             {name &&
                 <div className={styles.row + " " + styles.treeRow}>
                     <div className={styles.buttons} style={{ paddingLeft: `${depthLevel * 12}px` }}>
@@ -54,8 +54,8 @@ function Tree({ name, folder, file, depthLevel }: IProps) {
             {isExpanded && folder?.files.map(f => 
                 <Tree key={f.id} name={f.name} depthLevel={depthLevel + 1} file={f} />)}
             */}
-        </div>
-    );
+		</div>
+	);
 }
 
 export default Tree;

@@ -3,20 +3,20 @@ import { CellType } from "../../services/backendApi";
 import getCellIcon from "../../utils/getCellIcon";
 
 describe(getCellIcon, () => {
-    it("Returns correct icon", () => {
-        // Arrange
-        
-        const typesIcons = [
-            [CellType.FlashCard, mdiCardMultipleOutline],
-            [CellType.Note, mdiNoteOutline],
-            ["other", mdiHelp],
-        ];
+	it("Returns correct icon", () => {
+		// Arrange
 
-        // Act & Assert
+		const typesIcons = [
+			[CellType.FlashCard, mdiCardMultipleOutline],
+			[CellType.Note, mdiNoteOutline],
+			["other", mdiHelp],
+		];
 
-        for (const typeIcon of typesIcons) {
-            const actual = getCellIcon(typeIcon[0] as CellType);
-            expect(actual).toBe(typeIcon[1]);
-        }
-    });
+		// Act & Assert
+
+		for (const typeIcon of typesIcons) {
+			const actual = getCellIcon(typeIcon[0] as CellType);
+			expect(actual).toBe(typeIcon[1]);
+		}
+	});
 });
