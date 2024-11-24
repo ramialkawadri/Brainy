@@ -27,8 +27,8 @@ const extensions = [
 interface IProps {
     content: string,
     title?: string,
+    editable?: boolean,
     onUpdate: (html: string) => void,
-    editable?: boolean
 }
 
 function RichTextEditor({ content, title, editable, onUpdate }: IProps) {

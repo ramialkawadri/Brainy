@@ -12,7 +12,7 @@ import SideBar from "../sideBar/SideBar";
 import Cell from "../../entities/cell";
 import { invoke } from "@tauri-apps/api/core";
 
-// TODO: add shortcut to start study, shortcut to insert new cell
+// TODO: add keyboard shortcut to start study, shortcut to insert new cell
 function App() {
     const [isReviewing, setIsReviewing] = useState(false);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);

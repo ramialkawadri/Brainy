@@ -10,7 +10,7 @@ interface IProps {
     onUpdate: (content: string) => void,
 }
 
-function FlashCardCell({ cell, onUpdate, editable }: IProps) {
+function FlashCardCell({ cell, editable, onUpdate }: IProps) {
     const flashCard = useMemo(() => JSON.parse(cell.content) as FlashCard ?? {}, [cell.content]);
 
     const handleQuestionUpdate = useCallback((html: string) =>

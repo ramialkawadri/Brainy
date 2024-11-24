@@ -14,7 +14,9 @@ function EditorCell({ cell, editable, onUpdate }: IProps) {
             return <FlashCardCell cell={cell} onUpdate={onUpdate} editable={editable} />;
         case "Note":
             return <RichTextEditor
-                content={cell.content} onUpdate={onUpdate} editable={editable} />;
+                content={cell.content}
+                onUpdate={onUpdate}
+                editable={editable} />;
     }
 }
 

@@ -18,13 +18,12 @@ import { mdiPlus } from "@mdi/js";
 import FileRepetitionCounts from "../../entities/fileRepetitionCounts";
 import useBeforeUnload from "../../hooks/useBeforeUnload";
 
-const autoSaveDelayInMilliSeconds = 5000;
+const autoSaveDelayInMilliSeconds = 1200;
 
 interface IProps {
     cells: Cell[],
     onCellsUpdate: (cells: Cell[]) => void,
     onError: (error: string) => void,
-    // TODO: seperate the title bar from the editor
     onStudyButtonClick: () => void,
     // TODO: find better name
     fetchFileCells: () => Promise<void>,
@@ -46,7 +45,7 @@ function Editor({ cells, onError, onCellsUpdate, fetchFileCells, onStudyButtonCl
     const addNewCellPopupRef = useRef<HTMLDivElement>(null);
     const editorRef = useRef<HTMLDivElement>(null);
     const autoSaveTimeoutId = useRef(-1);
-    const changedCellsIndices = useRef(new Set<number>());
+    const changedCellsIds = useRef(new Set<number>());
 
     useOutsideClick(editorRef as React.MutableRefObject<HTMLElement>,
         () => setShowInsertNewCell(false));
@@ -58,29 +57,27 @@ function Editor({ cells, onError, onCellsUpdate, fetchFileCells, onStudyButtonCl
         }
     });
 
-    // TODO: fix this called on every update
-    useEffect(() => {
-        void (async () => {
-            setRepetitionCounts(await invoke("get_study_repetitions", {
-                fileId: selectedFileId
-            }));
-        })();
-
-        // We need to refetch the count on cells or file changing!
-    }, [selectedFileId, cells]);
+    const retrieveRepetitionCounts = useCallback(async () => {
+        setRepetitionCounts(await invoke("get_study_repetitions", {
+            fileId: selectedFileId
+        }));
+    }, [selectedFileId]);
 
     const saveChanges = useCallback(async () => {
-        for (const index of changedCellsIndices.current) {
+        for (const id of changedCellsIds.current) {
+            const cell = cells.find(c => c.id === id);
+            if (!cell) continue;
             await invoke("update_cell", {
-                cellId: cells[index].id,
-                content: cells[index].content,
+                cellId: cell.id,
+                content: cell.content,
             });
         }
-        changedCellsIndices.current.clear();
-    }, [cells]);
+        changedCellsIds.current.clear();
+        await retrieveRepetitionCounts();
+    }, [cells, retrieveRepetitionCounts]);
 
     const handleUpdate = (content: string, index: number) => {
-        changedCellsIndices.current.add(index);
+        changedCellsIds.current.add(cells[index].id);
         const newCells = [...cells];
         newCells[index].content = content;
         onCellsUpdate(newCells);
@@ -95,13 +92,15 @@ function Editor({ cells, onError, onCellsUpdate, fetchFileCells, onStudyButtonCl
     const forceSave = useCallback(() => {
         if (autoSaveTimeoutId.current !== -1) {
             clearTimeout(autoSaveTimeoutId.current);
-            void saveChanges();
         }
+        void saveChanges();
     }, [saveChanges]);
 
     useEffect(() => {
         forceSave();
-    }, [selectedFileId, saveChanges, forceSave]);
+        void retrieveRepetitionCounts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectedFileId]);
 
     useBeforeUnload(forceSave);
 
