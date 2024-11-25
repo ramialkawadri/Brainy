@@ -19,7 +19,7 @@ import { invoke } from "@tauri-apps/api/core";
 import useAppSelector from "../../hooks/useAppSelector";
 import { selectSelectedFileId } from "../../store/selectors/fileSystemSelectors";
 import createRepetitionFromCard from "../../utils/createRepetitionFromCard";
-import { selectSelectedFileCells } from "../../store/selectors/selectedFileCellsSelectors";
+import Cell from "../../entities/cell";
 
 interface Props {
 	onEditButtonClick: () => void;
@@ -37,7 +37,7 @@ function Reviewer({ onEditButtonClick, onError, onReviewEnd }: Props) {
 	const [isSendingRequest, setIsSendingRequest] = useState(false);
 	const [cellRepetitions, setCellRepetitions] = useState<Repetition[]>([]);
 	const [timerTime, setTimerTime] = useState(0);
-	const cells = useAppSelector(selectSelectedFileCells);
+	const [cells, setCells] = useState<Cell[]>([]);
 	const startTime = useRef(new Date());
 	const selectedFileId = useAppSelector(selectSelectedFileId)!;
 
@@ -48,6 +48,7 @@ function Reviewer({ onEditButtonClick, onError, onReviewEnd }: Props) {
 
 	useEffect(() => {
 		void (async () => {
+            // TODO: try - catch
 			setIsLoading(true);
 			const repetitions: Repetition[] = await invoke(
 				"get_file_repetitions",
@@ -56,6 +57,13 @@ function Reviewer({ onEditButtonClick, onError, onReviewEnd }: Props) {
 				},
 			);
 			setCellRepetitions(repetitions);
+			const fetchedCells: Cell[] = await invoke(
+				"get_file_cells_ordered_by_index",
+				{
+					fileId: selectedFileId,
+				},
+			);
+			setCells(fetchedCells);
 			setIsLoading(false);
 		})();
 	}, [selectedFileId]);

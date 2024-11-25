@@ -1,4 +1,3 @@
-import { useMemo } from "react";
 import Cell from "../../entities/cell";
 import FlashCard from "../../types/flashCard";
 import RichTextEditor from "../../ui/RichTextEditor/RichTextEditor";
@@ -11,10 +10,7 @@ interface Props {
 }
 
 function FlashCardCell({ cell, editable, onUpdate }: Props) {
-	const flashCard = useMemo(
-		() => (JSON.parse(cell.content) as FlashCard) ?? {},
-		[cell.content],
-	);
+	const flashCard = JSON.parse(cell.content) as FlashCard;
 
 	const handleQuestionUpdate = (html: string) =>
 		onUpdate(

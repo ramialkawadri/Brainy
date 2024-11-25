@@ -8,7 +8,7 @@ import ConfirmationDialog from "../../ui/ConfirmationDialog/ConfirmationDialog";
 import { invoke } from "@tauri-apps/api/core";
 import useAppSelector from "../../hooks/useAppSelector";
 import { selectSelectedFileId } from "../../store/selectors/fileSystemSelectors";
-import { CellType } from "../../entities/cell";
+import Cell, { CellType } from "../../entities/cell";
 import FocusTools from "./FocusTools";
 import NewCellTypeSelector from "./NewCellTypeSelector";
 import Icon from "@mdi/react";
@@ -17,23 +17,15 @@ import EditorCell from "../EditorCell/EditorCell";
 import { mdiPlus } from "@mdi/js";
 import FileRepetitionCounts from "../../entities/fileRepetitionCounts";
 import useBeforeUnload from "../../hooks/useBeforeUnload";
-import { selectSelectedFileCells } from "../../store/selectors/selectedFileCellsSelectors";
-import useAppDispatch from "../../hooks/useAppDispatch";
-import { setSelectedFileCells } from "../../store/reducers/selectedFileCellsReducers";
-import {
-	createCell,
-	deleteCell,
-	moveCell,
-	updateCellContent,
-} from "../../store/actions/selectedFileCellsActions";
 
-const autoSaveDelayInMilliSeconds = 1200;
+const autoSaveDelayInMilliSeconds = 4000;
 
 interface Props {
 	onError: (error: string) => void;
 	onStudyButtonClick: () => void;
 }
 
+// TODO: move all invoke calls to services
 function Editor({ onError, onStudyButtonClick }: Props) {
 	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 	// Used for the focus tools.
@@ -50,15 +42,14 @@ function Editor({ onError, onStudyButtonClick }: Props) {
 			relearning: 0,
 			review: 0,
 		});
-	const dispatch = useAppDispatch();
-	const cells = useAppSelector(selectSelectedFileCells);
+	const [cells, setCells] = useState<Cell[]>([]);
 	const selectedFileId = useAppSelector(selectSelectedFileId)!;
 	const addNewCellPopupRef = useRef<HTMLDivElement>(null);
 	const editorRef = useRef<HTMLDivElement>(null);
 	const autoSaveTimeoutId = useRef(-1);
 	// Used to store the ids of the changed cells so that we update them all
 	// together instead of updating one by one.
-	const changedCellsIds = useRef(new Set<number>());
+	const changedCellsIndices = useRef(new Set<number>());
 
 	useOutsideClick(editorRef as React.MutableRefObject<HTMLElement>, () =>
 		setShowInsertNewCell(false),
@@ -73,8 +64,21 @@ function Editor({ onError, onStudyButtonClick }: Props) {
 		}
 	});
 
+	const executeRequest = useCallback(
+		async <T,>(cb: () => Promise<T>) => {
+			try {
+				return await cb();
+			} catch (e) {
+				console.error(e);
+				if (e instanceof Error) onError(e.message);
+				else onError(e as string);
+			}
+		},
+		[onError],
+	);
+
 	const retrieveRepetitionCounts = useCallback(async () => {
-		try {
+		await executeRequest(async () => {
 			const repetitionCounts = await invoke(
 				"get_study_repetition_counts",
 				{
@@ -82,57 +86,76 @@ function Editor({ onError, onStudyButtonClick }: Props) {
 				},
 			);
 			setRepetitionCounts(repetitionCounts as FileRepetitionCounts);
-		} catch (e) {
-			onError(e as string);
-		}
-	}, [onError, selectedFileId]);
+		});
+	}, [executeRequest, selectedFileId]);
 
-	const saveChanges = useCallback(async () => {
-		for (const id of changedCellsIds.current) {
-			const cell = cells.find(c => c.id === id);
-			if (!cell) continue;
-			await dispatch(updateCellContent(cell.id, cell.content));
-		}
-		changedCellsIds.current.clear();
-		await retrieveRepetitionCounts();
-	}, [cells, retrieveRepetitionCounts, dispatch]);
+	const retrieveSelectedFileCells = useCallback(async () => {
+		await executeRequest(async () => {
+			const fetchedCells: Cell[] = await invoke(
+				"get_file_cells_ordered_by_index",
+				{
+					fileId: selectedFileId,
+				},
+			);
+			setCells(fetchedCells);
+		});
+	}, [executeRequest, selectedFileId]);
+
+	const saveChanges = async (cells: Cell[]) => {
+		await executeRequest(async () => {
+			for (const index of changedCellsIndices.current) {
+				await invoke("update_cell", {
+					cellId: cells[index].id,
+					content: cells[index].content,
+				});
+			}
+			changedCellsIndices.current.clear();
+			await retrieveRepetitionCounts();
+		});
+	};
 
 	const handleUpdate = (content: string, index: number) => {
-		changedCellsIds.current.add(cells[index].id);
+		changedCellsIndices.current.add(index);
 		const newCells = [...cells];
 		newCells[index] = {
 			...newCells[index],
 			content,
 		};
-		dispatch(setSelectedFileCells(newCells));
+		setCells(newCells);
 
-		if (autoSaveTimeoutId.current !== -1)
+		if (autoSaveTimeoutId.current !== -1) {
 			clearTimeout(autoSaveTimeoutId.current);
+		}
 		autoSaveTimeoutId.current = setTimeout(() => {
-			void saveChanges();
+			void saveChanges(newCells);
 			autoSaveTimeoutId.current = -1;
 		}, autoSaveDelayInMilliSeconds);
 	};
 
-	const forceSave = useCallback(() => {
+	const forceSave = async () => {
 		if (autoSaveTimeoutId.current !== -1) {
 			clearTimeout(autoSaveTimeoutId.current);
 		}
-		void saveChanges();
-	}, [saveChanges]);
+		await saveChanges(cells);
+	};
 
 	useEffect(() => {
-		forceSave();
-		void retrieveRepetitionCounts();
-		setSelectedCellIndex(0);
+		void (async () => {
+			await forceSave();
+			await retrieveRepetitionCounts();
+			await retrieveSelectedFileCells();
+			setSelectedCellIndex(0);
+		})();
+
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [selectedFileId]);
 
-	useBeforeUnload(forceSave);
+	useBeforeUnload(() => void forceSave());
 
 	const insertNewCell = async (cellType: CellType, index = -1) => {
 		const cell = createDefaultCell(cellType, selectedFileId, index);
-		await dispatch(createCell(cell));
+		await invoke("create_cell", { ...cell });
+		await retrieveSelectedFileCells();
 		await retrieveRepetitionCounts();
 		setShowInsertNewCell(false);
 		setShowAddNewCellPopup(false);
@@ -140,7 +163,8 @@ function Editor({ onError, onStudyButtonClick }: Props) {
 
 	const handleCellDeleteConfirm = async () => {
 		setShowDeleteDialog(false);
-		await dispatch(deleteCell(selectedCellIndex));
+		await invoke("delete_cell", { cellId: selectedCellIndex });
+		await retrieveSelectedFileCells();
 		await retrieveRepetitionCounts();
 	};
 
@@ -170,7 +194,11 @@ function Editor({ onError, onStudyButtonClick }: Props) {
 	const handleDrop = async (index: number) => {
 		if (draggedCellIndex === -1 || index === draggedCellIndex) return;
 		setDragOverCellIndex(-1);
-		await dispatch(moveCell(draggedCellIndex, index));
+		await invoke("move_cell", {
+			cellId: cells[draggedCellIndex].id,
+			newIndex: index,
+		});
+		await retrieveSelectedFileCells();
 		const dropIndex = index > draggedCellIndex ? index - 1 : index;
 		if (selectedCellIndex === draggedCellIndex) {
 			setSelectedCellIndex(dropIndex);

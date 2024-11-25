@@ -1,17 +1,18 @@
-import { useState } from "react";
+// import { useState } from "react";
+import Folder from "../../types/folder";
 import styles from "./styles.module.css";
-import Icon from "@mdi/react";
-import { mdiMinus, mdiPlus } from "@mdi/js";
+// import Icon from "@mdi/react";
+// import { mdiMinus, mdiPlus } from "@mdi/js";
 
 interface Props {
-	folder?: IFolder;
-	file?: IFile;
+	folder?: Folder;
+	file?: File;
 	name: string;
 	depthLevel: number;
 }
 
 function Tree({ name, folder, file, depthLevel }: Props) {
-	const [isExpanded, setIsExpanded] = useState(!name);
+	// const [isExpanded, setIsExpanded] = useState(!name);
 	// const newCount = file
 	//     ? file.repetitionCounts.new
 	//     : folder!.repetitionCounts.new;

@@ -1,10 +1,8 @@
 import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import fileSystemReducer from "./reducers/fileSystemReducers";
-import selectedFileCellsReducer from "./reducers/selectedFileCellsReducers";
 
 const reducers = combineReducers({
 	fileSystem: fileSystemReducer,
-	selectedFileCells: selectedFileCellsReducer,
 });
 
 export const store = configureStore({
