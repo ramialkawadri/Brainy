@@ -1,5 +1,5 @@
 import Cell from "../../entities/cell";
-import FlashCard from "./FlashCard";
+import FlashCardReviewView from "./FlashCardReviewView";
 
 interface Props {
 	cell: Cell;
@@ -9,7 +9,7 @@ interface Props {
 function ReviewerCell({ cell, showAnswer }: Props) {
 	switch (cell.cellType) {
 		case "FlashCard":
-			return <FlashCard cell={cell} showAnswer={showAnswer} />;
+			return <FlashCardReviewView cell={cell} showAnswer={showAnswer} />;
 	}
 }
 

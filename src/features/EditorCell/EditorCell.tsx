@@ -11,13 +11,19 @@ interface Props {
 function EditorCell({ cell, editable, onUpdate }: Props) {
 	switch (cell.cellType) {
 		case "FlashCard":
-			return <FlashCardCell cell={cell} onUpdate={onUpdate} editable={editable} />;
+			return (
+				<FlashCardCell
+					cell={cell}
+					editable={editable}
+					onUpdate={onUpdate}
+				/>
+			);
 		case "Note":
 			return (
 				<RichTextEditor
 					content={cell.content}
-					onUpdate={onUpdate}
 					editable={editable}
+					onUpdate={onUpdate}
 				/>
 			);
 	}

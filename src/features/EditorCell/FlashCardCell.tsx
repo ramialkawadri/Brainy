@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react";
+import { useMemo } from "react";
 import Cell from "../../entities/cell";
 import FlashCard from "../../types/flashCard";
 import RichTextEditor from "../../ui/RichTextEditor/RichTextEditor";
@@ -16,27 +16,21 @@ function FlashCardCell({ cell, editable, onUpdate }: Props) {
 		[cell.content],
 	);
 
-	const handleQuestionUpdate = useCallback(
-		(html: string) =>
-			onUpdate(
-				JSON.stringify({
-					question: html,
-					answer: flashCard.answer,
-				}),
-			),
-		[flashCard.answer, onUpdate],
-	);
+	const handleQuestionUpdate = (html: string) =>
+		onUpdate(
+			JSON.stringify({
+				question: html,
+				answer: flashCard.answer,
+			}),
+		);
 
-	const handleAnswerUpdate = useCallback(
-		(html: string) =>
-			onUpdate(
-				JSON.stringify({
-					question: flashCard.question,
-					answer: html,
-				}),
-			),
-		[flashCard.question, onUpdate],
-	);
+	const handleAnswerUpdate = (html: string) =>
+		onUpdate(
+			JSON.stringify({
+				question: flashCard.question,
+				answer: html,
+			}),
+		);
 
 	return (
 		<div className={styles.flashCard}>

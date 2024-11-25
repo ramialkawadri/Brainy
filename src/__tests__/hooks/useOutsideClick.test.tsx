@@ -1,12 +1,19 @@
 import { act, useRef } from "react";
 import useOutsideClick from "../../hooks/useOutsideClick";
-import { fireEvent, render, renderHook, screen, waitFor } from "@testing-library/react";
+import {
+	fireEvent,
+	render,
+	renderHook,
+	screen,
+	waitFor,
+} from "@testing-library/react";
 
 describe(useOutsideClick, () => {
 	it("Calls callback on outside click", async () => {
 		// Arrange
 
-		const ref = renderHook(() => useRef<HTMLButtonElement>(null)).result.current;
+		const ref = renderHook(() => useRef<HTMLButtonElement>(null)).result
+			.current;
 
 		render(
 			<div>
@@ -16,7 +23,9 @@ describe(useOutsideClick, () => {
 		);
 
 		const cb = vi.fn();
-		renderHook(() => useOutsideClick(ref as React.MutableRefObject<HTMLElement>, cb));
+		renderHook(() =>
+			useOutsideClick(ref as React.MutableRefObject<HTMLElement>, cb),
+		);
 
 		// Act
 
@@ -34,7 +43,8 @@ describe(useOutsideClick, () => {
 	it("Does not call the callback on the element click", async () => {
 		// Arrange
 
-		const ref = renderHook(() => useRef<HTMLButtonElement>(null)).result.current;
+		const ref = renderHook(() => useRef<HTMLButtonElement>(null)).result
+			.current;
 
 		render(
 			<div>
@@ -44,7 +54,9 @@ describe(useOutsideClick, () => {
 		);
 
 		const cb = vi.fn();
-		renderHook(() => useOutsideClick(ref as React.MutableRefObject<HTMLElement>, cb));
+		renderHook(() =>
+			useOutsideClick(ref as React.MutableRefObject<HTMLElement>, cb),
+		);
 
 		// Act
 

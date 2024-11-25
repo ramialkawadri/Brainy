@@ -47,7 +47,8 @@ function RichTextEditor({ content, title, editable, onUpdate }: Props) {
 			content,
 			editable,
 			onUpdate: e => {
-				if (e.editor.getHTML() !== content) onUpdate(e.editor.getHTML());
+				if (e.editor.getHTML() !== content)
+					onUpdate(e.editor.getHTML());
 			},
 		},
 		[editable],
@@ -66,7 +67,12 @@ function RichTextEditor({ content, title, editable, onUpdate }: Props) {
 			return;
 		}
 
-		editor.chain().focus().extendMarkRange("link").setLink({ href: url }).run();
+		editor
+			.chain()
+			.focus()
+			.extendMarkRange("link")
+			.setLink({ href: url })
+			.run();
 	}, [editor]);
 
 	return (
@@ -80,21 +86,27 @@ function RichTextEditor({ content, title, editable, onUpdate }: Props) {
 						tippyOptions={{ duration: 100 }}
 						className={styles.bubbleMenu}>
 						<button
-							onClick={() => editor.chain().focus().toggleBold().run()}
+							onClick={() =>
+								editor.chain().focus().toggleBold().run()
+							}
 							className={`transparent ${editor.isActive("bold") && styles.activeButton}`}
 							title="Bold"
 							aria-label="Bold">
 							<Icon path={mdiFormatBold} size={1} />
 						</button>
 						<button
-							onClick={() => editor.chain().focus().toggleItalic().run()}
+							onClick={() =>
+								editor.chain().focus().toggleItalic().run()
+							}
 							className={`transparent ${editor.isActive("italic") && styles.activeButton}`}
 							title="Italic"
 							aria-label="Italic">
 							<Icon path={mdiFormatItalic} size={1} />
 						</button>
 						<button
-							onClick={() => editor.chain().focus().toggleUnderline().run()}
+							onClick={() =>
+								editor.chain().focus().toggleUnderline().run()
+							}
 							className={`transparent ${editor.isActive("underline") && styles.activeButton}`}
 							title="Underline"
 							aria-label="Underline">
@@ -126,7 +138,9 @@ function RichTextEditor({ content, title, editable, onUpdate }: Props) {
 							<Icon path={mdiLink} size={1} />
 						</button>
 						<button
-							onClick={() => editor.chain().focus().toggleSubscript().run()}
+							onClick={() =>
+								editor.chain().focus().toggleSubscript().run()
+							}
 							className={`transparent ${editor.isActive("subscript") && styles.activeButton}`}
 							title="Subscript"
 							aria-label="Subscript">

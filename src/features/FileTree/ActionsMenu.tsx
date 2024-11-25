@@ -29,13 +29,18 @@ function ActionsMenu({ onOutsideClick, actions }: Props) {
 		<div className={`${styles.actionsMenu}`} ref={containerRef}>
 			{actions.length > 0 &&
 				actions.map((action, i) => (
-					<button className="transparent" onClick={action.onClick} key={i}>
+					<button
+						className="transparent"
+						onClick={action.onClick}
+						key={i}>
 						<Icon path={action.iconName} size={1} />
 						<span>{action.text}</span>
 						<p className="dimmed">{action.shortcut}</p>
 					</button>
 				))}
-			{actions.length === 0 && <p className="dimmed">No available actions!</p>}
+			{actions.length === 0 && (
+				<p className="dimmed">No available actions!</p>
+			)}
 		</div>
 	);
 }

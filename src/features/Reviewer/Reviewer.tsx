@@ -37,8 +37,8 @@ function Reviewer({ onEditButtonClick, onError, onReviewEnd }: Props) {
 	const [isSendingRequest, setIsSendingRequest] = useState(false);
 	const [cellRepetitions, setCellRepetitions] = useState<Repetition[]>([]);
 	const [timerTime, setTimerTime] = useState(0);
-    const cells = useAppSelector(selectSelectedFileCells);
-	const now = useRef(new Date());
+	const cells = useAppSelector(selectSelectedFileCells);
+	const startTime = useRef(new Date());
 	const selectedFileId = useAppSelector(selectSelectedFileId)!;
 
 	useEffect(() => {
@@ -49,22 +49,27 @@ function Reviewer({ onEditButtonClick, onError, onReviewEnd }: Props) {
 	useEffect(() => {
 		void (async () => {
 			setIsLoading(true);
-			const repetitions: Repetition[] = await invoke("get_file_repetitions", {
-				fileId: selectedFileId,
-			});
+			const repetitions: Repetition[] = await invoke(
+				"get_file_repetitions",
+				{
+					fileId: selectedFileId,
+				},
+			);
 			setCellRepetitions(repetitions);
 			setIsLoading(false);
 		})();
 	}, [selectedFileId]);
 
-	const dueToday = cellRepetitions.filter(c => new Date(c.due) <= now.current);
+	const dueToday = cellRepetitions.filter(
+		c => new Date(c.due) <= startTime.current,
+	);
 	const currentCard = isLoading
 		? createEmptyCard()
 		: createCardFromCellRepetitionDto(dueToday[currentCellIndex]);
 
 	const schedulingCards: RecordLog = useMemo(
-		() => fsrs.repeat(currentCard, now.current),
-		[currentCard, now],
+		() => fsrs.repeat(currentCard, startTime.current),
+		[currentCard, startTime],
 	);
 
 	const handleGradeSubmit = async (grade: Grade) => {
@@ -91,7 +96,7 @@ function Reviewer({ onEditButtonClick, onError, onReviewEnd }: Props) {
 		if (currentCellIndex + 1 === dueToday.length) {
 			onReviewEnd();
 		} else {
-			now.current = new Date();
+			startTime.current = new Date();
 			setCurrentCellIndex(currentCellIndex + 1);
 		}
 	};
@@ -117,7 +122,8 @@ function Reviewer({ onEditButtonClick, onError, onReviewEnd }: Props) {
 		}
 	});
 
-	const isCurrentCellNew = !isLoading && dueToday[currentCellIndex].state === "New";
+	const isCurrentCellNew =
+		!isLoading && dueToday[currentCellIndex].state === "New";
 	const isCurrentCellLearning =
 		!isLoading &&
 		(dueToday[currentCellIndex].state === "Learning" ||
@@ -154,7 +160,9 @@ function Reviewer({ onEditButtonClick, onError, onReviewEnd }: Props) {
 				{!isLoading && (
 					<ReviewerCell
 						cell={
-							cells.find(c => c.id === dueToday[currentCellIndex].cellId)!
+							cells.find(
+								c => c.id === dueToday[currentCellIndex].cellId,
+							)!
 						}
 						showAnswer={showAnswer}
 					/>
@@ -164,7 +172,9 @@ function Reviewer({ onEditButtonClick, onError, onReviewEnd }: Props) {
 			<div className={styles.bottomBar}>
 				<div className={styles.editButtonContainer}>
 					<p>&nbsp;</p>
-					<button className="row transparent" onClick={onEditButtonClick}>
+					<button
+						className="row transparent"
+						onClick={onEditButtonClick}>
 						<Icon path={mdiPencilOutline} size={1} />
 						<span>Edit</span>
 					</button>
@@ -191,7 +201,9 @@ function Reviewer({ onEditButtonClick, onError, onReviewEnd }: Props) {
 								{counts.review}
 							</p>
 						</div>
-						<button className="primary" onClick={() => setShowAnswer(true)}>
+						<button
+							className="primary"
+							onClick={() => setShowAnswer(true)}>
 							Show Answer
 						</button>
 					</div>
@@ -202,13 +214,15 @@ function Reviewer({ onEditButtonClick, onError, onReviewEnd }: Props) {
 						<div className={styles.buttonColumn}>
 							<p>
 								{durationToString(
-									now.current,
+									startTime.current,
 									schedulingCards[Rating.Again].card.due,
 								)}
 							</p>
 							<button
 								className={styles.againButton}
-								onClick={() => void handleGradeSubmit(Rating.Again)}
+								onClick={() =>
+									void handleGradeSubmit(Rating.Again)
+								}
 								disabled={isSendingRequest}>
 								Again
 							</button>
@@ -216,13 +230,15 @@ function Reviewer({ onEditButtonClick, onError, onReviewEnd }: Props) {
 						<div className={styles.buttonColumn}>
 							<p>
 								{durationToString(
-									now.current,
+									startTime.current,
 									schedulingCards[Rating.Hard].card.due,
 								)}
 							</p>
 							<button
 								className={styles.hardButton}
-								onClick={() => void handleGradeSubmit(Rating.Hard)}
+								onClick={() =>
+									void handleGradeSubmit(Rating.Hard)
+								}
 								disabled={isSendingRequest}>
 								Hard
 							</button>
@@ -230,13 +246,15 @@ function Reviewer({ onEditButtonClick, onError, onReviewEnd }: Props) {
 						<div className={styles.buttonColumn}>
 							<p>
 								{durationToString(
-									now.current,
+									startTime.current,
 									schedulingCards[Rating.Good].card.due,
 								)}
 							</p>
 							<button
 								className={styles.goodButton}
-								onClick={() => void handleGradeSubmit(Rating.Good)}
+								onClick={() =>
+									void handleGradeSubmit(Rating.Good)
+								}
 								disabled={isSendingRequest}>
 								Good
 							</button>
@@ -244,13 +262,15 @@ function Reviewer({ onEditButtonClick, onError, onReviewEnd }: Props) {
 						<div className={styles.buttonColumn}>
 							<p>
 								{durationToString(
-									now.current,
+									startTime.current,
 									schedulingCards[Rating.Easy].card.due,
 								)}
 							</p>
 							<button
 								className={styles.easyButton}
-								onClick={() => void handleGradeSubmit(Rating.Easy)}
+								onClick={() =>
+									void handleGradeSubmit(Rating.Easy)
+								}
 								disabled={isSendingRequest}>
 								Easy
 							</button>
@@ -263,20 +283,18 @@ function Reviewer({ onEditButtonClick, onError, onReviewEnd }: Props) {
 						<Icon path={mdiClockOutline} size={1} />
 						<p>
 							{timerTime >= 60 * 60 &&
-								Math.floor(timerTime / (60 * 60)).toLocaleString(
-									"en-US",
-									{
-										minimumIntegerDigits: 2,
-										useGrouping: false,
-									},
-								) + ":"}
-							{Math.floor((timerTime % (60 * 60)) / 60).toLocaleString(
-								"en-US",
-								{
+								Math.floor(
+									timerTime / (60 * 60),
+								).toLocaleString("en-US", {
 									minimumIntegerDigits: 2,
 									useGrouping: false,
-								},
-							)}
+								}) + ":"}
+							{Math.floor(
+								(timerTime % (60 * 60)) / 60,
+							).toLocaleString("en-US", {
+								minimumIntegerDigits: 2,
+								useGrouping: false,
+							})}
 							:
 							{(timerTime % 60).toLocaleString("en-US", {
 								minimumIntegerDigits: 2,

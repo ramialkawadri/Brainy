@@ -1,6 +1,7 @@
 import File from "../types/file";
 import Folder from "../types/folder";
 
+// TODO: test
 function getFileOrFolderById(folder: Folder, id: number): File | Folder | null {
 	let queue = [folder];
 

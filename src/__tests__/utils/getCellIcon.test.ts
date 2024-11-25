@@ -1,14 +1,14 @@
 import { mdiCardMultipleOutline, mdiHelp, mdiNoteOutline } from "@mdi/js";
-import { CellType } from "../../services/backendApi";
 import getCellIcon from "../../utils/getCellIcon";
+import { CellType } from "../../entities/cell";
 
 describe(getCellIcon, () => {
 	it("Returns correct icon", () => {
 		// Arrange
 
 		const typesIcons = [
-			[CellType.FlashCard, mdiCardMultipleOutline],
-			[CellType.Note, mdiNoteOutline],
+			["FlashCard", mdiCardMultipleOutline],
+			["Note", mdiNoteOutline],
 			["other", mdiHelp],
 		];
 

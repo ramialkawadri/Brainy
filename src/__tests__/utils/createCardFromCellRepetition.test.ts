@@ -1,25 +1,25 @@
 import { Card, State } from "ts-fsrs";
-import { CellRepetitionDto, State as DtoState } from "../../services/backendApi";
 import createCardFromRepetition from "../../utils/createCardFromRepetition";
+import Repetition, { RepetitionState } from "../../entities/repetition";
 
 describe(createCardFromRepetition, () => {
 	it("Returns correct on all status", () => {
 		// Arrange
 
 		const statePairs = [
-			[DtoState.New, State.New],
-			[DtoState.Learning, State.Learning],
-			[DtoState.Relearning, State.Relearning],
-			[DtoState.Review, State.Review],
+			["New", State.New],
+			["Learning", State.Learning],
+			["Relearning", State.Relearning],
+			["Review", State.Review],
 		];
 
 		// Act & Assert
 
 		for (const statePair of statePairs) {
-			const dto: CellRepetitionDto = {
+			const repetition: Repetition = {
 				due: "2000/12/12",
-				state: statePair[0] as DtoState,
-				cellId: "guid",
+				state: statePair[0] as RepetitionState,
+				id: 1,
 				lastReview: "2005/5/5",
 				reps: 1,
 				lapses: 2,
@@ -27,6 +27,8 @@ describe(createCardFromRepetition, () => {
 				difficulty: 4,
 				elapsedDays: 5,
 				scheduledDays: 6,
+				cellId: 99,
+				fileId: 99,
 			};
 			const expected: Card = {
 				due: new Date("2000/12/12"),
@@ -39,7 +41,7 @@ describe(createCardFromRepetition, () => {
 				elapsed_days: 5,
 				scheduled_days: 6,
 			};
-			const actual = createCardFromRepetition(dto);
+			const actual = createCardFromRepetition(repetition);
 			expect(actual).toStrictEqual(expected);
 		}
 	});

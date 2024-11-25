@@ -1,7 +1,10 @@
 import { useState } from "react";
 import ConfirmationDialog from "../../ui/ConfirmationDialog/ConfirmationDialog.tsx";
 import useAppDispatch from "../../hooks/useAppDispatch.ts";
-import { deleteFile, deleteFolder } from "../../store/actions/fileSystemActions.ts";
+import {
+	deleteFile,
+	deleteFolder,
+} from "../../store/actions/fileSystemActions.ts";
 import FileTreeItem from "./FileTreeItem.tsx";
 import UiFolder from "../../types/uiFolder.ts";
 
@@ -10,12 +13,12 @@ interface Props {
 }
 
 function FileTree({ folder }: Props) {
-	const [fileMarkedForDeletion, setFileMarkedForDeletion] = useState<number | null>(
-		null,
-	);
-	const [folderMarkedForDeletion, setFolderMarkedForDeletion] = useState<number | null>(
-		null,
-	);
+	const [fileMarkedForDeletion, setFileMarkedForDeletion] = useState<
+		number | null
+	>(null);
+	const [folderMarkedForDeletion, setFolderMarkedForDeletion] = useState<
+		number | null
+	>(null);
 	const dispatch = useAppDispatch();
 
 	const handleDelete = async () => {

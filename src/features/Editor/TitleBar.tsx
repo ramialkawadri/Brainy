@@ -15,9 +15,11 @@ interface Props {
 
 function TitleBar({ repetitionCounts, onStudyButtonClick }: Props) {
 	const selectedFileId = useAppSelector(selectSelectedFileId);
-	const selectedFile = useAppSelector(state => selectFileById(state, selectedFileId!));
+	const selectedFile = useAppSelector(state =>
+		selectFileById(state, selectedFileId!),
+	);
 
-	const isReviewButtonDisabled =
+	const isStudyButtonDisabled =
 		repetitionCounts.new +
 			repetitionCounts.learning +
 			repetitionCounts.relearning +
@@ -30,7 +32,7 @@ function TitleBar({ repetitionCounts, onStudyButtonClick }: Props) {
 				<button
 					className={`transparent ${styles.studyButton}`}
 					onClick={onStudyButtonClick}
-					disabled={isReviewButtonDisabled}>
+					disabled={isStudyButtonDisabled}>
 					<Icon path={mdiPlayOutline} size={1.2} />
 					<span>Study</span>
 				</button>
@@ -40,8 +42,9 @@ function TitleBar({ repetitionCounts, onStudyButtonClick }: Props) {
 						<span>New: {repetitionCounts.new}</span>
 						<span>&#x2022;</span>
 						<span>
-							Learning:{" "}
-							{repetitionCounts.learning + repetitionCounts.relearning}
+							Learning:&nbsp;
+							{repetitionCounts.learning +
+								repetitionCounts.relearning}
 						</span>
 						<span>&#x2022;</span>
 						<span>Review: {repetitionCounts.review}</span>

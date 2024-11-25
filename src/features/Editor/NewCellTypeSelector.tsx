@@ -25,7 +25,9 @@ const NewCellTypeSelector = forwardRef<HTMLDivElement, Props>(
 				/>
 
 				{allCellTypes
-					.filter(key => key.toLowerCase().includes(searchText.toLowerCase()))
+					.filter(key =>
+						key.toLowerCase().includes(searchText.toLowerCase()),
+					)
 					.map(cellType => (
 						<button
 							key={cellType}

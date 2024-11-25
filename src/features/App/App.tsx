@@ -13,12 +13,15 @@ import {
 import { fetchFiles } from "../../store/actions/fileSystemActions";
 import SideBar from "../SideBar/SideBar";
 import { retrieveSelectedFileCells } from "../../store/actions/selectedFileCellsActions";
+import { selectError } from "../../store/selectors/selectedFileCellsSelectors";
+import { removeErrorMessage } from "../../store/reducers/selectedFileCellsReducers";
 
 function App() {
 	const [isReviewing, setIsReviewing] = useState(false);
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 	const rootFolder = useAppSelector(selectRootFolder);
 	const selectedFileId = useAppSelector(selectSelectedFileId);
+	const selectedFileCellsErrorMessage = useAppSelector(selectError);
 	const dispatch = useAppDispatch();
 
 	useEffect(() => {
@@ -26,17 +29,22 @@ function App() {
 	}, [dispatch]);
 
 	useEffect(() => {
-        void dispatch(retrieveSelectedFileCells());
+		void dispatch(retrieveSelectedFileCells());
 		setIsReviewing(false);
 	}, [dispatch, selectedFileId]);
 
+	const clearErrorMessage = () => {
+		setErrorMessage(null);
+		dispatch(removeErrorMessage());
+	};
+
 	return (
 		<div className={`${styles.workspace}`}>
-			{errorMessage && (
+			{(errorMessage ?? selectedFileCellsErrorMessage) && (
 				<div className={styles.errorDialog}>
 					<ErrorBox
-						message={errorMessage}
-						onClose={() => setErrorMessage(null)}
+						message={errorMessage ?? selectedFileCellsErrorMessage!}
+						onClose={clearErrorMessage}
 					/>
 				</div>
 			)}

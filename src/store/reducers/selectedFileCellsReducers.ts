@@ -18,7 +18,6 @@ export const selectedFileCellsSlice = createSlice({
 		setSelectedFileCells: (state, payload: PayloadAction<Cell[]>) => {
 			state.cells = payload.payload;
 		},
-        // TODO: maybe remove error?
 		setErrorMessage: (state, payload: PayloadAction<string>) => {
 			state.error = payload.payload;
 		},

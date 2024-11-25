@@ -83,7 +83,9 @@ function parseListUserFilesResponseHelper(
 		}
 	}
 
-	folder.subFolders = folder.subFolders.sort((a, b) => (a.name < b.name ? -1 : 1));
+	folder.subFolders = folder.subFolders.sort((a, b) =>
+		a.name < b.name ? -1 : 1,
+	);
 	folder.files = folder.files.sort((a, b) => (a.name < b.name ? -1 : 1));
 
 	return folder;

@@ -3,7 +3,10 @@ import ErrorBox from "../../ui/ErrorBox/ErrorBox";
 import FileTree from "../FileTree/FileTree";
 import useAppSelector from "../../hooks/useAppSelector";
 import useAppDispatch from "../../hooks/useAppDispatch";
-import { selectError, selectRootFolder } from "../../store/selectors/fileSystemSelectors";
+import {
+	selectError,
+	selectRootFolder,
+} from "../../store/selectors/fileSystemSelectors";
 import { setErrorMessage } from "../../store/reducers/fileSystemReducers";
 import { useMemo, useState } from "react";
 import searchFolder from "../../utils/searchFolder";

@@ -152,7 +152,9 @@ function FileTreeItem({ folder, path, id, onMarkForDeletion }: Props) {
 		}
 	};
 
-	const handleCreateNewItemSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+	const handleCreateNewItemSubmit = async (
+		e: React.FormEvent<HTMLFormElement>,
+	) => {
 		e.preventDefault();
 		const newItemPath = isRoot ? newItemName : path + "/" + newItemName;
 		if (creatingNewFolder) {
@@ -244,7 +246,9 @@ function FileTreeItem({ folder, path, id, onMarkForDeletion }: Props) {
 								/>
 							</form>
 						)}
-						{!renaming && <p>{isRoot ? "Files" : getFileName(path)}</p>}
+						{!renaming && (
+							<p>{isRoot ? "Files" : getFileName(path)}</p>
+						)}
 					</button>
 
 					{!renaming && (
@@ -270,7 +274,9 @@ function FileTreeItem({ folder, path, id, onMarkForDeletion }: Props) {
 						{(creatingNewFile || creatingNewFolder) && (
 							<form
 								className={styles.fileTreeNewItemRow}
-								onSubmit={e => void handleCreateNewItemSubmit(e)}>
+								onSubmit={e =>
+									void handleCreateNewItemSubmit(e)
+								}>
 								<Icon
 									path={
 										creatingNewFolder
@@ -282,7 +288,9 @@ function FileTreeItem({ folder, path, id, onMarkForDeletion }: Props) {
 								<input
 									type="text"
 									value={newItemName}
-									onChange={e => setNewItemName(e.target.value)}
+									onChange={e =>
+										setNewItemName(e.target.value)
+									}
 									placeholder="Enter the name"
 									autoFocus
 									onBlur={() => {
@@ -311,7 +319,11 @@ function FileTreeItem({ folder, path, id, onMarkForDeletion }: Props) {
 								key={subFolder.id}
 								folder={subFolder}
 								onMarkForDeletion={onMarkForDeletion}
-								path={path ? path + "/" + subFolder.name : subFolder.name}
+								path={
+									path
+										? path + "/" + subFolder.name
+										: subFolder.name
+								}
 								id={subFolder.id}
 							/>
 						))}
@@ -323,7 +335,11 @@ function FileTreeItem({ folder, path, id, onMarkForDeletion }: Props) {
 										key={file.id}
 										folder={null}
 										onMarkForDeletion={onMarkForDeletion}
-										path={path ? path + "/" + file.name : file.name}
+										path={
+											path
+												? path + "/" + file.name
+												: file.name
+										}
 										id={file.id}
 									/>
 								),

@@ -3,16 +3,19 @@ import styles from "./styles.module.css";
 import Icon from "@mdi/react";
 
 interface Props {
-	onInsertCell: () => void;
+	onInsert: () => void;
 	onDelete: () => void;
 	onDragStart: (e: React.DragEvent<HTMLButtonElement>) => void;
 	onDragEnd: (e: React.DragEvent<HTMLButtonElement>) => void;
 }
 
-function FocusTools({ onInsertCell, onDelete, onDragStart, onDragEnd }: Props) {
+function FocusTools({ onInsert, onDelete, onDragStart, onDragEnd }: Props) {
 	return (
 		<div className={styles.focusTools}>
-			<button className="transparent" title="Insert Cell" onClick={onInsertCell}>
+			<button
+				className="transparent"
+				title="Insert Cell"
+				onClick={onInsert}>
 				<Icon path={mdiPlus} size={1} />
 			</button>
 

@@ -7,7 +7,10 @@ import {
 	requestSuccess,
 	setSelectedFileId,
 } from "../reducers/fileSystemReducers";
-import { selectFolderById, selectSelectedFileId } from "../selectors/fileSystemSelectors";
+import {
+	selectFolderById,
+	selectSelectedFileId,
+} from "../selectors/fileSystemSelectors";
 import { AppDispatch, RootState } from "../store";
 import { invoke } from "@tauri-apps/api/core";
 
@@ -77,7 +80,9 @@ export function moveFolder(folderId: number, destinationFolderId: number) {
 	);
 }
 
-function executeRequest<T>(cb: (dispatch: AppDispatch, state: RootState) => Promise<T>) {
+function executeRequest<T>(
+	cb: (dispatch: AppDispatch, state: RootState) => Promise<T>,
+) {
 	return async function (dispatch: AppDispatch, getState: () => RootState) {
 		try {
 			dispatch(requestStart());
