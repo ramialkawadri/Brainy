@@ -5,7 +5,6 @@ import createDefaultCell from "../../utils/createDefaultCell";
 import TitleBar from "./TitleBar";
 import styles from "./styles.module.css";
 import ConfirmationDialog from "../../ui/ConfirmationDialog/ConfirmationDialog";
-import { invoke } from "@tauri-apps/api/core";
 import useAppSelector from "../../hooks/useAppSelector";
 import { selectSelectedFileId } from "../../store/selectors/fileSystemSelectors";
 import Cell, { CellType } from "../../entities/cell";
@@ -17,15 +16,22 @@ import EditorCell from "../EditorCell/EditorCell";
 import { mdiPlus } from "@mdi/js";
 import FileRepetitionCounts from "../../entities/fileRepetitionCounts";
 import useBeforeUnload from "../../hooks/useBeforeUnload";
+import {
+	createCell,
+	deleteCell,
+	getFileCellsOrderedByIndex,
+	moveCell,
+	updateCell,
+} from "../../services/cellService";
+import { getStudyRepetitionCounts } from "../../services/repetitionService";
 
-const autoSaveDelayInMilliSeconds = 4000;
+const autoSaveDelayInMilliSeconds = 2000;
 
 interface Props {
 	onError: (error: string) => void;
 	onStudyButtonClick: () => void;
 }
 
-// TODO: move all invoke calls to services
 function Editor({ onError, onStudyButtonClick }: Props) {
 	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 	// Used for the focus tools.
@@ -79,24 +85,16 @@ function Editor({ onError, onStudyButtonClick }: Props) {
 
 	const retrieveRepetitionCounts = useCallback(async () => {
 		await executeRequest(async () => {
-			const repetitionCounts = await invoke(
-				"get_study_repetition_counts",
-				{
-					fileId: selectedFileId,
-				},
-			);
-			setRepetitionCounts(repetitionCounts as FileRepetitionCounts);
+			const repetitionCounts =
+				await getStudyRepetitionCounts(selectedFileId);
+			setRepetitionCounts(repetitionCounts);
 		});
 	}, [executeRequest, selectedFileId]);
 
 	const retrieveSelectedFileCells = useCallback(async () => {
 		await executeRequest(async () => {
-			const fetchedCells: Cell[] = await invoke(
-				"get_file_cells_ordered_by_index",
-				{
-					fileId: selectedFileId,
-				},
-			);
+			const fetchedCells =
+				await getFileCellsOrderedByIndex(selectedFileId);
 			setCells(fetchedCells);
 		});
 	}, [executeRequest, selectedFileId]);
@@ -104,10 +102,7 @@ function Editor({ onError, onStudyButtonClick }: Props) {
 	const saveChanges = async (cells: Cell[]) => {
 		await executeRequest(async () => {
 			for (const index of changedCellsIndices.current) {
-				await invoke("update_cell", {
-					cellId: cells[index].id,
-					content: cells[index].content,
-				});
+				await updateCell(cells[index].id!, cells[index].content);
 			}
 			changedCellsIndices.current.clear();
 			await retrieveRepetitionCounts();
@@ -150,11 +145,14 @@ function Editor({ onError, onStudyButtonClick }: Props) {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [selectedFileId]);
 
-	useBeforeUnload(() => void forceSave());
+	useBeforeUnload(e => {
+		void forceSave();
+		if (changedCellsIndices.current.size > 0) e.preventDefault();
+	});
 
 	const insertNewCell = async (cellType: CellType, index = -1) => {
 		const cell = createDefaultCell(cellType, selectedFileId, index);
-		await invoke("create_cell", { ...cell });
+		await createCell(cell);
 		await retrieveSelectedFileCells();
 		await retrieveRepetitionCounts();
 		setShowInsertNewCell(false);
@@ -163,7 +161,7 @@ function Editor({ onError, onStudyButtonClick }: Props) {
 
 	const handleCellDeleteConfirm = async () => {
 		setShowDeleteDialog(false);
-		await invoke("delete_cell", { cellId: selectedCellIndex });
+		await deleteCell(cells[selectedCellIndex].id!);
 		await retrieveSelectedFileCells();
 		await retrieveRepetitionCounts();
 	};
@@ -194,10 +192,7 @@ function Editor({ onError, onStudyButtonClick }: Props) {
 	const handleDrop = async (index: number) => {
 		if (draggedCellIndex === -1 || index === draggedCellIndex) return;
 		setDragOverCellIndex(-1);
-		await invoke("move_cell", {
-			cellId: cells[draggedCellIndex].id,
-			newIndex: index,
-		});
+		await moveCell(cells[draggedCellIndex].id!, index);
 		await retrieveSelectedFileCells();
 		const dropIndex = index > draggedCellIndex ? index - 1 : index;
 		if (selectedCellIndex === draggedCellIndex) {

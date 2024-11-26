@@ -7,32 +7,39 @@ import {
 	requestSuccess,
 	setSelectedFileId,
 } from "../reducers/fileSystemReducers";
+
+import {
+	createFolder as createFolderApi,
+	deleteFolder as deleteFolderApi,
+	moveFolder as moveFolderApi,
+	deleteFile as deleteFileApi,
+	moveFile as moveFileApi,
+	renameFile as renameFileApi,
+	createFile as createFileApi,
+	getFiles as getFilesApi,
+	renameFolder as renameFolderApi,
+} from "../../services/fileService";
 import {
 	selectFolderById,
 	selectSelectedFileId,
 } from "../selectors/fileSystemSelectors";
 import { AppDispatch, RootState } from "../store";
-import { invoke } from "@tauri-apps/api/core";
 
 export function fetchFiles() {
 	return executeRequest(() => Promise.resolve());
 }
 
 export function createFile(path: string) {
-	return executeRequest(async () => {
-		return invoke("create_file", { path });
-	});
+	return executeRequest(() => createFileApi(path));
 }
 
 export function createFolder(path: string) {
-	return executeRequest(() => {
-		return invoke("create_folder", { path });
-	});
+	return executeRequest(() => createFolderApi(path));
 }
 
 export function deleteFile(fileId: number) {
 	return executeRequest(async (dispatch, state) => {
-		await invoke("delete_file", { fileId });
+		await deleteFileApi(fileId);
 		if (selectSelectedFileId(state) === fileId) {
 			dispatch(setSelectedFileId(null));
 		}
@@ -46,8 +53,7 @@ export function deleteFolder(folderId: number) {
 		const isSelectedFileInFolder =
 			selectedFileId && getFileOrFolderById(folder, selectedFileId);
 
-		await invoke("delete_folder", { folderId });
-
+		await deleteFolderApi(folderId);
 		if (isSelectedFileInFolder) {
 			dispatch(setSelectedFileId(null));
 		}
@@ -55,29 +61,19 @@ export function deleteFolder(folderId: number) {
 }
 
 export function renameFile(fileId: number, newName: string) {
-	return executeRequest(() => invoke("rename_file", { fileId, newName }));
+	return executeRequest(() => renameFileApi(fileId, newName));
 }
 
 export function renameFolder(folderId: number, newName: string) {
-	return executeRequest(() => invoke("rename_folder", { folderId, newName }));
+	return executeRequest(() => renameFolderApi(folderId, newName));
 }
 
 export function moveFile(fileId: number, destinationFolderId: number) {
-	return executeRequest(() =>
-		invoke("move_file", {
-			fileId,
-			destinationFolderId,
-		}),
-	);
+	return executeRequest(() => moveFileApi(fileId, destinationFolderId));
 }
 
 export function moveFolder(folderId: number, destinationFolderId: number) {
-	return executeRequest(() =>
-		invoke("move_folder", {
-			folderId,
-			destinationFolderId,
-		}),
-	);
+	return executeRequest(() => moveFolderApi(folderId, destinationFolderId));
 }
 
 function executeRequest<T>(
@@ -87,7 +83,7 @@ function executeRequest<T>(
 		try {
 			dispatch(requestStart());
 			await cb(dispatch, getState());
-			const userFiles: UserFile[] = await invoke("get_files");
+			const userFiles: UserFile[] = await getFilesApi();
 			const rootFolder = parseGetFilesResponse(userFiles);
 			dispatch(requestSuccess(rootFolder));
 		} catch (e) {

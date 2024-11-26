@@ -21,6 +21,7 @@ pub trait UserFileService {
     async fn rename_folder(&self, folder_id: i32, new_name: String) -> Result<(), String>;
 }
 
+// TODO: trim additional / at the start or end
 pub struct DefaultUserFileServices {
     repository: Arc<dyn UserFileRepository + Sync + Send>,
 }
@@ -40,6 +41,9 @@ impl DefaultUserFileServices {
                 current_path.push_str("/");
             }
             current_path.push_str(name);
+            if current_path.is_empty() {
+                continue;
+            }
 
             if !self
                 .repository
@@ -336,6 +340,10 @@ pub mod tests {
                 .with(predicate::eq(file_id))
                 .once()
                 .return_const(Ok(()));
+        }
+
+        fn assert_no_create_folder(&mut self) {
+            self.user_file_repository.expect_create_folder().never();
         }
     }
 
@@ -759,7 +767,7 @@ pub mod tests {
     }
 
     #[tokio::test]
-    async fn rename_file_valid_input_renamed_file() {
+    async fn rename_file_inside_folder_renamed_file() {
         // Arrange
 
         let mut deps = TestDependencies::new();
@@ -778,6 +786,35 @@ pub mod tests {
         // Assert
 
         deps.assert_update_path(file_id, "folder/new name");
+
+        // Act
+
+        deps.to_service()
+            .rename_file(file_id, "new name".into())
+            .await
+            .unwrap();
+    }
+
+    #[tokio::test]
+    async fn rename_file_placed_on_root_file_renamed() {
+        // Arrange
+
+        let mut deps = TestDependencies::new();
+        let file_id = 1;
+        deps.setup_get_by_id(
+            file_id,
+            user_file::Model {
+                id: file_id,
+                path: "test".to_string(),
+                ..Default::default()
+            },
+        );
+        deps.setup_file_exists("new name", false);
+
+        // Assert
+
+        deps.assert_update_path(file_id, "new name");
+        deps.assert_no_create_folder();
 
         // Act
 

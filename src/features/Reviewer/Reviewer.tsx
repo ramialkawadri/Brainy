@@ -15,11 +15,15 @@ import createCardFromCellRepetitionDto from "../../utils/createCardFromRepetitio
 import durationToString from "../../utils/durationToString";
 import useGlobalKey from "../../hooks/useGlobalKey";
 import Repetition from "../../entities/repetition";
-import { invoke } from "@tauri-apps/api/core";
 import useAppSelector from "../../hooks/useAppSelector";
 import { selectSelectedFileId } from "../../store/selectors/fileSystemSelectors";
 import createRepetitionFromCard from "../../utils/createRepetitionFromCard";
 import Cell from "../../entities/cell";
+import {
+	getFileRepetitions,
+	updateRepetition,
+} from "../../services/repetitionService";
+import { getFileCellsOrderedByIndex } from "../../services/cellService";
 
 interface Props {
 	onEditButtonClick: () => void;
@@ -48,21 +52,12 @@ function Reviewer({ onEditButtonClick, onError, onReviewEnd }: Props) {
 
 	useEffect(() => {
 		void (async () => {
-            // TODO: try - catch
+			// TODO: try - catch
 			setIsLoading(true);
-			const repetitions: Repetition[] = await invoke(
-				"get_file_repetitions",
-				{
-					fileId: selectedFileId,
-				},
-			);
+			const repetitions = await getFileRepetitions(selectedFileId);
 			setCellRepetitions(repetitions);
-			const fetchedCells: Cell[] = await invoke(
-				"get_file_cells_ordered_by_index",
-				{
-					fileId: selectedFileId,
-				},
-			);
+			const fetchedCells =
+				await getFileCellsOrderedByIndex(selectedFileId);
 			setCells(fetchedCells);
 			setIsLoading(false);
 		})();
@@ -93,7 +88,7 @@ function Reviewer({ onEditButtonClick, onError, onReviewEnd }: Props) {
 				dueToday[currentCellIndex].fileId,
 				dueToday[currentCellIndex].cellId,
 			);
-			await invoke("update_repetition", { repetition });
+			await updateRepetition(repetition);
 		} catch (e) {
 			onError("An error happened!");
 			console.error(e);
