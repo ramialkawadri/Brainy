@@ -7,7 +7,7 @@ use tauri::State;
 pub async fn get_files(
     user_file_service: State<'_, Arc<dyn UserFileService + Sync + Send>>,
 ) -> Result<Vec<user_file::Model>, String> {
-    user_file_service.get_user_files().await
+    user_file_service.get_files().await
 }
 
 #[tauri::command]

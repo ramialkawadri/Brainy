@@ -10,7 +10,7 @@ use async_trait::async_trait;
 #[cfg_attr(test, automock)]
 #[async_trait]
 pub trait UserFileService {
-    async fn get_user_files(&self) -> Result<Vec<user_file::Model>, String>;
+    async fn get_files(&self) -> Result<Vec<user_file::Model>, String>;
     async fn create_file(&self, path: String) -> Result<i32, String>;
     async fn create_folder(&self, path: String) -> Result<i32, String>;
     async fn delete_file(&self, file_id: i32) -> Result<(), String>;
@@ -62,8 +62,8 @@ impl DefaultUserFileServices {
 
 #[async_trait]
 impl UserFileService for DefaultUserFileServices {
-    async fn get_user_files(&self) -> Result<Vec<user_file::Model>, String> {
-        self.repository.get_user_files().await
+    async fn get_files(&self) -> Result<Vec<user_file::Model>, String> {
+        self.repository.get_files().await
     }
 
     async fn create_file(&self, path: String) -> Result<i32, String> {
@@ -271,9 +271,9 @@ pub mod tests {
             DefaultUserFileServices::new(Arc::new(self.user_file_repository))
         }
 
-        fn setup_get_user_files(&mut self, files: Vec<user_file::Model>) {
+        fn setup_get_files(&mut self, files: Vec<user_file::Model>) {
             self.user_file_repository
-                .expect_get_user_files()
+                .expect_get_files()
                 .return_once(|| Ok(files));
         }
 
@@ -351,7 +351,7 @@ pub mod tests {
     }
 
     #[tokio::test]
-    async fn get_user_files_valid_input_returned_user_files() {
+    async fn get_files_valid_input_returned_user_files() {
         // Arrange
 
         let mut deps = TestDependencies::new();
@@ -359,11 +359,11 @@ pub mod tests {
             id: 10,
             ..Default::default()
         }];
-        deps.setup_get_user_files(files);
+        deps.setup_get_files(files);
 
         // Act
 
-        let actual = deps.to_service().get_user_files().await.unwrap();
+        let actual = deps.to_service().get_files().await.unwrap();
 
         // Assert
 

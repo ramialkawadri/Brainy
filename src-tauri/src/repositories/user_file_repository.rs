@@ -12,10 +12,10 @@ use crate::entities::user_file;
 #[cfg_attr(test, automock)]
 #[async_trait]
 pub trait UserFileRepository {
+    async fn get_files(&self) -> Result<Vec<user_file::Model>, String>;
     async fn file_exists(&self, path: String) -> Result<bool, String>;
     async fn folder_exists(&self, path: String) -> Result<bool, String>;
     async fn get_by_id(&self, id: i32) -> Result<user_file::Model, String>;
-    async fn get_user_files(&self) -> Result<Vec<user_file::Model>, String>;
     async fn create_folder(&self, path: String) -> Result<i32, String>;
     async fn create_file(&self, path: String) -> Result<i32, String>;
     async fn delete_file(&self, file_id: i32) -> Result<(), String>;
@@ -70,7 +70,7 @@ impl UserFileRepository for DefaultUserFileRepository {
         }
     }
 
-    async fn get_user_files(&self) -> Result<Vec<user_file::Model>, String> {
+    async fn get_files(&self) -> Result<Vec<user_file::Model>, String> {
         let result = user_file::Entity::find().all(&*self.db_conn).await;
         match result {
             Ok(result) => Ok(result),
@@ -278,7 +278,7 @@ pub mod tests {
     }
 
     #[tokio::test]
-    async fn get_user_files_valid_input_returned_files() {
+    async fn get_files_valid_input_returned_files() {
         // Arrange
 
         let repository = create_repository().await;
@@ -287,7 +287,7 @@ pub mod tests {
 
         // Act
 
-        let actual = repository.get_user_files().await.unwrap();
+        let actual = repository.get_files().await.unwrap();
 
         // Assert
 
@@ -308,7 +308,7 @@ pub mod tests {
 
         // Assert
 
-        let actual = repository.get_user_files().await.unwrap();
+        let actual = repository.get_files().await.unwrap();
         assert_eq!(actual.len(), 1);
         assert_eq!(actual[0].path, "folder 1");
         assert_eq!(actual[0].is_folder, true);
@@ -327,7 +327,7 @@ pub mod tests {
 
         // Assert
 
-        let actual = repository.get_user_files().await.unwrap();
+        let actual = repository.get_files().await.unwrap();
         assert_eq!(actual.len(), 1);
         assert_eq!(actual[0].path, "file");
         assert_eq!(actual[0].is_folder, false);
@@ -365,7 +365,7 @@ pub mod tests {
 
         // Assert
 
-        let actual = repository.get_user_files().await.unwrap();
+        let actual = repository.get_files().await.unwrap();
         assert_eq!(actual.len(), 2);
         let cell_counts = cell::Entity::find()
             .all(&*repository.db_conn)
@@ -404,7 +404,7 @@ pub mod tests {
 
         // Assert
 
-        let actual = repository.get_user_files().await.unwrap();
+        let actual = repository.get_files().await.unwrap();
         assert_eq!(actual.len(), 1);
         let cell_counts = cell::Entity::find()
             .all(&*repository.db_conn)
@@ -429,7 +429,7 @@ pub mod tests {
 
         // Assert
 
-        let actual = repository.get_user_files().await.unwrap();
+        let actual = repository.get_files().await.unwrap();
         assert_eq!(actual[0].path, "new path");
     }
 

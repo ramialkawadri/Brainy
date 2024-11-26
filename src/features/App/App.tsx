@@ -7,7 +7,6 @@ import Home from "../Home/Home";
 import useAppDispatch from "../../hooks/useAppDispatch";
 import useAppSelector from "../../hooks/useAppSelector";
 import {
-	selectRootFolder,
 	selectSelectedFileId,
 } from "../../store/selectors/fileSystemSelectors";
 import { fetchFiles } from "../../store/actions/fileSystemActions";
@@ -16,7 +15,6 @@ import SideBar from "../SideBar/SideBar";
 function App() {
 	const [isReviewing, setIsReviewing] = useState(false);
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
-	const rootFolder = useAppSelector(selectRootFolder);
 	const selectedFileId = useAppSelector(selectSelectedFileId);
 	const dispatch = useAppDispatch();
 
@@ -42,7 +40,7 @@ function App() {
 			<SideBar />
 
 			<div className={`${styles.workarea}`}>
-				{!selectedFileId && <Home rootFolder={rootFolder} />}
+				{!selectedFileId && <Home />}
 
 				{selectedFileId && !isReviewing && (
 					<Editor

@@ -1,13 +1,12 @@
-import Folder from "../../types/folder";
+import useAppSelector from "../../hooks/useAppSelector";
+import { selectRootFolder } from "../../store/selectors/fileSystemSelectors";
+import ReviewTree from "./ReviewTree";
 import styles from "./styles.module.css";
-import Tree from "./Tree";
 
-interface Props {
-	rootFolder: Folder;
-}
+function Home() {
+	const rootFolder = useAppSelector(selectRootFolder);
 
-// TODO: rename from Home to something else!
-function Home({ rootFolder }: Props) {
+    // TODO: show something else if no files/folder are created
 	return (
 		<div className={styles.box}>
 			<div className={styles.row + " " + styles.header}>
@@ -18,7 +17,7 @@ function Home({ rootFolder }: Props) {
 					<p>Review</p>
 				</div>
 			</div>
-			{rootFolder && <Tree folder={rootFolder} name="" depthLevel={-1} />}
+			{rootFolder && <ReviewTree folder={rootFolder} name="" depthLevel={-1} />}
 		</div>
 	);
 }

@@ -11,7 +11,7 @@ interface Props {
 	depthLevel: number;
 }
 
-function Tree({ name, folder, file, depthLevel }: Props) {
+function ReviewTree({ name, folder, file, depthLevel }: Props) {
 	// const [isExpanded, setIsExpanded] = useState(!name);
 	// const newCount = file
 	//     ? file.repetitionCounts.new
@@ -50,13 +50,13 @@ function Tree({ name, folder, file, depthLevel }: Props) {
                 </div>}
 
             {isExpanded && folder?.subFolders.map(f => 
-                <Tree key={f.id} name={f.name} depthLevel={depthLevel + 1} folder={f} />)}
+                <ReviewTree key={f.id} name={f.name} depthLevel={depthLevel + 1} folder={f} />)}
 
             {isExpanded && folder?.files.map(f => 
-                <Tree key={f.id} name={f.name} depthLevel={depthLevel + 1} file={f} />)}
+                <ReviewTree key={f.id} name={f.name} depthLevel={depthLevel + 1} file={f} />)}
             */}
 		</div>
 	);
 }
 
-export default Tree;
+export default ReviewTree;
