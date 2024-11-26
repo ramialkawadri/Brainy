@@ -2,15 +2,15 @@
 use mockall::{automock, predicate::*};
 use std::sync::Arc;
 
-use crate::entities::user_file;
-use crate::repositories::user_file_repository::UserFileRepository;
+use crate::entities::file;
+use crate::repositories::file_repository::FileRepository;
 
 use async_trait::async_trait;
 
 #[cfg_attr(test, automock)]
 #[async_trait]
-pub trait UserFileService {
-    async fn get_files(&self) -> Result<Vec<user_file::Model>, String>;
+pub trait FileService {
+    async fn get_files(&self) -> Result<Vec<file::Model>, String>;
     async fn create_file(&self, path: String) -> Result<i32, String>;
     async fn create_folder(&self, path: String) -> Result<i32, String>;
     async fn delete_file(&self, file_id: i32) -> Result<(), String>;
@@ -21,12 +21,12 @@ pub trait UserFileService {
     async fn rename_folder(&self, folder_id: i32, new_name: String) -> Result<(), String>;
 }
 
-pub struct DefaultUserFileServices {
-    repository: Arc<dyn UserFileRepository + Sync + Send>,
+pub struct DefaultFileServices {
+    repository: Arc<dyn FileRepository + Sync + Send>,
 }
 
-impl DefaultUserFileServices {
-    pub fn new(repository: Arc<dyn UserFileRepository + Sync + Send>) -> Self {
+impl DefaultFileServices {
+    pub fn new(repository: Arc<dyn FileRepository + Sync + Send>) -> Self {
         Self { repository }
     }
 
@@ -61,8 +61,8 @@ impl DefaultUserFileServices {
 }
 
 #[async_trait]
-impl UserFileService for DefaultUserFileServices {
-    async fn get_files(&self) -> Result<Vec<user_file::Model>, String> {
+impl FileService for DefaultFileServices {
+    async fn get_files(&self) -> Result<Vec<file::Model>, String> {
         self.repository.get_files().await
     }
 
@@ -254,59 +254,59 @@ pub mod tests {
     use mockall::predicate;
 
     use super::*;
-    use crate::repositories::user_file_repository::MockUserFileRepository;
+    use crate::repositories::file_repository::MockFileRepository;
 
     struct TestDependencies {
-        user_file_repository: MockUserFileRepository,
+        file_repository: MockFileRepository,
     }
 
     impl TestDependencies {
         fn new() -> Self {
             TestDependencies {
-                user_file_repository: MockUserFileRepository::new(),
+                file_repository: MockFileRepository::new(),
             }
         }
 
-        fn to_service(self) -> DefaultUserFileServices {
-            DefaultUserFileServices::new(Arc::new(self.user_file_repository))
+        fn to_service(self) -> DefaultFileServices {
+            DefaultFileServices::new(Arc::new(self.file_repository))
         }
 
-        fn setup_get_files(&mut self, files: Vec<user_file::Model>) {
-            self.user_file_repository
+        fn setup_get_files(&mut self, files: Vec<file::Model>) {
+            self.file_repository
                 .expect_get_files()
                 .return_once(|| Ok(files));
         }
 
-        fn setup_get_by_id(&mut self, id: i32, model: user_file::Model) {
-            self.user_file_repository
+        fn setup_get_by_id(&mut self, id: i32, model: file::Model) {
+            self.file_repository
                 .expect_get_by_id()
                 .with(predicate::eq(id))
                 .return_once(|_| Ok(model));
         }
 
-        fn setup_get_folder_sub_files(&mut self, id: i32, files: Vec<user_file::Model>) {
-            self.user_file_repository
+        fn setup_get_folder_sub_files(&mut self, id: i32, files: Vec<file::Model>) {
+            self.file_repository
                 .expect_get_folder_sub_files()
                 .with(predicate::eq(id))
                 .return_once(|_| Ok(files));
         }
 
         fn setup_folder_exists(&mut self, path: &str, val: bool) {
-            self.user_file_repository
+            self.file_repository
                 .expect_folder_exists()
                 .with(predicate::eq(path.to_string()))
                 .return_const(Ok(val));
         }
 
         fn setup_file_exists(&mut self, path: &str, val: bool) {
-            self.user_file_repository
+            self.file_repository
                 .expect_file_exists()
                 .with(predicate::eq(path.to_string()))
                 .return_const(Ok(val));
         }
 
         fn assert_create_folder(&mut self, path: &str) {
-            self.user_file_repository
+            self.file_repository
                 .expect_create_folder()
                 .with(predicate::eq(path.to_string()))
                 .once()
@@ -314,7 +314,7 @@ pub mod tests {
         }
 
         fn assert_create_file(&mut self, path: &str) {
-            self.user_file_repository
+            self.file_repository
                 .expect_create_file()
                 .with(predicate::eq(path.to_string()))
                 .once()
@@ -322,7 +322,7 @@ pub mod tests {
         }
 
         fn assert_update_path(&mut self, id: i32, path: &str) {
-            self.user_file_repository
+            self.file_repository
                 .expect_update_path()
                 .with(predicate::eq(id), predicate::eq(path.to_string()))
                 .once()
@@ -330,7 +330,7 @@ pub mod tests {
         }
 
         fn assert_delete_folder(&mut self, folder_id: i32) {
-            self.user_file_repository
+            self.file_repository
                 .expect_delete_folder()
                 .with(predicate::eq(folder_id))
                 .once()
@@ -338,7 +338,7 @@ pub mod tests {
         }
 
         fn assert_delete_file(&mut self, file_id: i32) {
-            self.user_file_repository
+            self.file_repository
                 .expect_delete_file()
                 .with(predicate::eq(file_id))
                 .once()
@@ -346,16 +346,16 @@ pub mod tests {
         }
 
         fn assert_no_create_folder(&mut self) {
-            self.user_file_repository.expect_create_folder().never();
+            self.file_repository.expect_create_folder().never();
         }
     }
 
     #[tokio::test]
-    async fn get_files_valid_input_returned_user_files() {
+    async fn get_files_valid_input_returned_files() {
         // Arrange
 
         let mut deps = TestDependencies::new();
-        let files: Vec<user_file::Model> = vec![user_file::Model {
+        let files: Vec<file::Model> = vec![file::Model {
             id: 10,
             ..Default::default()
         }];
@@ -514,7 +514,7 @@ pub mod tests {
         let file_id = 1;
         deps.setup_get_by_id(
             file_id,
-            user_file::Model {
+            file::Model {
                 path: "file".into(),
                 ..Default::default()
             },
@@ -522,7 +522,7 @@ pub mod tests {
         let destination_folder_id = 2;
         deps.setup_get_by_id(
             destination_folder_id,
-            user_file::Model {
+            file::Model {
                 path: "test".into(),
                 ..Default::default()
             },
@@ -549,7 +549,7 @@ pub mod tests {
         let file_id = 1;
         deps.setup_get_by_id(
             file_id,
-            user_file::Model {
+            file::Model {
                 path: "folder 1/file".into(),
                 ..Default::default()
             },
@@ -573,7 +573,7 @@ pub mod tests {
         let file_id = 1;
         deps.setup_get_by_id(
             file_id,
-            user_file::Model {
+            file::Model {
                 path: "folder 1/file".into(),
                 ..Default::default()
             },
@@ -600,7 +600,7 @@ pub mod tests {
         let folder_id = 1;
         deps.setup_get_by_id(
             folder_id,
-            user_file::Model {
+            file::Model {
                 path: "test".into(),
                 is_folder: true,
                 ..Default::default()
@@ -609,7 +609,7 @@ pub mod tests {
         let destination_folder_id = 2;
         deps.setup_get_by_id(
             destination_folder_id,
-            user_file::Model {
+            file::Model {
                 path: "test 2".into(),
                 is_folder: true,
                 ..Default::default()
@@ -617,18 +617,18 @@ pub mod tests {
         );
         deps.setup_folder_exists("test 2/test", false);
         deps.setup_folder_exists("test 2", true);
-        let files: Vec<user_file::Model> = vec![
-            user_file::Model {
+        let files: Vec<file::Model> = vec![
+            file::Model {
                 id: 10,
                 path: "test/folder 1/folder 2".into(),
                 ..Default::default()
             },
-            user_file::Model {
+            file::Model {
                 id: 11,
                 path: "test/folder 1/folder 2/file".into(),
                 ..Default::default()
             },
-            user_file::Model {
+            file::Model {
                 id: 12,
                 path: "test/file".into(),
                 ..Default::default()
@@ -659,18 +659,18 @@ pub mod tests {
         let folder_id = 1;
         deps.setup_get_by_id(
             folder_id,
-            user_file::Model {
+            file::Model {
                 path: "test/folder 1".into(),
                 ..Default::default()
             },
         );
-        let files: Vec<user_file::Model> = vec![
-            user_file::Model {
+        let files: Vec<file::Model> = vec![
+            file::Model {
                 id: 10,
                 path: "test/folder 1/folder 2".into(),
                 ..Default::default()
             },
-            user_file::Model {
+            file::Model {
                 id: 11,
                 path: "test/folder 1/folder 2/file".into(),
                 ..Default::default()
@@ -698,7 +698,7 @@ pub mod tests {
         let folder_id = 1;
         deps.setup_get_by_id(
             folder_id,
-            user_file::Model {
+            file::Model {
                 id: folder_id,
                 path: "test".to_string(),
                 ..Default::default()
@@ -707,7 +707,7 @@ pub mod tests {
         let inner_folder_id = 2;
         deps.setup_get_by_id(
             inner_folder_id,
-            user_file::Model {
+            file::Model {
                 id: inner_folder_id,
                 path: "test/folder".to_string(),
                 ..Default::default()
@@ -737,7 +737,7 @@ pub mod tests {
         let folder_id = 1;
         deps.setup_get_by_id(
             folder_id,
-            user_file::Model {
+            file::Model {
                 id: folder_id,
                 path: "folder".to_string(),
                 ..Default::default()
@@ -746,7 +746,7 @@ pub mod tests {
         let destination_folder_id = 2;
         deps.setup_get_by_id(
             destination_folder_id,
-            user_file::Model {
+            file::Model {
                 id: destination_folder_id,
                 path: "test".to_string(),
                 ..Default::default()
@@ -777,7 +777,7 @@ pub mod tests {
         let file_id = 1;
         deps.setup_get_by_id(
             file_id,
-            user_file::Model {
+            file::Model {
                 id: file_id,
                 path: "folder/test".to_string(),
                 ..Default::default()
@@ -806,7 +806,7 @@ pub mod tests {
         let file_id = 1;
         deps.setup_get_by_id(
             file_id,
-            user_file::Model {
+            file::Model {
                 id: file_id,
                 path: "test".to_string(),
                 ..Default::default()
@@ -835,7 +835,7 @@ pub mod tests {
         let file_id = 1;
         deps.setup_get_by_id(
             file_id,
-            user_file::Model {
+            file::Model {
                 id: file_id,
                 path: "folder/test".to_string(),
                 ..Default::default()
@@ -866,19 +866,19 @@ pub mod tests {
         let folder_id = 1;
         deps.setup_get_by_id(
             folder_id,
-            user_file::Model {
+            file::Model {
                 id: folder_id,
                 path: "test/folder 1".into(),
                 ..Default::default()
             },
         );
-        let files: Vec<user_file::Model> = vec![
-            user_file::Model {
+        let files: Vec<file::Model> = vec![
+            file::Model {
                 id: 10,
                 path: "test/folder 1/folder 2".into(),
                 ..Default::default()
             },
-            user_file::Model {
+            file::Model {
                 id: 11,
                 path: "test/folder 1/folder 2/file".into(),
                 ..Default::default()
@@ -912,7 +912,7 @@ pub mod tests {
         let folder_id = 1;
         deps.setup_get_by_id(
             folder_id,
-            user_file::Model {
+            file::Model {
                 id: folder_id,
                 path: "test/folder 1".into(),
                 ..Default::default()

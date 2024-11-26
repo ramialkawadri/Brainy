@@ -161,8 +161,8 @@ mod tests {
     use crate::entities::cell::CellType;
     use crate::repositories::cell_repository::{CellRepository, DefaultCellRepository};
     use crate::repositories::tests::get_db;
-    use crate::repositories::user_file_repository::{
-        DefaultUserFileRepository, UserFileRepository,
+    use crate::repositories::file_repository::{
+        DefaultFileRepository, FileRepository,
     };
 
     async fn create_repository() -> DefaultRepetitionRepository {
@@ -174,7 +174,7 @@ mod tests {
         repository: &DefaultRepetitionRepository,
         file_name: &str,
     ) -> (i32, i32) {
-        let file_repository = DefaultUserFileRepository::new(repository.db_conn.clone());
+        let file_repository = DefaultFileRepository::new(repository.db_conn.clone());
         let cell_repository = DefaultCellRepository::new(repository.db_conn.clone());
         let file_id = file_repository.create_file(file_name.into()).await.unwrap();
         let cell_id = cell_repository

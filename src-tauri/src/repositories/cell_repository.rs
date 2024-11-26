@@ -140,7 +140,7 @@ mod tests {
     use super::*;
     use crate::repositories::{
         tests::get_db,
-        user_file_repository::{DefaultUserFileRepository, UserFileRepository},
+        file_repository::{DefaultFileRepository, FileRepository},
     };
 
     async fn create_repository() -> DefaultCellRepository {
@@ -148,8 +148,8 @@ mod tests {
         DefaultCellRepository::new(Arc::new(db))
     }
 
-    fn create_user_file_repository(db_conn: Arc<DatabaseConnection>) -> DefaultUserFileRepository {
-        DefaultUserFileRepository::new(db_conn)
+    fn create_file_repository(db_conn: Arc<DatabaseConnection>) -> DefaultFileRepository {
+        DefaultFileRepository::new(db_conn)
     }
 
     #[tokio::test]
@@ -157,7 +157,7 @@ mod tests {
         // Arrange
 
         let repository = create_repository().await;
-        let user_repository = create_user_file_repository(repository.db_conn.clone());
+        let user_repository = create_file_repository(repository.db_conn.clone());
         let file_id = user_repository.create_file("file 1".into()).await.unwrap();
         let cell_id = repository
             .create_cell(file_id, "test".into(), CellType::FlashCard, 1)
@@ -179,7 +179,7 @@ mod tests {
         // Arrange
 
         let repository = create_repository().await;
-        let user_repository = create_user_file_repository(repository.db_conn.clone());
+        let user_repository = create_file_repository(repository.db_conn.clone());
         let file_id = user_repository.create_file("file 1".into()).await.unwrap();
         repository
             .create_cell(file_id, "1".into(), CellType::FlashCard, 1)
@@ -223,7 +223,7 @@ mod tests {
         // Arrange
 
         let repository = create_repository().await;
-        let user_repository = create_user_file_repository(repository.db_conn.clone());
+        let user_repository = create_file_repository(repository.db_conn.clone());
         let file_id = user_repository.create_file("file 1".into()).await.unwrap();
         repository
             .create_cell(file_id, "1".into(), CellType::FlashCard, 1)
@@ -262,7 +262,7 @@ mod tests {
         // Arrange
 
         let repository = create_repository().await;
-        let user_repository = create_user_file_repository(repository.db_conn.clone());
+        let user_repository = create_file_repository(repository.db_conn.clone());
         let file_id = user_repository.create_file("file 1".into()).await.unwrap();
 
         // Act
@@ -307,7 +307,7 @@ mod tests {
         // Arrange
 
         let repository = create_repository().await;
-        let user_repository = create_user_file_repository(repository.db_conn.clone());
+        let user_repository = create_file_repository(repository.db_conn.clone());
         let file_id = user_repository.create_file("file 1".into()).await.unwrap();
         let cell_id = repository
             .create_cell(file_id, "1".into(), CellType::FlashCard, 1)
@@ -332,7 +332,7 @@ mod tests {
         // Arrange
 
         let repository = create_repository().await;
-        let user_repository = create_user_file_repository(repository.db_conn.clone());
+        let user_repository = create_file_repository(repository.db_conn.clone());
         let file_id = user_repository.create_file("file 1".into()).await.unwrap();
         let cell_id = repository
             .create_cell(file_id, "cell 1".into(), CellType::FlashCard, 1)

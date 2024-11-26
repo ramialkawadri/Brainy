@@ -1,11 +1,11 @@
 use sea_orm::{sea_query::Index, ConnectionTrait, DatabaseConnection, DbBackend, DbErr, Schema};
 
-use crate::entities::{cell, repetition, user_file};
+use crate::entities::{cell, repetition, file};
 
 pub async fn setup_schema(db: &DatabaseConnection) -> Result<(), DbErr> {
     let schema = Schema::new(DbBackend::Sqlite);
 
-    let mut stmt = schema.create_table_from_entity(user_file::Entity);
+    let mut stmt = schema.create_table_from_entity(file::Entity);
     stmt.if_not_exists();
     db.execute(db.get_database_backend().build(&stmt)).await?;
 
@@ -19,9 +19,9 @@ pub async fn setup_schema(db: &DatabaseConnection) -> Result<(), DbErr> {
 
     let index = Index::create()
         .name("idx-path")
-        .table(user_file::Entity)
-        .col(user_file::Column::Path)
-        .col(user_file::Column::IsFolder)
+        .table(file::Entity)
+        .col(file::Column::Path)
+        .col(file::Column::IsFolder)
         .unique()
         .if_not_exists()
         .to_owned();

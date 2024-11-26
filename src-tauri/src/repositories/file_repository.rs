@@ -7,39 +7,39 @@ use prelude::Expr;
 use sea_orm::DbConn;
 use sea_orm::{entity::*, query::*};
 
-use crate::entities::user_file;
+use crate::entities::file;
 
 #[cfg_attr(test, automock)]
 #[async_trait]
-pub trait UserFileRepository {
-    async fn get_files(&self) -> Result<Vec<user_file::Model>, String>;
+pub trait FileRepository {
+    async fn get_files(&self) -> Result<Vec<file::Model>, String>;
     async fn file_exists(&self, path: String) -> Result<bool, String>;
     async fn folder_exists(&self, path: String) -> Result<bool, String>;
-    async fn get_by_id(&self, id: i32) -> Result<user_file::Model, String>;
+    async fn get_by_id(&self, id: i32) -> Result<file::Model, String>;
     async fn create_folder(&self, path: String) -> Result<i32, String>;
     async fn create_file(&self, path: String) -> Result<i32, String>;
     async fn delete_file(&self, file_id: i32) -> Result<(), String>;
     async fn delete_folder(&self, folder_id: i32) -> Result<(), String>;
     async fn update_path(&self, id: i32, new_path: String) -> Result<(), String>;
-    async fn get_folder_sub_files(&self, id: i32) -> Result<Vec<user_file::Model>, String>;
+    async fn get_folder_sub_files(&self, id: i32) -> Result<Vec<file::Model>, String>;
 }
 
-pub struct DefaultUserFileRepository {
+pub struct DefaultFileRepository {
     db_conn: Arc<DbConn>,
 }
 
-impl DefaultUserFileRepository {
+impl DefaultFileRepository {
     pub fn new(db_conn: Arc<DbConn>) -> Self {
         Self { db_conn }
     }
 }
 
 #[async_trait]
-impl UserFileRepository for DefaultUserFileRepository {
+impl FileRepository for DefaultFileRepository {
     async fn file_exists(&self, path: String) -> Result<bool, String> {
-        let result = user_file::Entity::find()
-            .filter(user_file::Column::Path.eq(path))
-            .filter(user_file::Column::IsFolder.eq(false))
+        let result = file::Entity::find()
+            .filter(file::Column::Path.eq(path))
+            .filter(file::Column::IsFolder.eq(false))
             .count(&*self.db_conn)
             .await;
 
@@ -50,9 +50,9 @@ impl UserFileRepository for DefaultUserFileRepository {
     }
 
     async fn folder_exists(&self, path: String) -> Result<bool, String> {
-        let result = user_file::Entity::find()
-            .filter(user_file::Column::Path.eq(path))
-            .filter(user_file::Column::IsFolder.eq(true))
+        let result = file::Entity::find()
+            .filter(file::Column::Path.eq(path))
+            .filter(file::Column::IsFolder.eq(true))
             .count(&*self.db_conn)
             .await;
 
@@ -62,16 +62,16 @@ impl UserFileRepository for DefaultUserFileRepository {
         }
     }
 
-    async fn get_by_id(&self, id: i32) -> Result<user_file::Model, String> {
-        let result = user_file::Entity::find_by_id(id).one(&*self.db_conn).await;
+    async fn get_by_id(&self, id: i32) -> Result<file::Model, String> {
+        let result = file::Entity::find_by_id(id).one(&*self.db_conn).await;
         match result {
             Ok(result) => Ok(result.unwrap()),
             Err(err) => Err(err.to_string()),
         }
     }
 
-    async fn get_files(&self) -> Result<Vec<user_file::Model>, String> {
-        let result = user_file::Entity::find().all(&*self.db_conn).await;
+    async fn get_files(&self) -> Result<Vec<file::Model>, String> {
+        let result = file::Entity::find().all(&*self.db_conn).await;
         match result {
             Ok(result) => Ok(result),
             Err(err) => Err(err.to_string()),
@@ -79,7 +79,7 @@ impl UserFileRepository for DefaultUserFileRepository {
     }
 
     async fn create_folder(&self, path: String) -> Result<i32, String> {
-        let active_model = user_file::ActiveModel {
+        let active_model = file::ActiveModel {
             path: Set(path),
             is_folder: Set(true),
             ..Default::default()
@@ -93,7 +93,7 @@ impl UserFileRepository for DefaultUserFileRepository {
     }
 
     async fn create_file(&self, path: String) -> Result<i32, String> {
-        let active_model = user_file::ActiveModel {
+        let active_model = file::ActiveModel {
             path: Set(path),
             is_folder: Set(false),
             ..Default::default()
@@ -107,8 +107,8 @@ impl UserFileRepository for DefaultUserFileRepository {
     }
 
     async fn delete_file(&self, file_id: i32) -> Result<(), String> {
-        let result = user_file::Entity::delete_many()
-            .filter(user_file::Column::Id.eq(file_id))
+        let result = file::Entity::delete_many()
+            .filter(file::Column::Id.eq(file_id))
             .exec(&*self.db_conn)
             .await;
 
@@ -126,16 +126,16 @@ impl UserFileRepository for DefaultUserFileRepository {
             Err(err) => return Err(err.to_string()),
         };
 
-        let result = user_file::Entity::delete_many()
-            .filter(user_file::Column::Path.starts_with(folder.path + "/"))
+        let result = file::Entity::delete_many()
+            .filter(file::Column::Path.starts_with(folder.path + "/"))
             .exec(&txn)
             .await;
         if let Err(err) = result {
             return Err(err.to_string());
         }
 
-        let result = user_file::Entity::delete_many()
-            .filter(user_file::Column::Id.eq(folder_id))
+        let result = file::Entity::delete_many()
+            .filter(file::Column::Id.eq(folder_id))
             .exec(&txn)
             .await;
         if let Err(err) = result {
@@ -150,9 +150,9 @@ impl UserFileRepository for DefaultUserFileRepository {
     }
 
     async fn update_path(&self, id: i32, new_path: String) -> Result<(), String> {
-        let result = user_file::Entity::update_many()
-            .col_expr(user_file::Column::Path, Expr::value(new_path))
-            .filter(user_file::Column::Id.eq(id))
+        let result = file::Entity::update_many()
+            .col_expr(file::Column::Path, Expr::value(new_path))
+            .filter(file::Column::Id.eq(id))
             .exec(&*self.db_conn)
             .await;
         match result {
@@ -161,10 +161,10 @@ impl UserFileRepository for DefaultUserFileRepository {
         }
     }
 
-    async fn get_folder_sub_files(&self, id: i32) -> Result<Vec<user_file::Model>, String> {
+    async fn get_folder_sub_files(&self, id: i32) -> Result<Vec<file::Model>, String> {
         let folder = self.get_by_id(id).await?;
-        let result = user_file::Entity::find()
-            .filter(user_file::Column::Path.starts_with(folder.path + "/"))
+        let result = file::Entity::find()
+            .filter(file::Column::Path.starts_with(folder.path + "/"))
             .all(&*self.db_conn)
             .await;
         match result {
@@ -187,9 +187,9 @@ pub mod tests {
         },
     };
 
-    async fn create_repository() -> DefaultUserFileRepository {
+    async fn create_repository() -> DefaultFileRepository {
         let db = get_db().await;
-        DefaultUserFileRepository::new(Arc::new(db))
+        DefaultFileRepository::new(Arc::new(db))
     }
 
     fn create_cell_repository(db_conn: Arc<DatabaseConnection>) -> DefaultCellRepository {
@@ -466,9 +466,9 @@ pub mod tests {
     }
 
     pub async fn get_id(db: &DatabaseConnection, path: &str, is_folder: bool) -> i32 {
-        user_file::Entity::find()
-            .filter(user_file::Column::Path.eq(path))
-            .filter(user_file::Column::IsFolder.eq(is_folder))
+        file::Entity::find()
+            .filter(file::Column::Path.eq(path))
+            .filter(file::Column::IsFolder.eq(is_folder))
             .one(db)
             .await
             .unwrap()

@@ -1,5 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
-import UserFile from "../entities/userFile";
+import File from "../entities/file";
 
 export function createFolder(path: string) {
 	return invoke("create_folder", { path });
@@ -39,6 +39,6 @@ export function createFile(path: string) {
 	return invoke("create_file", { path });
 }
 
-export function getFiles(): Promise<UserFile[]> {
+export function getFiles(): Promise<File[]> {
 	return invoke("get_files");
 }

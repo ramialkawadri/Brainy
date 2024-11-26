@@ -1,4 +1,4 @@
-import UserFile from "../../entities/userFile";
+import File from "../../entities/file";
 import Folder from "../../types/folder";
 import parseGetFilesResponse from "../../utils/parseGetFilesResponse";
 
@@ -6,7 +6,7 @@ describe(parseGetFilesResponse, () => {
 	it("Parse file list correctly", () => {
 		// Arrange
 
-		const response: UserFile[] = [
+		const response: File[] = [
 			{
 				id: 1,
 				path: "file 1",

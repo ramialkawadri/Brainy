@@ -38,9 +38,9 @@ pub enum Relation {
 impl RelationTrait for Relation {
     fn def(&self) -> RelationDef {
         match self {
-            Self::File => Entity::belongs_to(super::user_file::Entity)
+            Self::File => Entity::belongs_to(super::file::Entity)
                 .from(Column::FileId)
-                .to(super::user_file::Column::Id)
+                .to(super::file::Column::Id)
                 .on_delete(ForeignKeyAction::Cascade)
                 .into(),
             Self::Repetition => Entity::has_many(super::repetition::Entity).into(),
@@ -48,7 +48,7 @@ impl RelationTrait for Relation {
     }
 }
 
-impl Related<super::user_file::Entity> for Entity {
+impl Related<super::file::Entity> for Entity {
     fn to() -> RelationDef {
         Relation::File.def()
     }

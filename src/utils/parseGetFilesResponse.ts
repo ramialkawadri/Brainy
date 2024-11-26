@@ -1,19 +1,19 @@
-import UserFile from "../entities/userFile";
+import File from "../entities/file";
 import Folder from "../types/folder";
 
-function parseListUserFilesResponse(entities: UserFile[]): Folder {
-	return parseListUserFilesResponseHelper(entities, "", 0);
+function parseGetFilesResponse(entities: File[]): Folder {
+	return parseGetFilesResponseHelper(entities, "", 0);
 }
 
-function parseListUserFilesResponseHelper(
-	entities: UserFile[],
+function parseGetFilesResponseHelper(
+	entities: File[],
 	folderName: string,
 	id: number,
 ) {
 	/* Contains sub folder names as keys, and a list of
 	 * their files as values.
 	 */
-	const subFolders: Record<string, UserFile[]> = {};
+	const subFolders: Record<string, File[]> = {};
 	const subFoldersIds: Record<string, number> = {};
 	const folder: Folder = {
 		id,
@@ -34,7 +34,7 @@ function parseListUserFilesResponseHelper(
 			const index = entity.path.indexOf("/");
 			const folderName = entity.path.substring(0, index);
 			const rest = entity.path.substring(index + 1);
-			const newEntity: UserFile = {
+			const newEntity: File = {
 				path: rest,
 				id: entity.id,
 				isFolder: entity.isFolder,
@@ -61,7 +61,7 @@ function parseListUserFilesResponseHelper(
 	}
 
 	for (const subFolderName in subFolders) {
-		const subFolder = parseListUserFilesResponseHelper(
+		const subFolder = parseGetFilesResponseHelper(
 			subFolders[subFolderName],
 			subFolderName,
 			subFoldersIds[subFolderName],
@@ -103,4 +103,4 @@ function parseListUserFilesResponseHelper(
 //     };
 // }
 
-export default parseListUserFilesResponse;
+export default parseGetFilesResponse;

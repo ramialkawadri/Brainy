@@ -201,6 +201,11 @@ function Editor({ onError, onStudyButtonClick }: Props) {
 		setDraggedCellIndex(-1);
 	};
 
+    const handleStudyButtonClick = async () => {
+        await forceSave();
+        onStudyButtonClick();
+    };
+
 	return (
 		<div className={styles.container}>
 			{showDeleteDialog && (
@@ -214,7 +219,7 @@ function Editor({ onError, onStudyButtonClick }: Props) {
 
 			<TitleBar
 				repetitionCounts={repetitionCounts}
-				onStudyButtonClick={onStudyButtonClick}
+				onStudyButtonClick={() => void handleStudyButtonClick()}
 			/>
 
 			<div
