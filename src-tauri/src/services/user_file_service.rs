@@ -21,7 +21,6 @@ pub trait UserFileService {
     async fn rename_folder(&self, folder_id: i32, new_name: String) -> Result<(), String>;
 }
 
-// TODO: trim additional / at the start or end
 pub struct DefaultUserFileServices {
     repository: Arc<dyn UserFileRepository + Sync + Send>,
 }
@@ -68,6 +67,7 @@ impl UserFileService for DefaultUserFileServices {
     }
 
     async fn create_file(&self, path: String) -> Result<i32, String> {
+        let path = path.trim_matches('/').to_string();
         if path.trim().is_empty() {
             return Err("Name cannot be empty!".into());
         }
@@ -82,6 +82,7 @@ impl UserFileService for DefaultUserFileServices {
     }
 
     async fn create_folder(&self, path: String) -> Result<i32, String> {
+        let path = path.trim_matches('/').to_string();
         if path.trim().is_empty() {
             return Err("Name cannot be empty!".into());
         }
@@ -171,6 +172,7 @@ impl UserFileService for DefaultUserFileServices {
     }
 
     async fn rename_file(&self, file_id: i32, new_name: String) -> Result<(), String> {
+        let new_name = new_name.trim_matches('/').to_string();
         if new_name.trim().is_empty() {
             return Err("Please enter a non empty name!".into());
         }
@@ -189,6 +191,7 @@ impl UserFileService for DefaultUserFileServices {
     }
 
     async fn rename_folder(&self, folder_id: i32, new_name: String) -> Result<(), String> {
+        let new_name = new_name.trim_matches('/').to_string();
         if new_name.trim().is_empty() {
             return Err("Please enter a non empty name!".into());
         }
@@ -384,7 +387,7 @@ pub mod tests {
         // Act
 
         deps.to_service()
-            .create_folder("folder 1/folder 2".into())
+            .create_folder("folder 1/folder 2/".into())
             .await
             .unwrap();
     }
@@ -437,7 +440,7 @@ pub mod tests {
         // Act
 
         deps.to_service()
-            .create_file("folder 1/folder 2/file 1".into())
+            .create_file("folder 1/folder 2/file 1/".into())
             .await
             .unwrap();
     }
@@ -790,7 +793,7 @@ pub mod tests {
         // Act
 
         deps.to_service()
-            .rename_file(file_id, "new name".into())
+            .rename_file(file_id, "/new name".into())
             .await
             .unwrap();
     }
@@ -896,7 +899,7 @@ pub mod tests {
         // Act
 
         deps.to_service()
-            .rename_folder(folder_id, "new name/subfolder".into())
+            .rename_folder(folder_id, "/new name/subfolder".into())
             .await
             .unwrap();
     }

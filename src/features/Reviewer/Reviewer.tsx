@@ -52,16 +52,21 @@ function Reviewer({ onEditButtonClick, onError, onReviewEnd }: Props) {
 
 	useEffect(() => {
 		void (async () => {
-			// TODO: try - catch
-			setIsLoading(true);
-			const repetitions = await getFileRepetitions(selectedFileId);
-			setCellRepetitions(repetitions);
-			const fetchedCells =
-				await getFileCellsOrderedByIndex(selectedFileId);
-			setCells(fetchedCells);
-			setIsLoading(false);
+			try {
+				setIsLoading(true);
+				const repetitions = await getFileRepetitions(selectedFileId);
+				setCellRepetitions(repetitions);
+				const fetchedCells =
+					await getFileCellsOrderedByIndex(selectedFileId);
+				setCells(fetchedCells);
+				setIsLoading(false);
+			} catch (e) {
+				console.error(e);
+				if (e instanceof Error) onError(e.message);
+				else onError(e as string);
+			}
 		})();
-	}, [selectedFileId]);
+	}, [onError, selectedFileId]);
 
 	const dueToday = cellRepetitions.filter(
 		c => new Date(c.due) <= startTime.current,

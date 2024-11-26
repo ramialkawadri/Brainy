@@ -2,7 +2,6 @@ import Folder from "../types/folder";
 import UiFile from "../types/uiFile";
 import UiFolder from "../types/uiFolder";
 
-// TODO: test
 function searchFolder(folder: Folder, searchText: string): UiFolder {
 	const subFolders = folder.subFolders.map(f => searchFolder(f, searchText));
 	const files: UiFile[] = folder.files.map(f => ({
