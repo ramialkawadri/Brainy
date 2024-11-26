@@ -1,44 +1,44 @@
-import File from "../entities/file";
+import FileRepetitionCounts from "../entities/fileRepetitionCounts";
+import FileWithRepetitionCounts from "../entities/fileWithRepetitionCounts";
 import Folder from "../types/folder";
 
-function parseGetFilesResponse(entities: File[]): Folder {
+function parseGetFilesResponse(entities: FileWithRepetitionCounts[]): Folder {
 	return parseGetFilesResponseHelper(entities, "", 0);
 }
 
 function parseGetFilesResponseHelper(
-	entities: File[],
+	entities: FileWithRepetitionCounts[],
 	folderName: string,
 	id: number,
 ) {
 	/* Contains sub folder names as keys, and a list of
 	 * their files as values.
 	 */
-	const subFolders: Record<string, File[]> = {};
+	const subFolders: Record<string, FileWithRepetitionCounts[]> = {};
 	const subFoldersIds: Record<string, number> = {};
 	const folder: Folder = {
 		id,
 		name: folderName,
 		subFolders: [],
 		files: [],
-		// repetitionCounts: {
-		//     new: 0,
-		//     learning: 0,
-		//     relearning: 0,
-		//     review: 0,
-		// },
+		repetitionCounts: {
+		    new: 0,
+		    learning: 0,
+		    relearning: 0,
+		    review: 0,
+		},
 	};
 
-	// TODO: repetition counts
 	for (const entity of entities) {
 		if (entity.path.includes("/")) {
 			const index = entity.path.indexOf("/");
 			const folderName = entity.path.substring(0, index);
 			const rest = entity.path.substring(index + 1);
-			const newEntity: File = {
+			const newEntity: FileWithRepetitionCounts = {
 				path: rest,
 				id: entity.id,
 				isFolder: entity.isFolder,
-				// repetitionCounts: fileInfo.repetitionCounts!,
+				repetitionCounts: entity.repetitionCounts,
 			};
 
 			if (folderName in subFolders) {
@@ -52,11 +52,27 @@ function parseGetFilesResponseHelper(
 			folder.files.push({
 				id: entity.id,
 				name: entity.path,
-				// repetitionCounts: fileInfo.repetitionCounts!,
+				repetitionCounts: entity.repetitionCounts ?? {
+                    new: 0,
+                    review: 0,
+                    learning: 0,
+                    relearning: 0,
+                },
 			});
-			// folder.repetitionCounts = addRepetitionCounts(
-			//     folder.repetitionCounts, fileInfo.repetitionCounts!
-			// );
+			folder.repetitionCounts = addRepetitionCounts(
+			    folder.repetitionCounts ?? {
+                    new: 0,
+                    review: 0,
+                    learning: 0,
+                    relearning: 0,
+                }, entity.repetitionCounts ?? {
+                    // TODO: fix duplication
+                    new: 0,
+                    review: 0,
+                    learning: 0,
+                    relearning: 0,
+                }
+			);
 		}
 	}
 
@@ -66,9 +82,19 @@ function parseGetFilesResponseHelper(
 			subFolderName,
 			subFoldersIds[subFolderName],
 		);
-		// folder.repetitionCounts = addRepetitionCounts(
-		//     folder.repetitionCounts, subFolder.repetitionCounts
-		// );
+		folder.repetitionCounts = addRepetitionCounts(
+		    folder.repetitionCounts ?? {
+                    new: 0,
+                    review: 0,
+                    learning: 0,
+                    relearning: 0,
+            }, subFolder.repetitionCounts ?? {
+                    new: 0,
+                    review: 0,
+                    learning: 0,
+                    relearning: 0,
+            }
+		);
 		folder.subFolders.push(subFolder);
 	}
 
@@ -79,6 +105,12 @@ function parseGetFilesResponseHelper(
 				name: subFolderName,
 				files: [],
 				subFolders: [],
+                repetitionCounts: {
+                    new: 0,
+                    review: 0,
+                    learning: 0,
+                    relearning: 0,
+                }
 			});
 		}
 	}
@@ -91,16 +123,16 @@ function parseGetFilesResponseHelper(
 	return folder;
 }
 
-// function addRepetitionCounts(
-//     counts1: CellRepetitionCountsDto,
-//     counts2: CellRepetitionCountsDto): CellRepetitionCountsDto {
-//
-//     return {
-//         new: counts1.new! + counts2.new!,
-//         learning: counts1.learning! + counts2.learning!,
-//         relearning: counts1.relearning! + counts2.relearning!,
-//         review: counts1.review! + counts2.review!,
-//     };
-// }
+function addRepetitionCounts(
+    counts1: FileRepetitionCounts,
+    counts2: FileRepetitionCounts): FileRepetitionCounts {
+
+    return {
+        new: counts1.new + counts2.new,
+        learning: counts1.learning + counts2.learning,
+        relearning: counts1.relearning + counts2.relearning,
+        review: counts1.review + counts2.review,
+    };
+}
 
 export default parseGetFilesResponse;

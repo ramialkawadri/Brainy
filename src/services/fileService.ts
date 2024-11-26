@@ -1,5 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
-import File from "../entities/file";
+import FileWithRepetitionCounts from "../entities/fileWithRepetitionCounts";
 
 export function createFolder(path: string) {
 	return invoke("create_folder", { path });
@@ -39,6 +39,6 @@ export function createFile(path: string) {
 	return invoke("create_file", { path });
 }
 
-export function getFiles(): Promise<File[]> {
+export function getFiles(): Promise<FileWithRepetitionCounts[]> {
 	return invoke("get_files");
 }

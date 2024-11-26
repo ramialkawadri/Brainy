@@ -1,12 +1,12 @@
 use std::sync::Arc;
 
-use crate::{entities::file, services::file_service::FileService};
+use crate::{models::file_with_repetitions_count::FileWithRepetitionsCount, services::file_service::FileService};
 use tauri::State;
 
 #[tauri::command]
 pub async fn get_files(
     file_service: State<'_, Arc<dyn FileService + Sync + Send>>,
-) -> Result<Vec<file::Model>, String> {
+) -> Result<Vec<FileWithRepetitionsCount>, String> {
     file_service.get_files().await
 }
 

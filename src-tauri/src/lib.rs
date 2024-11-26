@@ -8,14 +8,14 @@ mod services;
 use std::sync::Arc;
 
 use repositories::{
-    cell_repository::DefaultCellRepository, repetition_repository::DefaultRepetitionRepository,
-    file_repository::DefaultFileRepository,
+    cell_repository::DefaultCellRepository, file_repository::DefaultFileRepository,
+    repetition_repository::DefaultRepetitionRepository,
 };
 use sea_orm::{Database, DbErr};
 use services::{
     cell_service::{CellService, DefaultCellService},
-    repetition_service::{DefaultRepetitionService, RepetitionService},
     file_service::{DefaultFileServices, FileService},
+    repetition_service::{DefaultRepetitionService, RepetitionService},
 };
 use tauri::Manager;
 
@@ -37,9 +37,10 @@ pub async fn run() -> Result<(), DbErr> {
             let repetition_service =
                 Arc::new(DefaultRepetitionService::new(repetition_repository.clone()));
 
-            app.manage::<Arc<dyn FileService + Sync + Send>>(Arc::new(
-                DefaultFileServices::new(file_repository.clone()),
-            ));
+            app.manage::<Arc<dyn FileService + Sync + Send>>(Arc::new(DefaultFileServices::new(
+                file_repository.clone(),
+                repetition_repository.clone(),
+            )));
             app.manage::<Arc<dyn CellService + Sync + Send>>(Arc::new(DefaultCellService::new(
                 cell_repository.clone(),
                 repetition_service.clone(),

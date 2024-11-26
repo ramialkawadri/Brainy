@@ -1,4 +1,3 @@
-import File from "../../entities/file";
 import getFileOrFolderById from "../../utils/getFilOrFolderById";
 import parseGetFilesResponse from "../../utils/parseGetFilesResponse";
 import {
@@ -83,7 +82,7 @@ function executeRequest<T>(
 		try {
 			dispatch(requestStart());
 			await cb(dispatch, getState());
-			const files: File[] = await getFilesApi();
+			const files = await getFilesApi();
 			const rootFolder = parseGetFilesResponse(files);
 			dispatch(requestSuccess(rootFolder));
 		} catch (e) {

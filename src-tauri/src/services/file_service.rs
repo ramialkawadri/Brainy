@@ -2,15 +2,16 @@
 use mockall::{automock, predicate::*};
 use std::sync::Arc;
 
-use crate::entities::file;
+use crate::models::file_with_repetitions_count::FileWithRepetitionsCount;
 use crate::repositories::file_repository::FileRepository;
+use crate::repositories::repetition_repository::RepetitionRepository;
 
 use async_trait::async_trait;
 
 #[cfg_attr(test, automock)]
 #[async_trait]
 pub trait FileService {
-    async fn get_files(&self) -> Result<Vec<file::Model>, String>;
+    async fn get_files(&self) -> Result<Vec<FileWithRepetitionsCount>, String>;
     async fn create_file(&self, path: String) -> Result<i32, String>;
     async fn create_folder(&self, path: String) -> Result<i32, String>;
     async fn delete_file(&self, file_id: i32) -> Result<(), String>;
@@ -23,11 +24,18 @@ pub trait FileService {
 
 pub struct DefaultFileServices {
     repository: Arc<dyn FileRepository + Sync + Send>,
+    repetition_repository: Arc<dyn RepetitionRepository + Sync + Send>,
 }
 
 impl DefaultFileServices {
-    pub fn new(repository: Arc<dyn FileRepository + Sync + Send>) -> Self {
-        Self { repository }
+    pub fn new(
+        repository: Arc<dyn FileRepository + Sync + Send>,
+        repetition_repository: Arc<dyn RepetitionRepository + Sync + Send>,
+    ) -> Self {
+        Self {
+            repository,
+            repetition_repository,
+        }
     }
 
     async fn create_folder_recursively(&self, path: &String) -> Result<i32, String> {
@@ -62,8 +70,30 @@ impl DefaultFileServices {
 
 #[async_trait]
 impl FileService for DefaultFileServices {
-    async fn get_files(&self) -> Result<Vec<file::Model>, String> {
-        self.repository.get_files().await
+    async fn get_files(&self) -> Result<Vec<FileWithRepetitionsCount>, String> {
+        // TODO: update tests
+        let files = self.repository.get_files().await?;
+        let mut files_with_repetitions_counts: Vec<FileWithRepetitionsCount> = vec![];
+        for file in files {
+            let repetition_counts = if file.is_folder {
+                None
+            } else {
+                Some(
+                    self.repetition_repository
+                        .get_study_repetitions_counts(file.id)
+                        .await?,
+                )
+            };
+
+            files_with_repetitions_counts.push(FileWithRepetitionsCount::new(
+                file.id,
+                file.path,
+                file.is_folder,
+                repetition_counts,
+            ));
+        }
+
+        Ok(files_with_repetitions_counts)
     }
 
     async fn create_file(&self, path: String) -> Result<i32, String> {

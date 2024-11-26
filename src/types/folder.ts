@@ -1,3 +1,4 @@
+import FileRepetitionCounts from "../entities/fileRepetitionCounts";
 import File from "./file";
 
 export default interface Folder {
@@ -5,5 +6,6 @@ export default interface Folder {
 	name: string;
 	subFolders: Folder[];
 	files: File[];
-	// repetitionCounts: CellRepetitionCountsDto,
+    // TODO: remove nullable
+	repetitionCounts?: FileRepetitionCounts,
 }
