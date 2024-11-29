@@ -6,7 +6,8 @@ import styles from "./styles.module.css";
 function Home() {
 	const rootFolder = useAppSelector(selectRootFolder);
 
-    // TODO: show something else if no files/folder are created
+    // TODO: implement on click
+	// TODO: show something else if no files/folder are created
 	return (
 		<div className={styles.box}>
 			<div className={styles.row + " " + styles.header}>
@@ -17,7 +18,9 @@ function Home() {
 					<p>Review</p>
 				</div>
 			</div>
-			{rootFolder && <ReviewTree folder={rootFolder} name="" depthLevel={-1} />}
+			{rootFolder && (
+				<ReviewTree folder={rootFolder} name="" depthLevel={-1} />
+			)}
 		</div>
 	);
 }

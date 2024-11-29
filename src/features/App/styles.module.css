@@ -10,7 +10,7 @@
 }
 
 .workspace > * {
-	overflow: scroll;
+	overflow: auto;
 }
 
 .error-dialog {

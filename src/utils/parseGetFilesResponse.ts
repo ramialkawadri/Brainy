@@ -22,10 +22,10 @@ function parseGetFilesResponseHelper(
 		subFolders: [],
 		files: [],
 		repetitionCounts: {
-		    new: 0,
-		    learning: 0,
-		    relearning: 0,
-		    review: 0,
+			new: 0,
+			learning: 0,
+			relearning: 0,
+			review: 0,
 		},
 	};
 
@@ -52,26 +52,12 @@ function parseGetFilesResponseHelper(
 			folder.files.push({
 				id: entity.id,
 				name: entity.path,
-				repetitionCounts: entity.repetitionCounts ?? {
-                    new: 0,
-                    review: 0,
-                    learning: 0,
-                    relearning: 0,
-                },
+				// Files always include repetition counts.
+				repetitionCounts: entity.repetitionCounts!,
 			});
 			folder.repetitionCounts = addRepetitionCounts(
-			    folder.repetitionCounts ?? {
-                    new: 0,
-                    review: 0,
-                    learning: 0,
-                    relearning: 0,
-                }, entity.repetitionCounts ?? {
-                    // TODO: fix duplication
-                    new: 0,
-                    review: 0,
-                    learning: 0,
-                    relearning: 0,
-                }
+				folder.repetitionCounts,
+				entity.repetitionCounts!,
 			);
 		}
 	}
@@ -83,17 +69,8 @@ function parseGetFilesResponseHelper(
 			subFoldersIds[subFolderName],
 		);
 		folder.repetitionCounts = addRepetitionCounts(
-		    folder.repetitionCounts ?? {
-                    new: 0,
-                    review: 0,
-                    learning: 0,
-                    relearning: 0,
-            }, subFolder.repetitionCounts ?? {
-                    new: 0,
-                    review: 0,
-                    learning: 0,
-                    relearning: 0,
-            }
+			folder.repetitionCounts,
+			subFolder.repetitionCounts,
 		);
 		folder.subFolders.push(subFolder);
 	}
@@ -105,12 +82,12 @@ function parseGetFilesResponseHelper(
 				name: subFolderName,
 				files: [],
 				subFolders: [],
-                repetitionCounts: {
-                    new: 0,
-                    review: 0,
-                    learning: 0,
-                    relearning: 0,
-                }
+				repetitionCounts: {
+					new: 0,
+					review: 0,
+					learning: 0,
+					relearning: 0,
+				},
 			});
 		}
 	}
@@ -124,15 +101,15 @@ function parseGetFilesResponseHelper(
 }
 
 function addRepetitionCounts(
-    counts1: FileRepetitionCounts,
-    counts2: FileRepetitionCounts): FileRepetitionCounts {
-
-    return {
-        new: counts1.new + counts2.new,
-        learning: counts1.learning + counts2.learning,
-        relearning: counts1.relearning + counts2.relearning,
-        review: counts1.review + counts2.review,
-    };
+	counts1: FileRepetitionCounts,
+	counts2: FileRepetitionCounts,
+): FileRepetitionCounts {
+	return {
+		new: counts1.new + counts2.new,
+		learning: counts1.learning + counts2.learning,
+		relearning: counts1.relearning + counts2.relearning,
+		review: counts1.review + counts2.review,
+	};
 }
 
 export default parseGetFilesResponse;

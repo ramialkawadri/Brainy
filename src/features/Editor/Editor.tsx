@@ -201,10 +201,10 @@ function Editor({ onError, onStudyButtonClick }: Props) {
 		setDraggedCellIndex(-1);
 	};
 
-    const handleStudyButtonClick = async () => {
-        await forceSave();
-        onStudyButtonClick();
-    };
+	const handleStudyButtonClick = async () => {
+		await forceSave();
+		onStudyButtonClick();
+	};
 
 	return (
 		<div className={styles.container}>

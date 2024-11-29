@@ -6,9 +6,7 @@ import Reviewer from "../Reviewer/Reviewer";
 import Home from "../Home/Home";
 import useAppDispatch from "../../hooks/useAppDispatch";
 import useAppSelector from "../../hooks/useAppSelector";
-import {
-	selectSelectedFileId,
-} from "../../store/selectors/fileSystemSelectors";
+import { selectSelectedFileId } from "../../store/selectors/fileSystemSelectors";
 import { fetchFiles } from "../../store/actions/fileSystemActions";
 import SideBar from "../SideBar/SideBar";
 

@@ -284,21 +284,26 @@ pub mod tests {
     use mockall::predicate;
 
     use super::*;
-    use crate::repositories::file_repository::MockFileRepository;
+    use crate::{entities::file, repositories::{file_repository::MockFileRepository, repetition_repository::MockRepetitionRepository}};
 
     struct TestDependencies {
         file_repository: MockFileRepository,
+        repetition_repository: MockRepetitionRepository,
     }
 
     impl TestDependencies {
         fn new() -> Self {
             TestDependencies {
                 file_repository: MockFileRepository::new(),
+                repetition_repository: MockRepetitionRepository::new(),
             }
         }
 
         fn to_service(self) -> DefaultFileServices {
-            DefaultFileServices::new(Arc::new(self.file_repository))
+            DefaultFileServices::new(
+                Arc::new(self.file_repository),
+                Arc::new(self.repetition_repository),
+            )
         }
 
         fn setup_get_files(&mut self, files: Vec<file::Model>) {

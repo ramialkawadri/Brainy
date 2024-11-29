@@ -6,6 +6,5 @@ export default interface Folder {
 	name: string;
 	subFolders: Folder[];
 	files: File[];
-    // TODO: remove nullable
-	repetitionCounts?: FileRepetitionCounts,
+	repetitionCounts: FileRepetitionCounts;
 }

@@ -21,7 +21,7 @@ use tauri::Manager;
 
 use apis::*;
 
-const DATABASE_URL: &str = "sqlite:///home/ramikw/brainy/rami.db?mode=rwc";
+const DATABASE_URL: &str = "sqlite:///C:\\Projects\\Brainy\\db.db?mode=rwc";
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub async fn run() -> Result<(), DbErr> {
