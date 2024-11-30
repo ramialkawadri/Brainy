@@ -91,7 +91,6 @@ impl RepetitionService for DefaultRepetitionService {
         &self,
         file_ids: Vec<i32>,
     ) -> Result<Vec<repetition::Model>, String> {
-        // TODO: test
         let mut repetitions: Vec<repetition::Model> = Vec::new();
         for file_id in file_ids {
             let mut file_repetitions = self.repository.get_file_repetitions(file_id).await?;
@@ -301,5 +300,38 @@ mod tests {
             .update_repetition(repetition)
             .await
             .unwrap();
+    }
+
+    #[tokio::test]
+    async fn get_repetitions_for_files_valid_input_returned_repetitions() {
+        // Arrange
+        
+        let mut deps = TestDependencies::new();
+        let file1_id = 1;
+        let file1_repetitions = vec![
+            repetition::Model {
+                ..Default::default()
+            },
+        ];
+        deps.setup_get_file_repetitions(file1_id, file1_repetitions);
+
+        let file2_id = 2;
+        let file2_repetitions = vec![
+            repetition::Model {
+                ..Default::default()
+            },
+            repetition::Model {
+                ..Default::default()
+            },
+        ];
+        deps.setup_get_file_repetitions(file2_id, file2_repetitions);
+
+        // Act
+
+        let actual = deps.to_service().get_repetitions_for_files(vec![file1_id, file2_id]).await.unwrap();
+
+        // Assert
+
+        assert_eq!(3, actual.len());
     }
 }

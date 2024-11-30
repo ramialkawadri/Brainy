@@ -25,37 +25,36 @@ function Home({ onStudyClick, onError }: Props) {
 		void dispatch(fetchFiles());
 	}, [dispatch]);
 
-    const startStudyForFiles = async (fileIds: number[]) => {
+	const startStudyForFiles = async (fileIds: number[]) => {
 		try {
 			const cells = await getCellsForFiles(fileIds);
-            if (cells.length == 0) return;
-            const repetitions = await getRepetitionsForFiles(fileIds);
-            onStudyClick(cells, repetitions);
+			if (cells.length == 0) return;
+			const repetitions = await getRepetitionsForFiles(fileIds);
+			onStudyClick(cells, repetitions);
 		} catch (e) {
 			console.error(e);
 			if (e instanceof Error) onError(e.message);
 			else onError(e as string);
 		}
-    };
+	};
 
 	const handleFileClick = async (file: ParsedFile) => {
-        await startStudyForFiles([file.id]);
+		await startStudyForFiles([file.id]);
 	};
 
 	const handleFolderClick = async (folder: ParsedFolder) => {
-        const fileIds = [];
-        const folderQueue = [folder];
-        while (folderQueue.length > 0) {
-            const currentFolder = folderQueue.pop()!;
-            for (const file of currentFolder.files) {
-                fileIds.push(file.id);
-            }
-            folderQueue.push(...currentFolder.subFolders);
-        }
-        await startStudyForFiles(fileIds);
+		const fileIds = [];
+		const folderQueue = [folder];
+		while (folderQueue.length > 0) {
+			const currentFolder = folderQueue.pop()!;
+			for (const file of currentFolder.files) {
+				fileIds.push(file.id);
+			}
+			folderQueue.push(...currentFolder.subFolders);
+		}
+		await startStudyForFiles(fileIds);
 	};
 
-	// TODO: show something else if no files/folder are created
 	return (
 		<div className={styles.home}>
 			<div className={styles.box}>
@@ -67,6 +66,9 @@ function Home({ onStudyClick, onError }: Props) {
 						<p>Review</p>
 					</div>
 				</div>
+				{rootFolder &&
+					rootFolder.files.length + rootFolder.subFolders.length ===
+						0 && <p>Create a file to see it in the review tree.</p>}
 				{rootFolder && (
 					<ReviewTree
 						folder={rootFolder}

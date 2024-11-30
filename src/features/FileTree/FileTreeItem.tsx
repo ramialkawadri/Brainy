@@ -36,13 +36,22 @@ interface Props {
 	path: string;
 	id: number;
 	onMarkForDeletion: (id: number, isFolder: boolean) => void;
+	onFileClick: () => void;
+	onRootClick: () => void;
 }
 
 /**
  * Displays a folder or a file based on whether the folder parameter is given
  * or not.
  */
-function FileTreeItem({ folder, path, id, onMarkForDeletion }: Props) {
+function FileTreeItem({
+	folder,
+	path,
+	id,
+	onMarkForDeletion,
+	onFileClick,
+	onRootClick,
+}: Props) {
 	const isRoot = path === "";
 	const selectedFileId = useAppSelector(selectSelectedFileId);
 	const [showActions, setShowActions] = useState(false);
@@ -121,11 +130,13 @@ function FileTreeItem({ folder, path, id, onMarkForDeletion }: Props) {
 
 		if (folder) {
 			if (isRoot) {
+				onRootClick();
 				dispatch(setSelectedFileId(null));
 			} else {
 				setIsOpen(!isOpen);
 			}
 		} else {
+			onFileClick();
 			dispatch(setSelectedFileId(id));
 		}
 	};
@@ -325,6 +336,8 @@ function FileTreeItem({ folder, path, id, onMarkForDeletion }: Props) {
 										: subFolder.name
 								}
 								id={subFolder.id}
+								onFileClick={onFileClick}
+								onRootClick={onRootClick}
 							/>
 						))}
 
@@ -341,6 +354,8 @@ function FileTreeItem({ folder, path, id, onMarkForDeletion }: Props) {
 												: file.name
 										}
 										id={file.id}
+										onFileClick={onFileClick}
+										onRootClick={onRootClick}
 									/>
 								),
 						)}

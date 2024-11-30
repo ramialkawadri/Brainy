@@ -11,7 +11,12 @@ import { setErrorMessage } from "../../store/reducers/fileSystemReducers";
 import { useMemo, useState } from "react";
 import searchFolder from "../../utils/searchFolder";
 
-function SideBar() {
+interface Props {
+	onFileClick: () => void;
+	onRootClick: () => void;
+}
+
+function SideBar({ onFileClick, onRootClick }: Props) {
 	const [searchText, setSearchText] = useState<string | null>(null);
 	const rootFolder = useAppSelector(selectRootFolder);
 	const errorMessage = useAppSelector(selectError);
@@ -41,7 +46,11 @@ function SideBar() {
 					/>
 				)}
 
-				<FileTree folder={rootUiFolder} />
+				<FileTree
+					folder={rootUiFolder}
+					onFileClick={onFileClick}
+					onRootClick={onRootClick}
+				/>
 			</div>
 		</div>
 	);

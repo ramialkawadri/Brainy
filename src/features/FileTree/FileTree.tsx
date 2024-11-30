@@ -10,9 +10,11 @@ import UiFolder from "../../types/ui/uiFolder.ts";
 
 interface Props {
 	folder: UiFolder;
+	onFileClick: () => void;
+	onRootClick: () => void;
 }
 
-function FileTree({ folder }: Props) {
+function FileTree({ folder, onFileClick, onRootClick }: Props) {
 	const [fileMarkedForDeletion, setFileMarkedForDeletion] = useState<
 		number | null
 	>(null);
@@ -60,6 +62,8 @@ function FileTree({ folder }: Props) {
 				folder={folder}
 				onMarkForDeletion={handleMarkForDeletion}
 				id={0}
+				onFileClick={onFileClick}
+				onRootClick={onRootClick}
 			/>
 		</>
 	);

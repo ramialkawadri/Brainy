@@ -15,7 +15,7 @@ import { updateRepetition } from "../../services/repetitionService";
 interface Props {
 	cells: Cell[];
 	cellRepetitions: Repetition[];
-	onEditButtonClick: () => void;
+	onEditButtonClick: (fileId: number) => void;
 	onReviewEnd: () => void;
 	onError: (message: string) => void;
 }
@@ -44,7 +44,7 @@ function Reviewer({
 	const dueToday = cellRepetitions.filter(
 		c => new Date(c.due) <= startTime.current,
 	);
-    if (dueToday.length === 0) onReviewEnd();
+	if (dueToday.length === 0) onReviewEnd();
 
 	const currentCard = createCardFromCellRepetition(
 		dueToday[currentCellIndex],
@@ -88,8 +88,7 @@ function Reviewer({
 		if (e.key === " ") {
 			setShowAnswer(true);
 		} else if (e.key.toLowerCase() === "e") {
-            // TODO: fix when started from home
-			onEditButtonClick();
+			onEditButtonClick(dueToday[currentCellIndex].fileId);
 		}
 
 		if (!showAnswer) {
@@ -153,7 +152,9 @@ function Reviewer({
 					<p>&nbsp;</p>
 					<button
 						className="row transparent"
-						onClick={onEditButtonClick}>
+						onClick={() =>
+							onEditButtonClick(dueToday[currentCellIndex].fileId)
+						}>
 						<Icon path={mdiPencilOutline} size={1} />
 						<span>Edit</span>
 					</button>

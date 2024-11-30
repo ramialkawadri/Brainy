@@ -20,6 +20,8 @@ export function getFileRepetitions(fileId: number): Promise<Repetition[]> {
 	});
 }
 
-export function getRepetitionsForFiles(fileIds: number[]): Promise<Repetition[]> {
-    return invoke("get_repetitions_for_files", {fileIds});
+export function getRepetitionsForFiles(
+	fileIds: number[],
+): Promise<Repetition[]> {
+	return invoke("get_repetitions_for_files", { fileIds });
 }

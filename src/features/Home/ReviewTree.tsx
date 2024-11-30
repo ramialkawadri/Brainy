@@ -45,7 +45,9 @@ function ReviewTree({
 					learningCount={learningCount}
 					reviewCount={reviewCount}
 					onExpandClick={() => setIsExpanded(!isExpanded)}
-                    onClick={() => file ? onFileClick(file) : onFolderClick(folder!)}
+					onClick={() =>
+						file ? onFileClick(file) : onFolderClick(folder!)
+					}
 				/>
 			)}
 

@@ -71,7 +71,6 @@ impl CellRepository for DefaultCellRepository {
     }
 
     async fn get_file_cells(&self, file_id: i32) -> Result<Vec<cell::Model>, String> {
-        // TODO: test
         let result = cell::Entity::find()
             .filter(cell::Column::FileId.eq(file_id))
             .all(&*self.db_conn)
@@ -378,5 +377,36 @@ mod tests {
         assert_eq!(actual[1].content, "cell 2".to_string());
 
         assert_eq!(actual[0].cell_type, CellType::FlashCard);
+    }
+
+    #[tokio::test]
+    async fn get_file_cells_valid_input_returned_cells() {
+        // Arrange
+
+        let repository = create_repository().await;
+        let user_repository = create_file_repository(repository.db_conn.clone());
+        let file_id = user_repository.create_file("file 1".into()).await.unwrap();
+        repository
+            .create_cell(file_id, "2".into(), CellType::FlashCard, 1)
+            .await
+            .unwrap();
+        repository
+            .create_cell(file_id, "2".into(), CellType::FlashCard, 2)
+            .await
+            .unwrap();
+
+        let file2_id = user_repository.create_file("file 2".into()).await.unwrap();
+        repository
+            .create_cell(file2_id, "1".into(), CellType::FlashCard, 1)
+            .await
+            .unwrap();
+
+        // Act
+
+        let actual = repository.get_file_cells(file_id).await.unwrap();
+
+        // Assert
+
+        assert_eq!(actual.len(), 2);
     }
 }

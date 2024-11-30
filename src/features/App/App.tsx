@@ -13,6 +13,7 @@ import { getFileCellsOrderedByIndex } from "../../services/cellService";
 import Cell from "../../types/backend/cell";
 import Repetition from "../../types/backend/repetition";
 import { getFileRepetitions } from "../../services/repetitionService";
+import { setSelectedFileId } from "../../store/reducers/fileSystemReducers";
 
 function App() {
 	const [isStudying, setIsStudying] = useState(false);
@@ -44,7 +45,7 @@ function App() {
 	) => {
 		cells.current = fileCells;
 		cellRepetitions.current = fileRepetitions;
-        setIsStudying(true);
+		setIsStudying(true);
 	};
 
 	useEffect(() => {
@@ -54,6 +55,11 @@ function App() {
 	useEffect(() => {
 		setIsStudying(false);
 	}, [dispatch, selectedFileId]);
+
+	const handleEditButtonClick = (fileId: number) => {
+		setIsStudying(false);
+		dispatch(setSelectedFileId(fileId));
+	};
 
 	return (
 		<div className={`${styles.workspace}`}>
@@ -66,7 +72,10 @@ function App() {
 				</div>
 			)}
 
-			<SideBar />
+			<SideBar
+				onFileClick={() => setIsStudying(false)}
+				onRootClick={() => setIsStudying(false)}
+			/>
 
 			<div className={`${styles.workarea}`}>
 				{!isStudying && !selectedFileId && (
@@ -85,7 +94,7 @@ function App() {
 
 				{isStudying && (
 					<Reviewer
-						onEditButtonClick={() => setIsStudying(false)}
+						onEditButtonClick={handleEditButtonClick}
 						onReviewEnd={() => setIsStudying(false)}
 						onError={setErrorMessage}
 						cells={cells.current}

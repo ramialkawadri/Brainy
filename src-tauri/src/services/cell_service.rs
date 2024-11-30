@@ -123,7 +123,6 @@ impl CellService for DefaultCellService {
     }
 
     async fn get_cells_for_files(&self, file_ids: Vec<i32>) -> Result<Vec<cell::Model>, String> {
-        // TODO: test
         let mut cells: Vec<cell::Model> = Vec::new();
         for file_id in file_ids {
             let mut file_cells = self.repository.get_file_cells(file_id).await?;
@@ -167,6 +166,13 @@ mod tests {
                 .expect_get_cell_by_id()
                 .with(predicate::eq(cell_id))
                 .return_once(|_| Ok(cell));
+        }
+
+        fn setup_get_file_cells(&mut self, file_id: i32, cells: Vec<cell::Model>) {
+            self.cell_repository
+                .expect_get_file_cells()
+                .with(predicate::eq(file_id))
+                .return_once(|_| Ok(cells));
         }
 
         fn assert_create_cell(
@@ -390,5 +396,45 @@ mod tests {
             .update_cell_content(cell_id, "new".into())
             .await
             .unwrap();
+    }
+
+    #[tokio::test]
+    pub async fn get_cells_for_files_valid_input_returned_cells() {
+        // Arrange
+
+        let mut deps = TestDependencies::new();
+        let file1_id = 1;
+        let file1_cells = vec![
+            cell::Model {
+                ..Default::default()
+            },
+            cell::Model {
+                ..Default::default()
+            },
+        ];
+        deps.setup_get_file_cells(file1_id, file1_cells);
+
+        let file2_id = 2;
+        let file2_cells = vec![
+            cell::Model {
+                ..Default::default()
+            },
+            cell::Model {
+                ..Default::default()
+            },
+        ];
+        deps.setup_get_file_cells(file2_id, file2_cells);
+
+        // Act
+
+        let actual = deps
+            .to_service()
+            .get_cells_for_files(vec![file1_id, file2_id])
+            .await
+            .unwrap();
+
+        // Assert
+
+        assert_eq!(4, actual.len());
     }
 }
