@@ -1,4 +1,4 @@
-import Folder from "./folder";
+import Folder from "../parsedFolder";
 import UiFile from "./uiFile";
 
 export default interface UiFolder extends Folder {

@@ -1,5 +1,5 @@
 import createDefaultCell from "../../utils/createDefaultCell";
-import Cell from "../../entities/cell";
+import Cell from "../../types/backend/cell";
 
 describe(createDefaultCell, () => {
 	it("Note", () => {

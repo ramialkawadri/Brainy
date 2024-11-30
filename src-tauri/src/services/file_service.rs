@@ -71,7 +71,6 @@ impl DefaultFileServices {
 #[async_trait]
 impl FileService for DefaultFileServices {
     async fn get_files(&self) -> Result<Vec<FileWithRepetitionsCount>, String> {
-        // TODO: update tests
         let files = self.repository.get_files().await?;
         let mut files_with_repetitions_counts: Vec<FileWithRepetitionsCount> = vec![];
         for file in files {
@@ -284,7 +283,13 @@ pub mod tests {
     use mockall::predicate;
 
     use super::*;
-    use crate::{entities::file, repositories::{file_repository::MockFileRepository, repetition_repository::MockRepetitionRepository}};
+    use crate::{
+        entities::file,
+        models::file_repetitions_count::FileRepetitionCounts,
+        repositories::{
+            file_repository::MockFileRepository, repetition_repository::MockRepetitionRepository,
+        },
+    };
 
     struct TestDependencies {
         file_repository: MockFileRepository,
@@ -338,6 +343,17 @@ pub mod tests {
                 .expect_file_exists()
                 .with(predicate::eq(path.to_string()))
                 .return_const(Ok(val));
+        }
+
+        fn setup_get_study_repetition_counts(
+            &mut self,
+            file_id: i32,
+            file_repetitions_count: FileRepetitionCounts,
+        ) {
+            self.repetition_repository
+                .expect_get_study_repetitions_counts()
+                .with(predicate::eq(file_id))
+                .return_const(Ok(file_repetitions_count));
         }
 
         fn assert_create_folder(&mut self, path: &str) {
@@ -394,6 +410,13 @@ pub mod tests {
             id: 10,
             ..Default::default()
         }];
+        let file_repetition_count = FileRepetitionCounts {
+            new: 1,
+            learning: 2,
+            relearning: 3,
+            review: 4,
+        };
+        deps.setup_get_study_repetition_counts(files[0].id, file_repetition_count.clone());
         deps.setup_get_files(files);
 
         // Act
@@ -404,6 +427,7 @@ pub mod tests {
 
         assert_eq!(actual.len(), 1);
         assert_eq!(actual[0].id, 10);
+        assert_eq!(actual[0].repetition_counts, Some(file_repetition_count));
     }
 
     #[tokio::test]

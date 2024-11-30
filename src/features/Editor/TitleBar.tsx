@@ -6,7 +6,7 @@ import {
 	selectFileById,
 	selectSelectedFileId,
 } from "../../store/selectors/fileSystemSelectors";
-import FileRepetitionCounts from "../../entities/fileRepetitionCounts";
+import FileRepetitionCounts from "../../types/backend/fileRepetitionCounts";
 
 interface Props {
 	repetitionCounts: FileRepetitionCounts;

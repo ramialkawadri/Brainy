@@ -14,11 +14,11 @@ import {
 import createCardFromCellRepetitionDto from "../../utils/createCardFromRepetition";
 import durationToString from "../../utils/durationToString";
 import useGlobalKey from "../../hooks/useGlobalKey";
-import Repetition from "../../entities/repetition";
+import Repetition from "../../types/backend/repetition";
 import useAppSelector from "../../hooks/useAppSelector";
 import { selectSelectedFileId } from "../../store/selectors/fileSystemSelectors";
 import createRepetitionFromCard from "../../utils/createRepetitionFromCard";
-import Cell from "../../entities/cell";
+import Cell from "../../types/backend/cell";
 import {
 	getFileRepetitions,
 	updateRepetition,

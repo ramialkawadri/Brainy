@@ -1,4 +1,4 @@
-import Cell, { CellType } from "../entities/cell";
+import Cell, { CellType } from "../types/backend/cell";
 import FlashCard from "../types/flashCard";
 
 function createDefaultCell(cellType: CellType, fileId: number, index: number) {

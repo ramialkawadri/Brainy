@@ -1,6 +1,6 @@
 import { mdiCardMultipleOutline, mdiHelp, mdiNoteOutline } from "@mdi/js";
 import getCellIcon from "../../utils/getCellIcon";
-import { CellType } from "../../entities/cell";
+import { CellType } from "../../types/backend/cell";
 
 describe(getCellIcon, () => {
 	it("Returns correct icon", () => {

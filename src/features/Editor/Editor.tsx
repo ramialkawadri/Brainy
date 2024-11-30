@@ -7,14 +7,14 @@ import styles from "./styles.module.css";
 import ConfirmationDialog from "../../ui/ConfirmationDialog/ConfirmationDialog";
 import useAppSelector from "../../hooks/useAppSelector";
 import { selectSelectedFileId } from "../../store/selectors/fileSystemSelectors";
-import Cell, { CellType } from "../../entities/cell";
+import Cell, { CellType } from "../../types/backend/cell";
 import FocusTools from "./FocusTools";
 import NewCellTypeSelector from "./NewCellTypeSelector";
 import Icon from "@mdi/react";
 import getCellIcon from "../../utils/getCellIcon";
 import EditorCell from "../EditorCell/EditorCell";
 import { mdiPlus } from "@mdi/js";
-import FileRepetitionCounts from "../../entities/fileRepetitionCounts";
+import FileRepetitionCounts from "../../types/backend/fileRepetitionCounts";
 import useBeforeUnload from "../../hooks/useBeforeUnload";
 import {
 	createCell,

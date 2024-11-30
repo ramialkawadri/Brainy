@@ -1,5 +1,5 @@
 import { mdiCardMultipleOutline, mdiHelp, mdiNoteOutline } from "@mdi/js";
-import { CellType } from "../entities/cell";
+import { CellType } from "../types/backend/cell";
 
 function getCellIcon(cellType: CellType): string {
 	switch (cellType) {

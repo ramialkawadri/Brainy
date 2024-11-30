@@ -1,5 +1,5 @@
-import FileWithRepetitionCounts from "../../entities/fileWithRepetitionCounts";
-import Folder from "../../types/folder";
+import FileWithRepetitionCounts from "../../types/backend/fileWithRepetitionCounts";
+import Folder from "../../types/parsedFolder";
 import parseGetFilesResponse from "../../utils/parseGetFilesResponse";
 
 describe(parseGetFilesResponse, () => {

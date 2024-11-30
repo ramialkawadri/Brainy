@@ -1,12 +1,20 @@
+import { useEffect } from "react";
+import useAppDispatch from "../../hooks/useAppDispatch";
 import useAppSelector from "../../hooks/useAppSelector";
+import { fetchFiles } from "../../store/actions/fileSystemActions";
 import { selectRootFolder } from "../../store/selectors/fileSystemSelectors";
 import ReviewTree from "./ReviewTree";
 import styles from "./styles.module.css";
 
 function Home() {
+	const dispatch = useAppDispatch();
 	const rootFolder = useAppSelector(selectRootFolder);
 
-    // TODO: implement on click
+    useEffect(() => {
+        void dispatch(fetchFiles());
+    }, [dispatch]);
+
+	// TODO: implement on click
 	// TODO: show something else if no files/folder are created
 	return (
 		<div className={styles.box}>
@@ -19,7 +27,7 @@ function Home() {
 				</div>
 			</div>
 			{rootFolder && (
-				<ReviewTree folder={rootFolder} name="" depthLevel={-1} />
+				<ReviewTree folder={rootFolder} indentationLevel={-1} />
 			)}
 		</div>
 	);

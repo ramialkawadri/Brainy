@@ -6,7 +6,7 @@ import {
 	deleteFolder,
 } from "../../store/actions/fileSystemActions.ts";
 import FileTreeItem from "./FileTreeItem.tsx";
-import UiFolder from "../../types/uiFolder.ts";
+import UiFolder from "../../types/ui/uiFolder.ts";
 
 interface Props {
 	folder: UiFolder;

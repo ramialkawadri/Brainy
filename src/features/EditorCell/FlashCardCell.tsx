@@ -1,4 +1,4 @@
-import Cell from "../../entities/cell";
+import Cell from "../../types/backend/cell";
 import FlashCard from "../../types/flashCard";
 import RichTextEditor from "../../ui/RichTextEditor/RichTextEditor";
 import styles from "./styles.module.css";

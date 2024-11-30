@@ -1,23 +1,21 @@
 import { useState } from "react";
-import Folder from "../../types/folder";
+import Folder from "../../types/parsedFolder";
 import styles from "./styles.module.css";
-import Icon from "@mdi/react";
-import { mdiMinus, mdiPlus } from "@mdi/js";
-import File from "../../types/file";
+import ParsedFile from "../../types/parsedFile";
+import Row from "./Row";
 
 interface Props {
 	folder?: Folder;
-	file?: File;
-	name: string;
-	depthLevel: number;
+	file?: ParsedFile;
+	name?: string;
+	indentationLevel: number;
 }
 
-function ReviewTree({ name, folder, file, depthLevel }: Props) {
-	console.log(folder);
+function ReviewTree({ name, folder, file, indentationLevel }: Props) {
 	const [isExpanded, setIsExpanded] = useState(!name);
 	const newCount = file
 		? file.repetitionCounts.new
-		: folder?.repetitionCounts?.new;
+		: folder!.repetitionCounts.new;
 	const learningCount = file
 		? file.repetitionCounts.learning + file.repetitionCounts.relearning
 		: folder!.repetitionCounts.learning +
@@ -26,44 +24,19 @@ function ReviewTree({ name, folder, file, depthLevel }: Props) {
 		? file.repetitionCounts.review
 		: folder!.repetitionCounts?.review;
 
-	// TODO: the row css class must be each own component
 	return (
 		<div className={name && styles.tree}>
 			{name && (
-				<div className={styles.row + " " + styles.treeRow}>
-					<div
-						className={styles.buttons}
-						style={{ paddingLeft: `${depthLevel * 12}px` }}>
-						<button onClick={() => setIsExpanded(!isExpanded)}>
-							{folder && (
-								<Icon
-									path={isExpanded ? mdiMinus : mdiPlus}
-									size={1}
-								/>
-							)}
-						</button>
-						<button>{name}</button>
-					</div>
-					<div className={styles.columns}>
-						<p className={newCount === 0 ? "dimmed" : "new-color"}>
-							{newCount}
-						</p>
-						<p
-							className={
-								learningCount === 0
-									? "dimmed"
-									: "learning-color"
-							}>
-							{learningCount}
-						</p>
-						<p
-							className={
-								reviewCount === 0 ? "dimmed" : "review-color"
-							}>
-							{reviewCount}
-						</p>
-					</div>
-				</div>
+				<Row
+					expandable={folder !== undefined}
+					isExapnded={isExpanded}
+					indentationLevel={indentationLevel}
+					name={name}
+					newCount={newCount}
+					learningCount={learningCount}
+					reviewCount={reviewCount}
+					onExpandClick={() => setIsExpanded(!isExpanded)}
+				/>
 			)}
 
 			{isExpanded &&
@@ -71,7 +44,7 @@ function ReviewTree({ name, folder, file, depthLevel }: Props) {
 					<ReviewTree
 						key={f.id}
 						name={f.name}
-						depthLevel={depthLevel + 1}
+						indentationLevel={indentationLevel + 1}
 						folder={f}
 					/>
 				))}
@@ -81,7 +54,7 @@ function ReviewTree({ name, folder, file, depthLevel }: Props) {
 					<ReviewTree
 						key={f.id}
 						name={f.name}
-						depthLevel={depthLevel + 1}
+						indentationLevel={indentationLevel + 1}
 						file={f}
 					/>
 				))}

@@ -2,7 +2,7 @@ import { forwardRef, useState } from "react";
 import styles from "./styles.module.css";
 import Icon from "@mdi/react";
 import getCellIcon from "../../utils/getCellIcon";
-import { allCellTypes, CellType } from "../../entities/cell";
+import { allCellTypes, CellType } from "../../types/backend/cell";
 
 interface Props {
 	className?: string;

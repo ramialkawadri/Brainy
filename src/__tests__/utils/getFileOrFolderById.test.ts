@@ -1,20 +1,32 @@
-import File from "../../types/file";
-import Folder from "../../types/folder";
+import ParsedFile from "../../types/parsedFile";
+import Folder from "../../types/parsedFolder";
 import getFileOrFolderById from "../../utils/getFilOrFolderById";
 
 describe(getFileOrFolderById, () => {
 	it("Returns existing file", () => {
 		// Arrange
 
-		const expectedFile: File = {
+		const expectedFile: ParsedFile = {
 			id: 2,
 			name: "test",
+			repetitionCounts: {
+				new: 0,
+				learning: 0,
+				relearning: 0,
+				review: 0,
+			},
 		};
 		const folder: Folder = {
 			id: 1,
 			name: "",
 			files: [expectedFile],
 			subFolders: [],
+			repetitionCounts: {
+				new: 0,
+				learning: 0,
+				relearning: 0,
+				review: 0,
+			},
 		};
 
 		// Act
@@ -34,12 +46,24 @@ describe(getFileOrFolderById, () => {
 			name: "test",
 			subFolders: [],
 			files: [],
+			repetitionCounts: {
+				new: 0,
+				learning: 0,
+				relearning: 0,
+				review: 0,
+			},
 		};
 		const folder: Folder = {
 			id: 1,
 			name: "",
 			files: [],
 			subFolders: [expectedFolder],
+			repetitionCounts: {
+				new: 0,
+				learning: 0,
+				relearning: 0,
+				review: 0,
+			},
 		};
 
 		// Act
@@ -59,6 +83,12 @@ describe(getFileOrFolderById, () => {
 			name: "",
 			files: [],
 			subFolders: [],
+			repetitionCounts: {
+				new: 0,
+				learning: 0,
+				relearning: 0,
+				review: 0,
+			},
 		};
 
 		// Act

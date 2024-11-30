@@ -26,7 +26,7 @@ import {
 } from "../../store/actions/fileSystemActions";
 import getFileName from "../../utils/getFileName";
 import { setSelectedFileId } from "../../store/reducers/fileSystemReducers";
-import UiFolder from "../../types/uiFolder";
+import UiFolder from "../../types/ui/uiFolder";
 
 const dragFormatForFolder = "brainy/folderpath";
 const dragFormatForFile = "brainy/filepath";

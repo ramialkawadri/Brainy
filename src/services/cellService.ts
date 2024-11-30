@@ -1,5 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
-import Cell from "../entities/cell";
+import Cell from "../types/backend/cell";
 
 export function getFileCellsOrderedByIndex(fileId: number): Promise<Cell[]> {
 	return invoke("get_file_cells_ordered_by_index", {

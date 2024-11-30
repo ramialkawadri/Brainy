@@ -1,10 +1,17 @@
-import Folder from "../../types/folder";
-import UiFolder from "../../types/uiFolder";
+import Folder from "../../types/parsedFolder";
+import UiFolder from "../../types/ui/uiFolder";
 import searchFolder from "../../utils/searchFolder";
 
 describe(searchFolder, () => {
 	it("Searches folder correctly", () => {
 		// Arrange
+
+		const repetitionCounts = {
+			new: 0,
+			learning: 0,
+			relearning: 0,
+			review: 0,
+		};
 
 		const folder: Folder = {
 			id: 0,
@@ -13,10 +20,12 @@ describe(searchFolder, () => {
 				{
 					id: 1,
 					name: "search",
+					repetitionCounts,
 				},
 				{
 					id: 2,
 					name: "not visible",
+					repetitionCounts,
 				},
 			],
 			subFolders: [
@@ -28,8 +37,11 @@ describe(searchFolder, () => {
 						{
 							id: 4,
 							name: "search file",
+							repetitionCounts,
 						},
 					],
+
+					repetitionCounts,
 				},
 				{
 					id: 4,
@@ -37,8 +49,10 @@ describe(searchFolder, () => {
 					name: "search",
 					subFolders: [],
 					files: [],
+					repetitionCounts,
 				},
 			],
+			repetitionCounts,
 		};
 		const expected: UiFolder = {
 			id: 0,
@@ -49,11 +63,13 @@ describe(searchFolder, () => {
 					id: 1,
 					name: "search",
 					isVisible: true,
+					repetitionCounts,
 				},
 				{
 					id: 2,
 					name: "not visible",
 					isVisible: false,
+					repetitionCounts,
 				},
 			],
 			subFolders: [
@@ -67,8 +83,10 @@ describe(searchFolder, () => {
 							id: 4,
 							name: "search file",
 							isVisible: true,
+							repetitionCounts,
 						},
 					],
+					repetitionCounts,
 				},
 				{
 					id: 4,
@@ -77,8 +95,10 @@ describe(searchFolder, () => {
 					subFolders: [],
 					files: [],
 					isVisible: false,
+					repetitionCounts,
 				},
 			],
+			repetitionCounts,
 		};
 
 		// Act

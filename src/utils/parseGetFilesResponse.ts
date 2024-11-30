@@ -1,6 +1,6 @@
-import FileRepetitionCounts from "../entities/fileRepetitionCounts";
-import FileWithRepetitionCounts from "../entities/fileWithRepetitionCounts";
-import Folder from "../types/folder";
+import FileRepetitionCounts from "../types/backend/fileRepetitionCounts";
+import FileWithRepetitionCounts from "../types/backend/fileWithRepetitionCounts";
+import Folder from "../types/parsedFolder";
 
 function parseGetFilesResponse(entities: FileWithRepetitionCounts[]): Folder {
 	return parseGetFilesResponseHelper(entities, "", 0);

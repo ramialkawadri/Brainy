@@ -1,5 +1,5 @@
 import { Card, State } from "ts-fsrs";
-import Repetition, { RepetitionState } from "../entities/repetition";
+import Repetition, { RepetitionState } from "../types/backend/repetition";
 
 function createRepetitionFromCard(
 	card: Card,

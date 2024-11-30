@@ -1,4 +1,4 @@
-import Cell from "../../entities/cell";
+import Cell from "../../types/backend/cell";
 import FlashCardReviewView from "./FlashCardReviewView";
 
 interface Props {
