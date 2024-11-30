@@ -6,10 +6,16 @@ import useAppDispatch from "../../hooks/useAppDispatch";
 import {
 	selectError,
 	selectRootFolder,
+	selectSelectedFileId,
 } from "../../store/selectors/fileSystemSelectors";
-import { setErrorMessage } from "../../store/reducers/fileSystemReducers";
+import {
+	setErrorMessage,
+	setSelectedFileId,
+} from "../../store/reducers/fileSystemReducers";
 import { useMemo, useState } from "react";
 import searchFolder from "../../utils/searchFolder";
+import { mdiHome, mdiMagnify } from "@mdi/js";
+import Icon from "@mdi/react";
 
 interface Props {
 	onFileClick: () => void;
@@ -25,17 +31,25 @@ function SideBar({ onFileClick, onRootClick }: Props) {
 		() => searchFolder(rootFolder, searchText ?? ""),
 		[rootFolder, searchText],
 	);
+	const selectedFileId = useAppSelector(selectSelectedFileId);
 
 	return (
 		<div className={`${styles.sideBar}`}>
+			<button
+				className={`${selectedFileId === null ? "primary" : "transparent"} ${styles.homeRow}`}
+				onClick={() => dispatch(setSelectedFileId(null))}>
+				<Icon path={mdiHome} size={1} />
+				<p>Home</p>
+			</button>
+
 			<div>
 				<div className={`${styles.searchBar}`}>
+                    <Icon path={mdiMagnify} size={1} className={styles.searchIcon} />
 					<input
 						type="text"
 						placeholder="Search"
 						onChange={e => setSearchText(e.target.value)}
 						value={searchText ?? ""}
-						className={`${styles.sideBarSearch}`}
 					/>
 				</div>
 
