@@ -7,7 +7,8 @@ pub use repetition_api::{
 };
 
 pub use cell_api::{
-    create_cell, delete_cell, get_file_cells_ordered_by_index, move_cell, update_cell,
+    create_cell, delete_cell, get_cells_for_files, get_file_cells_ordered_by_index, move_cell,
+    update_cell,
 };
 
 pub use file_api::{

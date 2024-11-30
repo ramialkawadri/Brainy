@@ -44,6 +44,8 @@ function Reviewer({
 	const dueToday = cellRepetitions.filter(
 		c => new Date(c.due) <= startTime.current,
 	);
+    if (dueToday.length === 0) onReviewEnd();
+
 	const currentCard = createCardFromCellRepetition(
 		dueToday[currentCellIndex],
 	);
@@ -86,6 +88,7 @@ function Reviewer({
 		if (e.key === " ") {
 			setShowAnswer(true);
 		} else if (e.key.toLowerCase() === "e") {
+            // TODO: fix when started from home
 			onEditButtonClick();
 		}
 

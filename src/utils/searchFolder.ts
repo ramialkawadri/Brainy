@@ -6,7 +6,7 @@ function searchFolder(folder: ParsedFolder, searchText: string): UiFolder {
 	const subFolders = folder.subFolders.map(f => searchFolder(f, searchText));
 	const files: UiFile[] = folder.files.map(f => ({
 		...f,
-		isVisible: f.name.includes(searchText),
+		isVisible: f.name.toLowerCase().includes(searchText.toLowerCase()),
 	}));
 
 	const isVisible =

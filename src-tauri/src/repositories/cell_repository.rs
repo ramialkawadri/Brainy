@@ -17,6 +17,7 @@ pub trait CellRepository {
         &self,
         file_id: i32,
     ) -> Result<Vec<cell::Model>, String>;
+    async fn get_file_cells(&self, file_id: i32) -> Result<Vec<cell::Model>, String>;
     async fn increase_cells_indices_starting_from(
         &self,
         file_id: i32,
@@ -61,6 +62,18 @@ impl CellRepository for DefaultCellRepository {
         let result = cell::Entity::find()
             .filter(cell::Column::FileId.eq(file_id))
             .order_by_asc(cell::Column::Index)
+            .all(&*self.db_conn)
+            .await;
+        match result {
+            Ok(result) => Ok(result),
+            Err(err) => Err(err.to_string()),
+        }
+    }
+
+    async fn get_file_cells(&self, file_id: i32) -> Result<Vec<cell::Model>, String> {
+        // TODO: test
+        let result = cell::Entity::find()
+            .filter(cell::Column::FileId.eq(file_id))
             .all(&*self.db_conn)
             .await;
         match result {
@@ -139,8 +152,8 @@ mod tests {
 
     use super::*;
     use crate::repositories::{
-        tests::get_db,
         file_repository::{DefaultFileRepository, FileRepository},
+        tests::get_db,
     };
 
     async fn create_repository() -> DefaultCellRepository {

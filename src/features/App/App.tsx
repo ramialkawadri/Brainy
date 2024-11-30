@@ -44,6 +44,7 @@ function App() {
 	) => {
 		cells.current = fileCells;
 		cellRepetitions.current = fileRepetitions;
+        setIsStudying(true);
 	};
 
 	useEffect(() => {
@@ -68,18 +69,21 @@ function App() {
 			<SideBar />
 
 			<div className={`${styles.workarea}`}>
-				{!selectedFileId && (
-					<Home onStudyClick={handleHomeStudyClick} />
+				{!isStudying && !selectedFileId && (
+					<Home
+						onStudyClick={handleHomeStudyClick}
+						onError={setErrorMessage}
+					/>
 				)}
 
-				{selectedFileId && !isStudying && (
+				{!isStudying && selectedFileId && (
 					<Editor
 						onError={setErrorMessage}
 						onStudyButtonClick={() => void handleEditorStudyClick()}
 					/>
 				)}
 
-				{selectedFileId && isStudying && (
+				{isStudying && (
 					<Reviewer
 						onEditButtonClick={() => setIsStudying(false)}
 						onReviewEnd={() => setIsStudying(false)}

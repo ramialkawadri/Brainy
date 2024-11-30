@@ -9,12 +9,15 @@ import ParsedFile from "../../types/parsedFile";
 import ParsedFolder from "../../types/parsedFolder";
 import Repetition from "../../types/backend/repetition";
 import Cell from "../../types/backend/cell";
+import { getCellsForFiles } from "../../services/cellService";
+import { getRepetitionsForFiles } from "../../services/repetitionService";
 
 interface Props {
 	onStudyClick: (fileCells: Cell[], fileRepetitions: Repetition[]) => void;
+	onError: (message: string) => void;
 }
 
-function Home({ onStudyClick }: Props) {
+function Home({ onStudyClick, onError }: Props) {
 	const dispatch = useAppDispatch();
 	const rootFolder = useAppSelector(selectRootFolder);
 
@@ -22,15 +25,36 @@ function Home({ onStudyClick }: Props) {
 		void dispatch(fetchFiles());
 	}, [dispatch]);
 
-	const handleFileClick = (file: ParsedFile) => {
-        // TODO: end rust to also return cells + repetitions
+    const startStudyForFiles = async (fileIds: number[]) => {
+		try {
+			const cells = await getCellsForFiles(fileIds);
+            if (cells.length == 0) return;
+            const repetitions = await getRepetitionsForFiles(fileIds);
+            onStudyClick(cells, repetitions);
+		} catch (e) {
+			console.error(e);
+			if (e instanceof Error) onError(e.message);
+			else onError(e as string);
+		}
     };
 
-	const handleFolderClick = (folder: ParsedFolder) => {
-        // TODO: end rust to also return cells + repetitions
-    };
+	const handleFileClick = async (file: ParsedFile) => {
+        await startStudyForFiles([file.id]);
+	};
 
-	// TODO: implement on click
+	const handleFolderClick = async (folder: ParsedFolder) => {
+        const fileIds = [];
+        const folderQueue = [folder];
+        while (folderQueue.length > 0) {
+            const currentFolder = folderQueue.pop()!;
+            for (const file of currentFolder.files) {
+                fileIds.push(file.id);
+            }
+            folderQueue.push(...currentFolder.subFolders);
+        }
+        await startStudyForFiles(fileIds);
+	};
+
 	// TODO: show something else if no files/folder are created
 	return (
 		<div className={styles.home}>
@@ -44,7 +68,12 @@ function Home({ onStudyClick }: Props) {
 					</div>
 				</div>
 				{rootFolder && (
-					<ReviewTree folder={rootFolder} indentationLevel={-1} />
+					<ReviewTree
+						folder={rootFolder}
+						indentationLevel={-1}
+						onFileClick={handleFileClick}
+						onFolderClick={handleFolderClick}
+					/>
 				)}
 			</div>
 		</div>

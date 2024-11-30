@@ -10,7 +10,10 @@ use super::repetition_service::RepetitionService;
 
 #[async_trait]
 pub trait CellService {
-    async fn get_file_cells(&self, file_id: i32) -> Result<Vec<cell::Model>, String>;
+    async fn get_file_cells_ordered_by_index(
+        &self,
+        file_id: i32,
+    ) -> Result<Vec<cell::Model>, String>;
     async fn create_cell(
         &self,
         file_id: i32,
@@ -21,6 +24,7 @@ pub trait CellService {
     async fn delete_cell(&self, cell_id: i32) -> Result<(), String>;
     async fn move_cell(&self, cell_id: i32, new_index: i32) -> Result<(), String>;
     async fn update_cell_content(&self, cell_id: i32, content: String) -> Result<(), String>;
+    async fn get_cells_for_files(&self, file_ids: Vec<i32>) -> Result<Vec<cell::Model>, String>;
 }
 
 pub struct DefaultCellService {
@@ -42,8 +46,13 @@ impl DefaultCellService {
 
 #[async_trait]
 impl CellService for DefaultCellService {
-    async fn get_file_cells(&self, file_id: i32) -> Result<Vec<cell::Model>, String> {
-        self.repository.get_file_cells_ordered_by_index(file_id).await
+    async fn get_file_cells_ordered_by_index(
+        &self,
+        file_id: i32,
+    ) -> Result<Vec<cell::Model>, String> {
+        self.repository
+            .get_file_cells_ordered_by_index(file_id)
+            .await
     }
 
     async fn create_cell(
@@ -111,6 +120,16 @@ impl CellService for DefaultCellService {
         self.repetition_service
             .update_repetitions_for_cell(cell.file_id, cell_id, cell.cell_type)
             .await
+    }
+
+    async fn get_cells_for_files(&self, file_ids: Vec<i32>) -> Result<Vec<cell::Model>, String> {
+        // TODO: test
+        let mut cells: Vec<cell::Model> = Vec::new();
+        for file_id in file_ids {
+            let mut file_cells = self.repository.get_file_cells(file_id).await?;
+            cells.append(&mut file_cells);
+        }
+        Ok(cells)
     }
 }
 

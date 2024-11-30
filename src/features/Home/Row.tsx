@@ -11,6 +11,7 @@ interface Props {
 	learningCount: number;
 	reviewCount: number;
 	onExpandClick: () => void;
+	onClick: () => Promise<void>;
 }
 
 function Row({
@@ -22,6 +23,7 @@ function Row({
 	learningCount,
 	reviewCount,
 	onExpandClick,
+	onClick,
 }: Props) {
 	return (
 		<div className={styles.row + " " + styles.treeRow}>
@@ -39,7 +41,11 @@ function Row({
 						<Icon path={isExapnded ? mdiMinus : mdiPlus} size={1} />
 					</button>
 				)}
-				<button className={styles.fileNameButton}>{name}</button>
+				<button
+					className={styles.fileNameButton}
+					onClick={() => void onClick()}>
+					{name}
+				</button>
 			</div>
 			<div className={styles.columns}>
 				<p className={newCount === 0 ? "dimmed" : "new-color"}>

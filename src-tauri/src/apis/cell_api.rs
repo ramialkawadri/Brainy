@@ -9,7 +9,7 @@ pub async fn get_file_cells_ordered_by_index(
     cell_service: State<'_, Arc<dyn CellService + Sync + Send>>,
     file_id: i32,
 ) -> Result<Vec<cell::Model>, String> {
-    cell_service.get_file_cells(file_id).await
+    cell_service.get_file_cells_ordered_by_index(file_id).await
 }
 
 #[tauri::command]
@@ -49,4 +49,12 @@ pub async fn update_cell(
     content: String,
 ) -> Result<(), String> {
     cell_service.update_cell_content(cell_id, content).await
+}
+
+#[tauri::command]
+pub async fn get_cells_for_files(
+    cell_service: State<'_, Arc<dyn CellService + Sync + Send>>,
+    file_ids: Vec<i32>,
+) -> Result<Vec<cell::Model>, String> {
+    cell_service.get_cells_for_files(file_ids).await
 }

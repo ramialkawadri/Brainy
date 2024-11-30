@@ -9,9 +9,18 @@ interface Props {
 	file?: ParsedFile;
 	name?: string;
 	indentationLevel: number;
+	onFileClick: (file: ParsedFile) => Promise<void>;
+	onFolderClick: (folder: ParsedFolder) => Promise<void>;
 }
 
-function ReviewTree({ name, folder, file, indentationLevel }: Props) {
+function ReviewTree({
+	name,
+	folder,
+	file,
+	indentationLevel,
+	onFileClick,
+	onFolderClick,
+}: Props) {
 	const [isExpanded, setIsExpanded] = useState(!name);
 	const newCount = file
 		? file.repetitionCounts.new
@@ -36,6 +45,7 @@ function ReviewTree({ name, folder, file, indentationLevel }: Props) {
 					learningCount={learningCount}
 					reviewCount={reviewCount}
 					onExpandClick={() => setIsExpanded(!isExpanded)}
+                    onClick={() => file ? onFileClick(file) : onFolderClick(folder!)}
 				/>
 			)}
 
@@ -46,6 +56,8 @@ function ReviewTree({ name, folder, file, indentationLevel }: Props) {
 						name={f.name}
 						indentationLevel={indentationLevel + 1}
 						folder={f}
+						onFileClick={onFileClick}
+						onFolderClick={onFolderClick}
 					/>
 				))}
 
@@ -56,6 +68,8 @@ function ReviewTree({ name, folder, file, indentationLevel }: Props) {
 						name={f.name}
 						indentationLevel={indentationLevel + 1}
 						file={f}
+						onFileClick={onFileClick}
+						onFolderClick={onFolderClick}
 					/>
 				))}
 		</div>
