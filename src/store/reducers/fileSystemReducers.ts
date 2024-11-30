@@ -1,9 +1,9 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
-import Folder from "../../types/parsedFolder";
+import ParsedFolder from "../../types/parsedFolder";
 
 interface FileSystemState {
 	error: string | null;
-	rootFolder: Folder;
+	rootFolder: ParsedFolder;
 	selectedFileId: number | null;
 }
 
@@ -31,7 +31,7 @@ export const fileSystemSlice = createSlice({
 		requestStart: state => {
 			state.error = null;
 		},
-		requestSuccess: (state, payload: PayloadAction<Folder>) => {
+		requestSuccess: (state, payload: PayloadAction<ParsedFolder>) => {
 			state.error = null;
 			state.rootFolder = payload.payload;
 		},

@@ -1,5 +1,5 @@
 import ParsedFile from "../../types/parsedFile";
-import Folder from "../../types/parsedFolder";
+import ParsedFolder from "../../types/parsedFolder";
 import getFileOrFolderById from "../../utils/getFilOrFolderById";
 
 describe(getFileOrFolderById, () => {
@@ -16,7 +16,7 @@ describe(getFileOrFolderById, () => {
 				review: 0,
 			},
 		};
-		const folder: Folder = {
+		const folder: ParsedFolder = {
 			id: 1,
 			name: "",
 			files: [expectedFile],
@@ -41,7 +41,7 @@ describe(getFileOrFolderById, () => {
 	it("Returns existing folder", () => {
 		// Arrange
 
-		const expectedFolder: Folder = {
+		const expectedFolder: ParsedFolder = {
 			id: 2,
 			name: "test",
 			subFolders: [],
@@ -53,7 +53,7 @@ describe(getFileOrFolderById, () => {
 				review: 0,
 			},
 		};
-		const folder: Folder = {
+		const folder: ParsedFolder = {
 			id: 1,
 			name: "",
 			files: [],
@@ -78,7 +78,7 @@ describe(getFileOrFolderById, () => {
 	it("Non existing file", () => {
 		// Arrange
 
-		const folder: Folder = {
+		const folder: ParsedFolder = {
 			id: 1,
 			name: "",
 			files: [],

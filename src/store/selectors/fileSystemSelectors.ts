@@ -1,6 +1,6 @@
 import { createSelector } from "@reduxjs/toolkit";
 import ParsedFile from "../../types/parsedFile";
-import Folder from "../../types/parsedFolder";
+import ParsedFolder from "../../types/parsedFolder";
 import { RootState } from "../store";
 import getFileOrFolderById from "../../utils/getFilOrFolderById";
 
@@ -19,5 +19,5 @@ export const selectFileById = createSelector(
 
 export const selectFolderById = createSelector(
 	[selectRootFolder, (_, id: number) => id],
-	(rootFolder, id) => getFileOrFolderById(rootFolder, id) as Folder,
+	(rootFolder, id) => getFileOrFolderById(rootFolder, id) as ParsedFolder,
 );

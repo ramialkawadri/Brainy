@@ -1,5 +1,5 @@
 import FileWithRepetitionCounts from "../../types/backend/fileWithRepetitionCounts";
-import Folder from "../../types/parsedFolder";
+import ParsedFolder from "../../types/parsedFolder";
 import parseGetFilesResponse from "../../utils/parseGetFilesResponse";
 
 describe(parseGetFilesResponse, () => {
@@ -90,7 +90,7 @@ describe(parseGetFilesResponse, () => {
 			},
 		];
 
-		const folder2: Folder = {
+		const folder2: ParsedFolder = {
 			id: 3,
 			name: "folder 2",
 			repetitionCounts: {
@@ -123,7 +123,7 @@ describe(parseGetFilesResponse, () => {
 				},
 			],
 		};
-		const folder1: Folder = {
+		const folder1: ParsedFolder = {
 			id: 2,
 			name: "folder 1",
 			repetitionCounts: {
@@ -156,7 +156,7 @@ describe(parseGetFilesResponse, () => {
 			],
 			subFolders: [folder2],
 		};
-		const folder3: Folder = {
+		const folder3: ParsedFolder = {
 			id: 4,
 			name: "folder 3",
 			repetitionCounts: {
@@ -179,7 +179,7 @@ describe(parseGetFilesResponse, () => {
 			],
 			subFolders: [],
 		};
-		const expected: Folder = {
+		const expected: ParsedFolder = {
 			id: 0,
 			name: "",
 			repetitionCounts: {

@@ -1,8 +1,10 @@
 import FileRepetitionCounts from "../types/backend/fileRepetitionCounts";
 import FileWithRepetitionCounts from "../types/backend/fileWithRepetitionCounts";
-import Folder from "../types/parsedFolder";
+import ParsedFolder from "../types/parsedFolder";
 
-function parseGetFilesResponse(entities: FileWithRepetitionCounts[]): Folder {
+function parseGetFilesResponse(
+	entities: FileWithRepetitionCounts[],
+): ParsedFolder {
 	return parseGetFilesResponseHelper(entities, "", 0);
 }
 
@@ -16,7 +18,7 @@ function parseGetFilesResponseHelper(
 	 */
 	const subFolders: Record<string, FileWithRepetitionCounts[]> = {};
 	const subFoldersIds: Record<string, number> = {};
-	const folder: Folder = {
+	const folder: ParsedFolder = {
 		id,
 		name: folderName,
 		subFolders: [],

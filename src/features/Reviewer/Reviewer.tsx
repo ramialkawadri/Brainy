@@ -3,29 +3,18 @@ import styles from "./styles.module.css";
 import ReviewerCell from "../ReviewerCell/ReviewerCell";
 import Icon from "@mdi/react";
 import { mdiClockOutline, mdiPencilOutline } from "@mdi/js";
-import {
-	createEmptyCard,
-	FSRS,
-	generatorParameters,
-	Grade,
-	Rating,
-	RecordLog,
-} from "ts-fsrs";
-import createCardFromCellRepetitionDto from "../../utils/createCardFromRepetition";
+import { FSRS, generatorParameters, Grade, Rating, RecordLog } from "ts-fsrs";
+import createCardFromCellRepetition from "../../utils/createCardFromRepetition";
 import durationToString from "../../utils/durationToString";
 import useGlobalKey from "../../hooks/useGlobalKey";
 import Repetition from "../../types/backend/repetition";
-import useAppSelector from "../../hooks/useAppSelector";
-import { selectSelectedFileId } from "../../store/selectors/fileSystemSelectors";
 import createRepetitionFromCard from "../../utils/createRepetitionFromCard";
 import Cell from "../../types/backend/cell";
-import {
-	getFileRepetitions,
-	updateRepetition,
-} from "../../services/repetitionService";
-import { getFileCellsOrderedByIndex } from "../../services/cellService";
+import { updateRepetition } from "../../services/repetitionService";
 
 interface Props {
+	cells: Cell[];
+	cellRepetitions: Repetition[];
 	onEditButtonClick: () => void;
 	onReviewEnd: () => void;
 	onError: (message: string) => void;
@@ -34,46 +23,30 @@ interface Props {
 const params = generatorParameters();
 const fsrs = new FSRS(params);
 
-function Reviewer({ onEditButtonClick, onError, onReviewEnd }: Props) {
+function Reviewer({
+	cells,
+	cellRepetitions,
+	onEditButtonClick,
+	onError,
+	onReviewEnd,
+}: Props) {
 	const [showAnswer, setShowAnswer] = useState(false);
-	const [isLoading, setIsLoading] = useState(true);
 	const [currentCellIndex, setCurrentCellIndex] = useState(0);
 	const [isSendingRequest, setIsSendingRequest] = useState(false);
-	const [cellRepetitions, setCellRepetitions] = useState<Repetition[]>([]);
 	const [timerTime, setTimerTime] = useState(0);
-	const [cells, setCells] = useState<Cell[]>([]);
 	const startTime = useRef(new Date());
-	const selectedFileId = useAppSelector(selectSelectedFileId)!;
 
 	useEffect(() => {
 		const intervalId = setInterval(() => setTimerTime(timerTime + 1), 1000);
 		return () => clearInterval(intervalId);
 	}, [timerTime]);
 
-	useEffect(() => {
-		void (async () => {
-			try {
-				setIsLoading(true);
-				const repetitions = await getFileRepetitions(selectedFileId);
-				setCellRepetitions(repetitions);
-				const fetchedCells =
-					await getFileCellsOrderedByIndex(selectedFileId);
-				setCells(fetchedCells);
-				setIsLoading(false);
-			} catch (e) {
-				console.error(e);
-				if (e instanceof Error) onError(e.message);
-				else onError(e as string);
-			}
-		})();
-	}, [onError, selectedFileId]);
-
 	const dueToday = cellRepetitions.filter(
 		c => new Date(c.due) <= startTime.current,
 	);
-	const currentCard = isLoading
-		? createEmptyCard()
-		: createCardFromCellRepetitionDto(dueToday[currentCellIndex]);
+	const currentCard = createCardFromCellRepetition(
+		dueToday[currentCellIndex],
+	);
 
 	const schedulingCards: RecordLog = useMemo(
 		() => fsrs.repeat(currentCard, startTime.current),
@@ -130,14 +103,11 @@ function Reviewer({ onEditButtonClick, onError, onReviewEnd }: Props) {
 		}
 	});
 
-	const isCurrentCellNew =
-		!isLoading && dueToday[currentCellIndex].state === "New";
+	const isCurrentCellNew = dueToday[currentCellIndex].state === "New";
 	const isCurrentCellLearning =
-		!isLoading &&
-		(dueToday[currentCellIndex].state === "Learning" ||
-			dueToday[currentCellIndex].state === "Relearning");
-	const isCurrentCellReview =
-		!isLoading && dueToday[currentCellIndex].state === "Review";
+		dueToday[currentCellIndex].state === "Learning" ||
+		dueToday[currentCellIndex].state === "Relearning";
+	const isCurrentCellReview = dueToday[currentCellIndex].state === "Review";
 
 	const counts = {
 		new: 0,
@@ -165,16 +135,14 @@ function Reviewer({ onEditButtonClick, onError, onReviewEnd }: Props) {
 	return (
 		<div className={styles.reviewer}>
 			<div className={`${styles.container}`}>
-				{!isLoading && (
-					<ReviewerCell
-						cell={
-							cells.find(
-								c => c.id === dueToday[currentCellIndex].cellId,
-							)!
-						}
-						showAnswer={showAnswer}
-					/>
-				)}
+				<ReviewerCell
+					cell={
+						cells.find(
+							c => c.id === dueToday[currentCellIndex].cellId,
+						)!
+					}
+					showAnswer={showAnswer}
+				/>
 			</div>
 
 			<div className={styles.bottomBar}>

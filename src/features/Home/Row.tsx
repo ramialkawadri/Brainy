@@ -2,7 +2,7 @@ import { mdiMinus, mdiPlus } from "@mdi/js";
 import styles from "./styles.module.css";
 import Icon from "@mdi/react";
 
-interface IProps {
+interface Props {
 	expandable: boolean;
 	isExapnded: boolean;
 	indentationLevel: number;
@@ -22,18 +22,24 @@ function Row({
 	learningCount,
 	reviewCount,
 	onExpandClick,
-}: IProps) {
+}: Props) {
 	return (
 		<div className={styles.row + " " + styles.treeRow}>
 			<div
 				className={styles.buttons}
 				style={{ paddingLeft: `${indentationLevel * 12}px` }}>
-				<button onClick={onExpandClick}>
-					{expandable && (
+				{!expandable && ( // Empty span to have consistent style
+					<span></span>
+				)}
+
+				{expandable && (
+					<button
+						onClick={onExpandClick}
+						className={styles.expandButton}>
 						<Icon path={isExapnded ? mdiMinus : mdiPlus} size={1} />
-					)}
-				</button>
-				<button>{name}</button>
+					</button>
+				)}
+				<button className={styles.fileNameButton}>{name}</button>
 			</div>
 			<div className={styles.columns}>
 				<p className={newCount === 0 ? "dimmed" : "new-color"}>

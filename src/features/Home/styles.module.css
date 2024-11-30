@@ -1,11 +1,19 @@
+.home {
+	padding: 2.4rem 1.2rem;
+}
+
 .box {
-	max-width: 500px;
+	max-width: 600px;
 	width: 100%;
 	background: var(--default-background-color);
-	margin: 2.4rem auto;
+	margin: 0 auto;
 	border-radius: var(--default-border-radius);
-	box-shadow: var(--default-box-shadow);
-	padding: var(--default-padding);
+	box-shadow: var(--dark-box-shadow);
+	padding: var(--default-padding) var(--medium-padding);
+
+	& * {
+		font-size: 1.6rem;
+	}
 }
 
 .header {
@@ -18,7 +26,7 @@
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-	padding: var(--small-padding);
+	padding: var(--extra-small-padding);
 
 	& .buttons {
 		display: grid;
@@ -30,6 +38,15 @@
 			display: flex;
 			align-items: center;
 		}
+	}
+
+	.file-name-button {
+		padding: 0.4rem;
+	}
+
+	.expand-button:focus,
+	.file-name-button:focus {
+		border-color: var(--primary-color);
 	}
 
 	& .columns {
@@ -50,6 +67,8 @@
 		transition: all var(--default-transition-time);
 		cursor: pointer;
 
+		&:focus,
+		&:focus-within,
 		&:hover {
 			background-color: var(--grey-background-color);
 		}

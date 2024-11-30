@@ -1,10 +1,10 @@
 import ParsedFile from "../types/parsedFile";
-import Folder from "../types/parsedFolder";
+import ParsedFolder from "../types/parsedFolder";
 
 function getFileOrFolderById(
-	folder: Folder,
+	folder: ParsedFolder,
 	id: number,
-): ParsedFile | Folder | null {
+): ParsedFile | ParsedFolder | null {
 	let queue = [folder];
 
 	while (queue.length > 0) {

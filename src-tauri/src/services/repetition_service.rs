@@ -28,6 +28,11 @@ pub trait RepetitionService {
     async fn get_file_repetitions(&self, file_id: i32) -> Result<Vec<repetition::Model>, String>;
 
     async fn update_repetition(&self, repetition: repetition::Model) -> Result<(), String>;
+
+    async fn get_repetitions_for_files(
+        &self,
+        file_ids: Vec<i32>,
+    ) -> Result<Vec<repetition::Model>, String>;
 }
 
 pub struct DefaultRepetitionService {
@@ -80,6 +85,19 @@ impl RepetitionService for DefaultRepetitionService {
 
     async fn update_repetition(&self, repetition: repetition::Model) -> Result<(), String> {
         self.repository.update_repetition(repetition).await
+    }
+
+    async fn get_repetitions_for_files(
+        &self,
+        file_ids: Vec<i32>,
+    ) -> Result<Vec<repetition::Model>, String> {
+        // TODO: test
+        let mut repetitions: Vec<repetition::Model> = Vec::new();
+        for file_id in file_ids {
+            let mut file_repetitions = self.repository.get_file_repetitions(file_id).await?;
+            repetitions.append(&mut file_repetitions);
+        }
+        Ok(repetitions)
     }
 }
 

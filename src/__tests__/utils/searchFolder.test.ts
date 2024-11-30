@@ -1,4 +1,4 @@
-import Folder from "../../types/parsedFolder";
+import ParsedFolder from "../../types/parsedFolder";
 import UiFolder from "../../types/ui/uiFolder";
 import searchFolder from "../../utils/searchFolder";
 
@@ -13,7 +13,7 @@ describe(searchFolder, () => {
 			review: 0,
 		};
 
-		const folder: Folder = {
+		const folder: ParsedFolder = {
 			id: 0,
 			name: "",
 			files: [

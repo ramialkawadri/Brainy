@@ -1,8 +1,10 @@
 mod cell_api;
-mod repetition_api;
 mod file_api;
+mod repetition_api;
 
-pub use repetition_api::{get_file_repetitions, get_study_repetition_counts, update_repetition};
+pub use repetition_api::{
+    get_file_repetitions, get_repetitions_for_files, get_study_repetition_counts, update_repetition,
+};
 
 pub use cell_api::{
     create_cell, delete_cell, get_file_cells_ordered_by_index, move_cell, update_cell,

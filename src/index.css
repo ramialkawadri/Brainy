@@ -26,6 +26,7 @@
 
 	/* Spaces */
 	--default-border-radius: 4px;
+	--extra-small-padding: 2px;
 	--small-padding: 4px;
 	--default-padding: 6px;
 	--medium-padding: 10px;

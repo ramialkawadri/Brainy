@@ -46,6 +46,7 @@ pub async fn run() -> Result<(), DbErr> {
                 repetition_service.clone(),
             )));
             app.manage::<Arc<dyn RepetitionService + Sync + Send>>(repetition_service);
+
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -66,6 +67,7 @@ pub async fn run() -> Result<(), DbErr> {
             get_study_repetition_counts,
             get_file_repetitions,
             update_repetition,
+            get_repetitions_for_files,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
