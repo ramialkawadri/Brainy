@@ -1,0 +1,39 @@
+.box {
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	padding: var(--large-padding) var(--xxl-padding);
+	border-radius: var(--default-border-radius);
+	background: var(--default-background-color);
+	width: 80%;
+	max-width: 56rem;
+	height: 40rem;
+}
+
+.header {
+	font-size: 2.4rem;
+	gap: 6px;
+	border-bottom: 1px solid var(--border-color);
+	padding-bottom: var(--default-padding);
+}
+
+.content {
+	height: 100%;
+	overflow: auto;
+    padding-top: var(--default-padding);
+}
+
+.buttons {
+	padding-top: var(--default-padding);
+	display: flex;
+	gap: 4px;
+	justify-content: flex-end;
+
+	& * {
+		font-size: 1.6rem;
+	}
+
+	& button {
+		padding: var(--default-padding) var(--large-padding);
+	}
+}

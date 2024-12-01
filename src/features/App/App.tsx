@@ -14,9 +14,11 @@ import Cell from "../../types/backend/cell";
 import Repetition from "../../types/backend/repetition";
 import { getFileRepetitions } from "../../services/repetitionService";
 import { setSelectedFileId } from "../../store/reducers/fileSystemReducers";
+import Settings from "../Settings/Settings";
 
 function App() {
 	const [isStudying, setIsStudying] = useState(false);
+	const [showSettings, setShowSettings] = useState(false);
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 	const selectedFileId = useAppSelector(selectSelectedFileId);
 	const cells = useRef<Cell[]>([]);
@@ -61,10 +63,10 @@ function App() {
 		dispatch(setSelectedFileId(fileId));
 	};
 
-    const handleHomeClick = () => {
+	const handleHomeClick = () => {
 		setIsStudying(false);
 		dispatch(setSelectedFileId(null));
-    };
+	};
 
 	return (
 		<div className={`${styles.workspace}`}>
@@ -80,7 +82,8 @@ function App() {
 			<SideBar
 				onFileClick={() => setIsStudying(false)}
 				onRootClick={() => setIsStudying(false)}
-                onHomeClick={handleHomeClick}
+				onHomeClick={handleHomeClick}
+				onSettingsClick={() => setShowSettings(true)}
 			/>
 
 			<div className={`${styles.workarea}`}>
@@ -108,6 +111,10 @@ function App() {
 					/>
 				)}
 			</div>
+
+			{showSettings && (
+				<Settings onClose={() => setShowSettings(false)} />
+			)}
 		</div>
 	);
 }

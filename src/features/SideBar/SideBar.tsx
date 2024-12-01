@@ -8,21 +8,25 @@ import {
 	selectRootFolder,
 	selectSelectedFileId,
 } from "../../store/selectors/fileSystemSelectors";
-import {
-	setErrorMessage,
-} from "../../store/reducers/fileSystemReducers";
+import { setErrorMessage } from "../../store/reducers/fileSystemReducers";
 import { useMemo, useState } from "react";
 import searchFolder from "../../utils/searchFolder";
-import { mdiArrowCollapseLeft, mdiHome, mdiMagnify } from "@mdi/js";
+import { mdiArrowCollapseLeft, mdiCog, mdiHome, mdiMagnify } from "@mdi/js";
 import Icon from "@mdi/react";
 
 interface Props {
 	onFileClick: () => void;
 	onRootClick: () => void;
-    onHomeClick: () => void;
+	onHomeClick: () => void;
+	onSettingsClick: () => void;
 }
 
-function SideBar({ onFileClick, onRootClick, onHomeClick }: Props) {
+function SideBar({
+	onFileClick,
+	onRootClick,
+	onHomeClick,
+	onSettingsClick,
+}: Props) {
 	const [searchText, setSearchText] = useState<string | null>(null);
 	const [isExpanded, setIsExpanded] = useState(true);
 	const rootFolder = useAppSelector(selectRootFolder);
@@ -44,11 +48,19 @@ function SideBar({ onFileClick, onRootClick, onHomeClick }: Props) {
 					<Icon path={mdiArrowCollapseLeft} size={1.2} />
 				</button>
 			</div>
+
 			<button
-				className={`${selectedFileId === null ? "primary" : "transparent"} ${styles.homeRow}`}
+				className={`${selectedFileId === null ? "primary" : "transparent"} ${styles.row}`}
 				onClick={onHomeClick}>
 				<Icon path={mdiHome} size={1.2} />
 				<p>Home</p>
+			</button>
+
+			<button
+				className={`transparent ${styles.row}`}
+				onClick={onSettingsClick}>
+				<Icon path={mdiCog} size={1.2} />
+				<p>Settings</p>
 			</button>
 
 			<div className={`${styles.searchBar}`}>

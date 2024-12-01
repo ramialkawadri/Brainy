@@ -23,7 +23,7 @@
 			display: block;
 
 			& h2 {
-                display: none;
+				display: none;
 			}
 
 			& .toggle-button {
@@ -32,14 +32,14 @@
 			}
 		}
 
-		& .home-row {
+		& .row {
 			visibility: visible;
 			display: block;
 			padding-right: 0;
 			padding-left: 0;
 
 			& p {
-                display: none;
+				display: none;
 			}
 		}
 	}
@@ -63,17 +63,19 @@
 	}
 }
 
-.home-row {
+.row {
 	display: flex;
 	flex-direction: row;
 	gap: 4px;
 	width: 100%;
 	padding-top: var(--medium-padding);
 	padding-bottom: var(--medium-padding);
+	margin-bottom: 2px;
 }
 
 .search-bar {
 	position: relative;
+	margin-top: 6px;
 
 	& {
 		font-size: 1.6rem;
@@ -89,7 +91,6 @@
 
 	& input {
 		width: 100%;
-		margin: 1.2rem 0;
 		background-color: inherit;
 		padding-left: 2.6rem;
 		padding-top: var(--default-padding);
