@@ -19,6 +19,7 @@
 		"@mdi/react": "^1.6.1",
 		"@reduxjs/toolkit": "2.4.0",
 		"@tauri-apps/api": "2.1.1",
+		"@tauri-apps/plugin-dialog": "^2.0.1",
 		"@tiptap/extension-link": "2.10.3",
 		"@tiptap/extension-subscript": "2.10.3",
 		"@tiptap/extension-superscript": "2.10.3",

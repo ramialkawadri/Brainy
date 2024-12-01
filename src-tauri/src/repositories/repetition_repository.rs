@@ -160,10 +160,8 @@ mod tests {
     use super::*;
     use crate::entities::cell::CellType;
     use crate::repositories::cell_repository::{CellRepository, DefaultCellRepository};
+    use crate::repositories::file_repository::{DefaultFileRepository, FileRepository};
     use crate::repositories::tests::get_db;
-    use crate::repositories::file_repository::{
-        DefaultFileRepository, FileRepository,
-    };
 
     async fn create_repository() -> DefaultRepetitionRepository {
         let db = get_db().await;

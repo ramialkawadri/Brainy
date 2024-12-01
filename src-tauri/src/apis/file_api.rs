@@ -1,6 +1,9 @@
 use std::sync::Arc;
 
-use crate::{models::file_with_repetitions_count::FileWithRepetitionsCount, services::file_service::FileService};
+use crate::{
+    models::file_with_repetitions_count::FileWithRepetitionsCount,
+    services::file_service::FileService,
+};
 use tauri::State;
 
 #[tauri::command]
@@ -48,9 +51,7 @@ pub async fn move_file(
     file_id: i32,
     destination_folder_id: i32,
 ) -> Result<(), String> {
-    file_service
-        .move_file(file_id, destination_folder_id)
-        .await
+    file_service.move_file(file_id, destination_folder_id).await
 }
 
 #[tauri::command]

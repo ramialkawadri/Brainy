@@ -1,6 +1,6 @@
 use sea_orm::{sea_query::Index, ConnectionTrait, DatabaseConnection, DbBackend, DbErr, Schema};
 
-use crate::entities::{cell, repetition, file};
+use crate::entities::{cell, file, repetition};
 
 pub async fn setup_schema(db: &DatabaseConnection) -> Result<(), DbErr> {
     let schema = Schema::new(DbBackend::Sqlite);

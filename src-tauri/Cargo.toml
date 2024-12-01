@@ -25,6 +25,8 @@ tokio = { version = "1.41.1", features = ["full"] }
 sea-orm = { version = "1.1.1", features = [ "sqlx-sqlite", "runtime-tokio-native-tls", "macros" ] }
 async-trait = "0.1.83"
 chrono = "0.4.38"
+tauri-plugin-dialog = "2"
+dirs = "5.0.1"
 
 [dev-dependencies]
 mockall = "0.13.1"

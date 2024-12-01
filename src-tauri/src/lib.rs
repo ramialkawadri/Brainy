@@ -7,6 +7,8 @@ mod services;
 
 use std::sync::Arc;
 
+use dirs;
+use models::settings::Settings;
 use repositories::{
     cell_repository::DefaultCellRepository, file_repository::DefaultFileRepository,
     repetition_repository::DefaultRepetitionRepository,
@@ -20,15 +22,17 @@ use services::{
 use tauri::Manager;
 
 use apis::*;
-
-const DATABASE_URL: &str = "sqlite:///C:\\Projects\\Brainy\\db.db?mode=rwc";
+use std::fs::{self, File};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub async fn run() -> Result<(), DbErr> {
-    let conn = Database::connect(DATABASE_URL).await?;
+    let settings = get_settings().await;
+    let conn =
+        Database::connect(format!("sqlite:///{}?mode=rwc", settings.database_location)).await?;
     migration::setup_schema(&conn).await?;
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
             let conn = Arc::new(conn);
             let file_repository = Arc::new(DefaultFileRepository::new(conn.clone()));
@@ -74,4 +78,22 @@ pub async fn run() -> Result<(), DbErr> {
         .expect("error while running tauri application");
 
     Ok(())
+}
+
+pub async fn get_settings() -> Settings {
+    let dir_path = dirs::config_dir()
+        .expect("No config directory is found on your system!")
+        .join("Brainy");
+    fs::create_dir_all(dir_path.clone()).expect("Cannot create config directory!");
+
+    let config_file_path = dir_path.join("config.json");
+    if config_file_path.exists() {
+        let file = File::open(config_file_path).expect("Cannot read config file");
+        let settings: Settings = serde_json::from_reader(file).expect("Cannot parse settings!");
+        return settings;
+    }
+    let settings = Settings::new(dir_path.join("brainy.db").to_str().unwrap().into());
+    fs::write(config_file_path, serde_json::to_string(&settings).unwrap())
+        .expect("Cannot write to config file");
+    return settings;
 }

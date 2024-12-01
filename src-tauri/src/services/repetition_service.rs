@@ -305,14 +305,12 @@ mod tests {
     #[tokio::test]
     async fn get_repetitions_for_files_valid_input_returned_repetitions() {
         // Arrange
-        
+
         let mut deps = TestDependencies::new();
         let file1_id = 1;
-        let file1_repetitions = vec![
-            repetition::Model {
-                ..Default::default()
-            },
-        ];
+        let file1_repetitions = vec![repetition::Model {
+            ..Default::default()
+        }];
         deps.setup_get_file_repetitions(file1_id, file1_repetitions);
 
         let file2_id = 2;
@@ -328,7 +326,11 @@ mod tests {
 
         // Act
 
-        let actual = deps.to_service().get_repetitions_for_files(vec![file1_id, file2_id]).await.unwrap();
+        let actual = deps
+            .to_service()
+            .get_repetitions_for_files(vec![file1_id, file2_id])
+            .await
+            .unwrap();
 
         // Assert
 
