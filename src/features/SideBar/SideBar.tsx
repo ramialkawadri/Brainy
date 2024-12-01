@@ -10,20 +10,21 @@ import {
 } from "../../store/selectors/fileSystemSelectors";
 import {
 	setErrorMessage,
-	setSelectedFileId,
 } from "../../store/reducers/fileSystemReducers";
 import { useMemo, useState } from "react";
 import searchFolder from "../../utils/searchFolder";
-import { mdiHome, mdiMagnify } from "@mdi/js";
+import { mdiArrowCollapseLeft, mdiHome, mdiMagnify } from "@mdi/js";
 import Icon from "@mdi/react";
 
 interface Props {
 	onFileClick: () => void;
 	onRootClick: () => void;
+    onHomeClick: () => void;
 }
 
-function SideBar({ onFileClick, onRootClick }: Props) {
+function SideBar({ onFileClick, onRootClick, onHomeClick }: Props) {
 	const [searchText, setSearchText] = useState<string | null>(null);
+	const [isExpanded, setIsExpanded] = useState(true);
 	const rootFolder = useAppSelector(selectRootFolder);
 	const errorMessage = useAppSelector(selectError);
 	const dispatch = useAppDispatch();
@@ -34,38 +35,48 @@ function SideBar({ onFileClick, onRootClick }: Props) {
 	const selectedFileId = useAppSelector(selectSelectedFileId);
 
 	return (
-		<div className={`${styles.sideBar}`}>
+		<div className={`${styles.sideBar} ${!isExpanded && styles.closed}`}>
+			<div className={styles.header}>
+				<h2>Brainy</h2>
+				<button
+					className={`transparent center ${styles.toggleButton}`}
+					onClick={() => setIsExpanded(!isExpanded)}>
+					<Icon path={mdiArrowCollapseLeft} size={1.2} />
+				</button>
+			</div>
 			<button
 				className={`${selectedFileId === null ? "primary" : "transparent"} ${styles.homeRow}`}
-				onClick={() => dispatch(setSelectedFileId(null))}>
-				<Icon path={mdiHome} size={1} />
+				onClick={onHomeClick}>
+				<Icon path={mdiHome} size={1.2} />
 				<p>Home</p>
 			</button>
 
-			<div>
-				<div className={`${styles.searchBar}`}>
-                    <Icon path={mdiMagnify} size={1} className={styles.searchIcon} />
-					<input
-						type="text"
-						placeholder="Search"
-						onChange={e => setSearchText(e.target.value)}
-						value={searchText ?? ""}
-					/>
-				</div>
-
-				{errorMessage && (
-					<ErrorBox
-						message={errorMessage}
-						onClose={() => dispatch(setErrorMessage(""))}
-					/>
-				)}
-
-				<FileTree
-					folder={rootUiFolder}
-					onFileClick={onFileClick}
-					onRootClick={onRootClick}
+			<div className={`${styles.searchBar}`}>
+				<Icon
+					path={mdiMagnify}
+					size={1}
+					className={styles.searchIcon}
+				/>
+				<input
+					type="text"
+					placeholder="Search"
+					onChange={e => setSearchText(e.target.value)}
+					value={searchText ?? ""}
 				/>
 			</div>
+
+			{errorMessage && (
+				<ErrorBox
+					message={errorMessage}
+					onClose={() => dispatch(setErrorMessage(""))}
+				/>
+			)}
+
+			<FileTree
+				folder={rootUiFolder}
+				onFileClick={onFileClick}
+				onRootClick={onRootClick}
+			/>
 		</div>
 	);
 }

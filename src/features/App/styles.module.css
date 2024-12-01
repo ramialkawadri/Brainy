@@ -1,6 +1,6 @@
 .workspace {
 	display: grid;
-	grid-template-columns: minmax(36rem, 1fr) 9fr;
+	grid-template-columns: auto 1fr;
 	height: 100vh;
 }
 

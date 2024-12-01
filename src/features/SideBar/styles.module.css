@@ -2,10 +2,64 @@
 	height: 100%;
 	padding: var(--xl-padding);
 	border-right: 1px solid var(--border-color);
-	background-color: #FAFAFA;
+	background-color: #fafafa;
+	width: 36rem;
+	transition: 0.25s all;
 
 	& * {
 		font-size: 1.6rem;
+	}
+
+	&.closed {
+		width: 7rem;
+		overflow: hidden;
+
+		& > * {
+			visibility: hidden;
+		}
+
+		& .header {
+			visibility: visible;
+			display: block;
+
+			& h2 {
+                display: none;
+			}
+
+			& .toggle-button {
+				transform: rotate(180deg);
+				width: 100%;
+			}
+		}
+
+		& .home-row {
+			visibility: visible;
+			display: block;
+			padding-right: 0;
+			padding-left: 0;
+
+			& p {
+                display: none;
+			}
+		}
+	}
+}
+
+.header {
+	display: flex;
+	justify-content: space-between;
+	border-bottom: 1px solid var(--hover-border-color);
+	margin-bottom: 1rem;
+	padding: var(--default-padding) 0;
+
+	& h2 {
+		font-size: 2.4rem;
+		font-weight: 400;
+	}
+
+	& .toggle-button {
+		transition: 0s tansform;
+		transition: 0s width;
 	}
 }
 
@@ -19,32 +73,32 @@
 }
 
 .search-bar {
-    position: relative;
+	position: relative;
 
-    & {
-        font-size: 1.6rem;
-    }
+	& {
+		font-size: 1.6rem;
+	}
 
-    & .search-icon {
-        display: block;
-        position: absolute;
-        left: 1rem;
-        top: 50%;
-        transform: translateY(-50%);
-    }
+	& .search-icon {
+		display: block;
+		position: absolute;
+		left: 1rem;
+		top: 50%;
+		transform: translateY(-50%);
+	}
 
-    & input {
-        width: 100%;
-        margin: 1.2rem 0;
-        background-color: inherit;
-        padding-left: 2.6rem;
-        padding-top: var(--default-padding);
-        padding-bottom: var(--default-padding);
+	& input {
+		width: 100%;
+		margin: 1.2rem 0;
+		background-color: inherit;
+		padding-left: 2.6rem;
+		padding-top: var(--default-padding);
+		padding-bottom: var(--default-padding);
 
-        &:focus,
-        &:not(:placeholder-shown) {
-            background-color: var(--default-background-color);
-            border-color: var(--primary-color);
-        }
-    }
+		&:focus,
+		&:not(:placeholder-shown) {
+			background-color: var(--default-background-color);
+			border-color: var(--primary-color);
+		}
+	}
 }

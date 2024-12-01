@@ -61,6 +61,11 @@ function App() {
 		dispatch(setSelectedFileId(fileId));
 	};
 
+    const handleHomeClick = () => {
+		setIsStudying(false);
+		dispatch(setSelectedFileId(null));
+    };
+
 	return (
 		<div className={`${styles.workspace}`}>
 			{errorMessage && (
@@ -75,6 +80,7 @@ function App() {
 			<SideBar
 				onFileClick={() => setIsStudying(false)}
 				onRootClick={() => setIsStudying(false)}
+                onHomeClick={handleHomeClick}
 			/>
 
 			<div className={`${styles.workarea}`}>
