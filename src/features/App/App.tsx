@@ -14,7 +14,7 @@ import Cell from "../../types/backend/cell";
 import Repetition from "../../types/backend/repetition";
 import { getFileRepetitions } from "../../services/repetitionService";
 import { setSelectedFileId } from "../../store/reducers/fileSystemReducers";
-import Settings from "../Settings/Settings";
+import SettingsPopup from "../SettingsPopup/Settings";
 
 function App() {
 	const [isStudying, setIsStudying] = useState(false);
@@ -113,7 +113,7 @@ function App() {
 			</div>
 
 			{showSettings && (
-				<Settings onClose={() => setShowSettings(false)} />
+				<SettingsPopup onClose={() => setShowSettings(false)} />
 			)}
 		</div>
 	);

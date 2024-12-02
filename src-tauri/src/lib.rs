@@ -26,7 +26,7 @@ use std::fs::{self, File};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub async fn run() -> Result<(), DbErr> {
-    let settings = get_settings().await;
+    let settings = get_or_generate_settings().await;
     let conn =
         Database::connect(format!("sqlite:///{}?mode=rwc", settings.database_location)).await?;
     migration::setup_schema(&conn).await?;
@@ -50,15 +50,21 @@ pub async fn run() -> Result<(), DbErr> {
                 repetition_service.clone(),
             )));
             app.manage::<Arc<dyn RepetitionService + Sync + Send>>(repetition_service);
+            app.manage(settings);
 
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
+            // Cells
+
             create_cell,
             delete_cell,
             get_file_cells_ordered_by_index,
             move_cell,
             update_cell,
+
+            // Files & Folders
+
             get_cells_for_files,
             create_file,
             create_folder,
@@ -69,10 +75,17 @@ pub async fn run() -> Result<(), DbErr> {
             move_folder,
             rename_file,
             rename_folder,
+
+            // Repetitions
+
             get_study_repetition_counts,
             get_file_repetitions,
             update_repetition,
             get_repetitions_for_files,
+
+            // Settings
+
+            get_settings,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -80,7 +93,8 @@ pub async fn run() -> Result<(), DbErr> {
     Ok(())
 }
 
-pub async fn get_settings() -> Settings {
+// TODO: better name and test, maybe move to a service
+pub async fn get_or_generate_settings() -> Settings {
     let dir_path = dirs::config_dir()
         .expect("No config directory is found on your system!")
         .join("Brainy");
