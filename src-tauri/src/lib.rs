@@ -7,8 +7,6 @@ mod services;
 
 use std::sync::Arc;
 
-use dirs;
-use models::settings::Settings;
 use repositories::{
     cell_repository::DefaultCellRepository, file_repository::DefaultFileRepository,
     repetition_repository::DefaultRepetitionRepository,
@@ -18,17 +16,23 @@ use services::{
     cell_service::{CellService, DefaultCellService},
     file_service::{DefaultFileServices, FileService},
     repetition_service::{DefaultRepetitionService, RepetitionService},
+    settings_service::{DefaultSettingsService, SettingsService},
 };
 use tauri::Manager;
 
 use apis::*;
-use std::fs::{self, File};
+use tokio::sync::Mutex;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub async fn run() -> Result<(), DbErr> {
-    let settings = get_or_generate_settings().await;
-    let conn =
-        Database::connect(format!("sqlite:///{}?mode=rwc", settings.database_location)).await?;
+    let mut settings_service = DefaultSettingsService::default();
+    settings_service.load_settings();
+    let conn = Database::connect(format!(
+        "sqlite:///{}?mode=rwc",
+        settings_service.get_settings().database_location
+    ))
+    .await?;
+
     migration::setup_schema(&conn).await?;
 
     tauri::Builder::default()
@@ -50,21 +54,20 @@ pub async fn run() -> Result<(), DbErr> {
                 repetition_service.clone(),
             )));
             app.manage::<Arc<dyn RepetitionService + Sync + Send>>(repetition_service);
-            app.manage(settings);
+            app.manage::<Arc<Mutex<dyn SettingsService + Sync + Send>>>(Arc::new(Mutex::new(
+                settings_service,
+            )));
 
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
             // Cells
-
             create_cell,
             delete_cell,
             get_file_cells_ordered_by_index,
             move_cell,
             update_cell,
-
             // Files & Folders
-
             get_cells_for_files,
             create_file,
             create_folder,
@@ -75,39 +78,17 @@ pub async fn run() -> Result<(), DbErr> {
             move_folder,
             rename_file,
             rename_folder,
-
             // Repetitions
-
             get_study_repetition_counts,
             get_file_repetitions,
             update_repetition,
             get_repetitions_for_files,
-
             // Settings
-
             get_settings,
+            update_settings,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 
     Ok(())
-}
-
-// TODO: better name and test, maybe move to a service
-pub async fn get_or_generate_settings() -> Settings {
-    let dir_path = dirs::config_dir()
-        .expect("No config directory is found on your system!")
-        .join("Brainy");
-    fs::create_dir_all(dir_path.clone()).expect("Cannot create config directory!");
-
-    let config_file_path = dir_path.join("config.json");
-    if config_file_path.exists() {
-        let file = File::open(config_file_path).expect("Cannot read config file");
-        let settings: Settings = serde_json::from_reader(file).expect("Cannot parse settings!");
-        return settings;
-    }
-    let settings = Settings::new(dir_path.join("brainy.db").to_str().unwrap().into());
-    fs::write(config_file_path, serde_json::to_string(&settings).unwrap())
-        .expect("Cannot write to config file");
-    return settings;
 }

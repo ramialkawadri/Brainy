@@ -17,4 +17,4 @@ pub use file_api::{
     rename_file, rename_folder,
 };
 
-pub use settings_api::get_settings;
+pub use settings_api::{get_settings, update_settings};

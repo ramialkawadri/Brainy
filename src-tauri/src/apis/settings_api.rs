@@ -1,12 +1,25 @@
-use tauri::State;
 
-use crate::models::settings::Settings;
+use std::sync::Arc;
+
+use tauri::State;
+use tokio::sync::Mutex;
+
+use crate::{models::{settings::Settings, update_settings_request::UpdateSettingsRequest}, services::settings_service::SettingsService};
 
 #[tauri::command]
-pub async fn get_settings(settings: State<'_, Settings>) -> Result<Settings, ()> {
-    Ok((*settings).clone())
+pub async fn get_settings(
+    settings_service: State<'_, Arc<Mutex<dyn SettingsService + Sync + Send>>>,
+) -> Result<Settings, ()> {
+    let settings_service = settings_service.lock().await;
+    Ok(settings_service.get_settings().clone())
 }
 
-// TODO: implement save button
-// #[tauri::command]
-// pub async fn save_settings()
+#[tauri::command]
+pub async fn update_settings (
+    settings_service: State<'_, Arc<Mutex<dyn SettingsService + Sync + Send>>>,
+    new_settings: UpdateSettingsRequest,
+) -> Result<(), String> {
+    let mut settings_service = settings_service.lock().await;
+    settings_service.update_settings(new_settings);
+    Ok(())
+}

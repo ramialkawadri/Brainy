@@ -23,10 +23,16 @@ function SettingsPopup({ onClose }: Props) {
 	}, []);
 
 	const handleChangeDatabaseLocationClick = async () => {
-		const location = await open({
-			directory: true,
+		let location = await open({
+            defaultPath: settings?.databaseLocation,
+            directory: true,
 		});
 		if (!location) return;
+
+        if (location.includes("/")) location += "/";
+        else location += "\\";
+        location += "brainy.db";
+
 		setSettings({
 			...settings,
 			databaseLocation: location,
