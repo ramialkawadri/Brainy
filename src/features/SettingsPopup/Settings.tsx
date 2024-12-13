@@ -4,7 +4,7 @@ import { mdiCog, mdiFolderOpenOutline } from "@mdi/js";
 import { open } from "@tauri-apps/plugin-dialog";
 import { useEffect, useState } from "react";
 import Settings from "../../types/backend/settings";
-import { getSettings } from "../../services/settingsService";
+import { getSettings, updateSettings } from "../../services/settingsService";
 
 interface Props {
 	onClose: () => void;
@@ -40,7 +40,11 @@ function SettingsPopup({ onClose }: Props) {
 	};
 
 	const handleSave = async () => {
-		// TODO: implement save button
+		// TODO: error handling
+        await updateSettings({
+            databaseLocation: settings!.databaseLocation,
+        });
+        // TODO: reload the app
 		onClose();
 	};
 
