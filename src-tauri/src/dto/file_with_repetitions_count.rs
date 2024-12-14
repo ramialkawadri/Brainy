@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 
-use super::file_repetitions_count::FileRepetitionCounts;
+use crate::models::file_repetitions_count::FileRepetitionCounts;
+
 
 #[derive(Clone, Debug, PartialEq, Eq, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]

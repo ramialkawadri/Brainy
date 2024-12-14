@@ -1,9 +1,7 @@
 use std::sync::Arc;
 
-use crate::{
-    models::file_with_repetitions_count::FileWithRepetitionsCount,
-    services::file_service::FileService,
-};
+use crate::{dto::file_with_repetitions_count::FileWithRepetitionsCount, 
+    services::file_service::FileService};
 use tauri::State;
 
 #[tauri::command]

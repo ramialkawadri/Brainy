@@ -5,7 +5,7 @@ use std::{
     path::PathBuf,
 };
 
-use crate::models::{settings::Settings, update_settings_request::UpdateSettingsRequest};
+use crate::{dto::update_settings_request::UpdateSettingsRequest, models::settings::Settings};
 
 #[async_trait]
 pub trait SettingsService {

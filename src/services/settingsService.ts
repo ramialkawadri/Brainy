@@ -6,8 +6,10 @@ export function getSettings(): Promise<Settings> {
 	return invoke("get_settings");
 }
 
-export function updateSettings(updateSettingsRequest: UpdateSettingsRequest): Promise<void> {
-    return invoke("update_settings", {
-        newSettings: updateSettingsRequest,
-    });
+export function updateSettings(
+	updateSettingsRequest: UpdateSettingsRequest,
+): Promise<void> {
+	return invoke("update_settings", {
+		newSettings: updateSettingsRequest,
+	});
 }

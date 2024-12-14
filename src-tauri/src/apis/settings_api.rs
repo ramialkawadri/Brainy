@@ -4,8 +4,7 @@ use tauri::State;
 use tokio::sync::Mutex;
 
 use crate::{
-    models::{settings::Settings, update_settings_request::UpdateSettingsRequest},
-    services::settings_service::SettingsService,
+    dto::update_settings_request::UpdateSettingsRequest, models::settings::Settings, services::settings_service::SettingsService
 };
 
 #[tauri::command]

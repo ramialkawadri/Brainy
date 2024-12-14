@@ -1,4 +1,5 @@
 mod apis;
+mod dto;
 mod entities;
 mod migration;
 mod models;

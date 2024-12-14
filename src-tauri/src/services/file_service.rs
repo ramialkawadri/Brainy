@@ -1,12 +1,10 @@
 use std::sync::Arc;
 
-use crate::models::file_with_repetitions_count::FileWithRepetitionsCount;
-
 use async_trait::async_trait;
 use prelude::Expr;
 use sea_orm::{entity::*, query::*, DbConn};
 
-use crate::entities::file;
+use crate::{dto::file_with_repetitions_count::FileWithRepetitionsCount, entities::file};
 
 use super::repetition_service::RepetitionService;
 

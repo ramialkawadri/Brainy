@@ -24,14 +24,14 @@ function SettingsPopup({ onClose }: Props) {
 
 	const handleChangeDatabaseLocationClick = async () => {
 		let location = await open({
-            defaultPath: settings?.databaseLocation,
-            directory: true,
+			defaultPath: settings?.databaseLocation,
+			directory: true,
 		});
 		if (!location) return;
 
-        if (location.includes("/")) location += "/";
-        else location += "\\";
-        location += "brainy.db";
+		if (location.includes("/")) location += "/";
+		else location += "\\";
+		location += "brainy.db";
 
 		setSettings({
 			...settings,
@@ -41,10 +41,10 @@ function SettingsPopup({ onClose }: Props) {
 
 	const handleSave = async () => {
 		// TODO: error handling
-        await updateSettings({
-            databaseLocation: settings!.databaseLocation,
-        });
-        // TODO: reload the app
+		await updateSettings({
+			databaseLocation: settings!.databaseLocation,
+		});
+		// TODO: reload the app
 		onClose();
 	};
 
