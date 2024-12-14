@@ -1,5 +1,5 @@
-import getFileOrFolderById from "../../utils/getFilOrFolderById";
-import parseGetFilesResponse from "../../utils/parseGetFilesResponse";
+import getFileOrFolderById from "../../util/getFilOrFolderById";
+import parseGetFilesResponse from "../../util/parseGetFilesResponse";
 import {
 	requestFailure,
 	requestStart,
@@ -17,7 +17,7 @@ import {
 	createFile as createFileApi,
 	getFiles as getFilesApi,
 	renameFolder as renameFolderApi,
-} from "../../services/fileService";
+} from "../../service/fileService";
 import {
 	selectFolderById,
 	selectSelectedFileId,

@@ -1,14 +1,14 @@
-mod apis;
+mod api;
 mod dto;
-mod entities;
+mod entity;
 mod migration;
-mod models;
-mod services;
+mod model;
+mod service;
 
 use std::sync::Arc;
 
 use sea_orm::{Database, DbErr};
-use services::{
+use service::{
     cell_service::{CellService, DefaultCellService},
     file_service::{DefaultFileService, FileService},
     repetition_service::{DefaultRepetitionService, RepetitionService},
@@ -16,7 +16,7 @@ use services::{
 };
 use tauri::Manager;
 
-use apis::*;
+use api::*;
 use tokio::sync::Mutex;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]

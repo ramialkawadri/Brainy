@@ -1,5 +1,5 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
-import ParsedFolder from "../../types/parsedFolder";
+import ParsedFolder from "../../type/parsedFolder";
 
 interface FileSystemState {
 	error: string | null;

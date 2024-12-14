@@ -1,8 +1,8 @@
 import { createSelector } from "@reduxjs/toolkit";
-import ParsedFile from "../../types/parsedFile";
-import ParsedFolder from "../../types/parsedFolder";
+import ParsedFile from "../../type/parsedFile";
+import ParsedFolder from "../../type/parsedFolder";
 import { RootState } from "../store";
-import getFileOrFolderById from "../../utils/getFilOrFolderById";
+import getFileOrFolderById from "../../util/getFilOrFolderById";
 
 export const selectError = (state: RootState) => state.fileSystem.error;
 
