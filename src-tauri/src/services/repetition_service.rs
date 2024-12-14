@@ -1,16 +1,14 @@
-#[cfg(test)]
-use mockall::{automock, predicate::*};
+use chrono::Utc;
 use sea_orm::Set;
 use std::sync::Arc;
 
 use crate::entities::cell::CellType;
-use crate::entities::repetition;
+use crate::entities::repetition::{self, State};
 use crate::models::file_repetitions_count::FileRepetitionCounts;
-use crate::repositories::repetition_repository::RepetitionRepository;
 
 use async_trait::async_trait;
+use sea_orm::{entity::*, query::*, DbConn};
 
-#[cfg_attr(test, automock)]
 #[async_trait]
 pub trait RepetitionService {
     async fn update_repetitions_for_cell(
@@ -36,12 +34,49 @@ pub trait RepetitionService {
 }
 
 pub struct DefaultRepetitionService {
-    repository: Arc<dyn RepetitionRepository + Sync + Send>,
+    db_conn: Arc<DbConn>,
 }
 
 impl DefaultRepetitionService {
-    pub fn new(repository: Arc<dyn RepetitionRepository + Sync + Send>) -> Self {
-        Self { repository }
+    pub fn new(db_conn: Arc<DbConn>) -> Self {
+        Self { db_conn }
+    }
+
+    async fn insert_repetitions(
+        &self,
+        repetitions: Vec<repetition::ActiveModel>,
+    ) -> Result<(), String> {
+        let txn = match self.db_conn.begin().await {
+            Ok(txn) => txn,
+            Err(err) => return Err(err.to_string()),
+        };
+
+        for active_model in repetitions {
+            let result = repetition::Entity::insert(active_model).exec(&txn).await;
+            if let Err(err) = result {
+                return Err(err.to_string());
+            }
+        }
+
+        let result = txn.commit().await;
+        match result {
+            Ok(_) => Ok(()),
+            Err(err) => Err(err.to_string()),
+        }
+    }
+
+    async fn get_repetitions_by_cell_id(
+        &self,
+        cell_id: i32,
+    ) -> Result<Vec<repetition::Model>, String> {
+        let result = repetition::Entity::find()
+            .filter(repetition::Column::CellId.eq(cell_id))
+            .all(&*self.db_conn)
+            .await;
+        match result {
+            Err(err) => Err(err.to_string()),
+            Ok(rows) => Ok(rows),
+        }
     }
 }
 
@@ -53,7 +88,7 @@ impl RepetitionService for DefaultRepetitionService {
         cell_id: i32,
         cell_type: CellType,
     ) -> Result<(), String> {
-        let cell_repetitions = self.repository.get_repetitions_by_cell_id(cell_id).await?;
+        let cell_repetitions = self.get_repetitions_by_cell_id(cell_id).await?;
         let mut repetitions_to_insert: Vec<repetition::ActiveModel> = vec![];
         match cell_type {
             CellType::Note => (),
@@ -67,24 +102,77 @@ impl RepetitionService for DefaultRepetitionService {
                 }
             }
         }
-        self.repository
-            .insert_repetitions(repetitions_to_insert)
-            .await
+        self.insert_repetitions(repetitions_to_insert).await
     }
 
     async fn get_study_repetition_counts(
         &self,
         file_id: i32,
     ) -> Result<FileRepetitionCounts, String> {
-        self.repository.get_study_repetitions_counts(file_id).await
+        let result = repetition::Entity::find()
+            .select_only()
+            .column(repetition::Column::State)
+            .column_as(repetition::Column::State.count(), "count")
+            .filter(repetition::Column::FileId.eq(file_id))
+            .filter(repetition::Column::Due.lte(Utc::now().to_utc()))
+            .group_by(repetition::Column::State)
+            .into_tuple::<(State, i32)>()
+            .all(&*self.db_conn)
+            .await;
+
+        let result = match result {
+            Ok(result) => result,
+            Err(err) => return Err(err.to_string()),
+        };
+
+        let mut counts: FileRepetitionCounts = Default::default();
+        for row in result {
+            if row.0 == State::New {
+                counts.new = row.1;
+            } else if row.0 == State::Learning {
+                counts.learning = row.1;
+            } else if row.0 == State::Relearning {
+                counts.relearning = row.1;
+            } else if row.0 == State::Review {
+                counts.review = row.1;
+            }
+        }
+
+        Ok(counts)
     }
 
     async fn get_file_repetitions(&self, file_id: i32) -> Result<Vec<repetition::Model>, String> {
-        self.repository.get_file_repetitions(file_id).await
+        let result = repetition::Entity::find()
+            .filter(repetition::Column::FileId.eq(file_id))
+            .all(&*self.db_conn)
+            .await;
+
+        match result {
+            Ok(result) => Ok(result),
+            Err(err) => Err(err.to_string()),
+        }
     }
 
     async fn update_repetition(&self, repetition: repetition::Model) -> Result<(), String> {
-        self.repository.update_repetition(repetition).await
+        let active_entity = repetition::ActiveModel {
+            id: Set(repetition.id),
+            file_id: Set(repetition.file_id),
+            cell_id: Set(repetition.cell_id),
+            due: Set(repetition.due),
+            stability: Set(repetition.stability),
+            difficulty: Set(repetition.difficulty),
+            elapsed_days: Set(repetition.elapsed_days),
+            scheduled_days: Set(repetition.scheduled_days),
+            reps: Set(repetition.reps),
+            lapses: Set(repetition.lapses),
+            state: Set(repetition.state),
+            last_review: Set(repetition.last_review),
+        };
+        let result = active_entity.update(&*self.db_conn).await;
+        match result {
+            Ok(_) => Ok(()),
+            Err(err) => Err(err.to_string()),
+        }
     }
 
     async fn get_repetitions_for_files(
@@ -93,7 +181,7 @@ impl RepetitionService for DefaultRepetitionService {
     ) -> Result<Vec<repetition::Model>, String> {
         let mut repetitions: Vec<repetition::Model> = Vec::new();
         for file_id in file_ids {
-            let mut file_repetitions = self.repository.get_file_repetitions(file_id).await?;
+            let mut file_repetitions = self.get_file_repetitions(file_id).await?;
             repetitions.append(&mut file_repetitions);
         }
         Ok(repetitions)
@@ -102,232 +190,265 @@ impl RepetitionService for DefaultRepetitionService {
 
 #[cfg(test)]
 mod tests {
-    use mockall::predicate;
+    use chrono::Duration;
 
-    use crate::repositories::repetition_repository::MockRepetitionRepository;
+    use crate::services::{
+        cell_service::{CellService, DefaultCellService},
+        file_service::{DefaultFileService, FileService},
+        tests::get_db,
+    };
 
     use super::*;
 
-    struct TestDependencies {
-        repetition_repository: MockRepetitionRepository,
+    async fn create_service() -> Arc<DefaultRepetitionService> {
+        Arc::new(DefaultRepetitionService::new(Arc::new(get_db().await)))
     }
 
-    impl TestDependencies {
-        fn new() -> Self {
-            Self {
-                repetition_repository: MockRepetitionRepository::new(),
-            }
-        }
-
-        fn to_service(self) -> DefaultRepetitionService {
-            DefaultRepetitionService::new(Arc::new(self.repetition_repository))
-        }
-
-        fn setup_get_study_repetitions(&mut self, file_id: i32, repetitions: FileRepetitionCounts) {
-            self.repetition_repository
-                .expect_get_study_repetitions_counts()
-                .with(predicate::eq(file_id))
-                .return_once(|_| Ok(repetitions));
-        }
-
-        fn setup_get_file_repetitions(
-            &mut self,
-            file_id: i32,
-            repetitions: Vec<repetition::Model>,
-        ) {
-            self.repetition_repository
-                .expect_get_file_repetitions()
-                .with(predicate::eq(file_id))
-                .return_once(|_| Ok(repetitions));
-        }
-
-        fn setup_get_repetitions_by_cell_id(
-            &mut self,
-            cell_id: i32,
-            repetitions: Vec<repetition::Model>,
-        ) {
-            self.repetition_repository
-                .expect_get_repetitions_by_cell_id()
-                .with(predicate::eq(cell_id))
-                .return_once(|_| Ok(repetitions));
-        }
-
-        fn assert_insert_repetitions(
-            &mut self,
-            file_id: i32,
-            cell_id: i32,
-            expected_length: usize,
-        ) {
-            self.repetition_repository
-                .expect_insert_repetitions()
-                .withf(move |repetitions| {
-                    repetitions.len() == expected_length
-                        && repetitions.iter().all(|repetition| {
-                            repetition.file_id == Set(file_id) && repetition.cell_id == Set(cell_id)
-                        })
-                })
-                .return_const(Ok(()));
-        }
-
-        fn assert_update_repetition(&mut self, repetition: repetition::Model) {
-            self.repetition_repository
-                .expect_update_repetition()
-                .with(predicate::eq(repetition))
-                .once()
-                .return_once(|_| Ok(()));
-        }
+    async fn create_file_cell(
+        service: &Arc<DefaultRepetitionService>,
+        file_name: &str,
+    ) -> (i32, i32) {
+        let file_service = DefaultFileService::new(service.db_conn.clone(), service.clone());
+        let cell_service = DefaultCellService::new(service.db_conn.clone(), service.clone());
+        let file_id = file_service.create_file(file_name.into()).await.unwrap();
+        let cell_id = cell_service
+            .create_cell(file_id, "".into(), CellType::Note, 0)
+            .await
+            .unwrap();
+        (file_id, cell_id)
     }
 
     #[tokio::test]
     async fn update_repetitions_for_cell_flash_card_with_no_repetitions_added_repetition() {
         // Arrange
 
-        let mut deps = TestDependencies::new();
-        let cell_id = 1;
-        let file_id = 1;
-        deps.setup_get_repetitions_by_cell_id(cell_id, vec![]);
-
-        // Assert
-
-        deps.assert_insert_repetitions(file_id, cell_id, 1);
+        let service = create_service().await;
+        let (file_id, cell_id) = create_file_cell(&service, "file 1").await;
 
         // Act
 
-        deps.to_service()
+        service
             .update_repetitions_for_cell(file_id, cell_id, CellType::FlashCard)
             .await
             .unwrap();
+
+        // Assert
+
+        let actual = service.get_file_repetitions(file_id).await.unwrap();
+        assert_eq!(actual.len(), 1);
     }
 
     #[tokio::test]
     async fn update_repetitions_for_cell_flash_card_with_repetitions_no_repetition_added() {
         // Arrange
 
-        let mut deps = TestDependencies::new();
-        let cell_id = 1;
-        let file_id = 1;
-        deps.setup_get_repetitions_by_cell_id(
-            cell_id,
-            vec![repetition::Model {
-                ..Default::default()
-            }],
-        );
-
-        // Assert
-
-        deps.assert_insert_repetitions(file_id, cell_id, 0);
+        let service = create_service().await;
+        let (file_id, cell_id) = create_file_cell(&service, "file 1").await;
+        repetition::ActiveModel {
+            file_id: Set(file_id),
+            cell_id: Set(cell_id),
+            ..Default::default()
+        }
+        .insert(&*service.db_conn)
+        .await
+        .unwrap();
 
         // Act
 
-        deps.to_service()
+        service
             .update_repetitions_for_cell(file_id, cell_id, CellType::FlashCard)
             .await
             .unwrap();
-    }
-
-    #[tokio::test]
-    async fn get_study_repetition_counts_valid_input_returned_repetitions() {
-        // Arrange
-
-        let mut deps = TestDependencies::new();
-        let file_id = 1;
-        let repetition_counts = FileRepetitionCounts {
-            new: 5,
-            ..Default::default()
-        };
-        deps.setup_get_study_repetitions(file_id, repetition_counts);
-
-        // Act
-
-        let actual = deps
-            .to_service()
-            .get_study_repetition_counts(file_id)
-            .await
-            .unwrap();
 
         // Assert
 
-        assert_eq!(5, actual.new);
+        let actual = service.get_file_repetitions(file_id).await.unwrap();
+        assert_eq!(actual.len(), 1);
+    }
+
+    #[tokio::test]
+    async fn get_study_repetition_counts_valid_input_returned_count() {
+        // Arrange
+
+        let service = create_service().await;
+        let (file_id, cell_id) = create_file_cell(&service, "file 1").await;
+        for _ in 0..2 {
+            service
+                .insert_repetitions(vec![repetition::ActiveModel {
+                    cell_id: Set(cell_id),
+                    file_id: Set(file_id),
+                    state: Set(State::New),
+                    ..Default::default()
+                }])
+                .await
+                .unwrap();
+        }
+
+        service
+            .insert_repetitions(vec![
+                repetition::ActiveModel {
+                    cell_id: Set(cell_id),
+                    file_id: Set(file_id),
+                    state: Set(State::Review),
+                    ..Default::default()
+                },
+                repetition::ActiveModel {
+                    cell_id: Set(cell_id),
+                    file_id: Set(file_id),
+                    state: Set(State::Learning),
+                    ..Default::default()
+                },
+                repetition::ActiveModel {
+                    cell_id: Set(cell_id),
+                    file_id: Set(file_id),
+                    state: Set(State::Learning),
+                    due: Set((Utc::now() + Duration::days(1)).to_utc()),
+                    ..Default::default()
+                },
+            ])
+            .await
+            .unwrap();
+
+        // Act
+
+        let actual = service.get_study_repetition_counts(file_id).await.unwrap();
+
+        // Assert
+
+        assert_eq!(2, actual.new);
+        assert_eq!(1, actual.learning);
+        assert_eq!(0, actual.relearning);
+        assert_eq!(1, actual.review);
     }
 
     #[tokio::test]
     async fn get_file_repetitions_valid_input_returned_repetitions() {
         // Arrange
 
-        let mut deps = TestDependencies::new();
-        let file_id = 1;
-        deps.setup_get_file_repetitions(
-            file_id,
-            vec![
-                repetition::Model {
+        let service = create_service().await;
+        let (file_id, cell_id) = create_file_cell(&service, "file 1").await;
+        let (file_id_2, cell_id_2) = create_file_cell(&service, "file 2").await;
+        service
+            .insert_repetitions(vec![
+                repetition::ActiveModel {
+                    file_id: Set(file_id),
+                    cell_id: Set(cell_id),
                     ..Default::default()
                 },
-                repetition::Model {
+                repetition::ActiveModel {
+                    file_id: Set(file_id_2),
+                    cell_id: Set(cell_id_2),
                     ..Default::default()
                 },
-            ],
-        );
-
-        // Act
-
-        let actual = deps
-            .to_service()
-            .get_file_repetitions(file_id)
+            ])
             .await
             .unwrap();
 
+        // Act
+
+        let actual = service.get_file_repetitions(file_id).await.unwrap();
+
         // Assert
 
-        assert_eq!(actual.len(), 2);
+        assert_eq!(actual.len(), 1);
     }
 
     #[tokio::test]
     async fn update_repetition_valid_input_updated_repetition() {
         // Arrange
 
-        let mut deps = TestDependencies::new();
+        let service = create_service().await;
+        let (file_id, cell_id) = create_file_cell(&service, "file 1").await;
+        service
+            .insert_repetitions(vec![repetition::ActiveModel {
+                file_id: Set(file_id),
+                cell_id: Set(cell_id),
+                ..Default::default()
+            }])
+            .await
+            .unwrap();
+        let repetition_id = repetition::Entity::find()
+            .one(&*service.db_conn)
+            .await
+            .unwrap()
+            .unwrap()
+            .id;
+        let date = Utc::now().to_utc();
         let repetition = repetition::Model {
-            ..Default::default()
+            id: repetition_id,
+            file_id,
+            cell_id,
+            due: date,
+            reps: 1,
+            stability: 2.1f32,
+            difficulty: 4.2f32,
+            elapsed_days: 5,
+            scheduled_days: 6,
+            lapses: 7,
+            state: State::New,
+            last_review: date,
         };
-
-        // Assert
-
-        deps.assert_update_repetition(repetition.clone());
 
         // Act
 
-        deps.to_service()
-            .update_repetition(repetition)
+        service.update_repetition(repetition.clone()).await.unwrap();
+
+        // Assert
+
+        let actual = repetition::Entity::find()
+            .one(&*service.db_conn)
             .await
+            .unwrap()
             .unwrap();
+        assert_eq!(actual.id, repetition.id);
+        assert_eq!(actual.file_id, repetition.file_id);
+        assert_eq!(actual.cell_id, repetition.cell_id);
+        assert_eq!(actual.due, repetition.due);
+        assert_eq!(actual.reps, repetition.reps);
+        assert_eq!(actual.stability, repetition.stability);
+        assert_eq!(actual.difficulty, repetition.difficulty);
+        assert_eq!(actual.elapsed_days, repetition.elapsed_days);
+        assert_eq!(actual.scheduled_days, repetition.scheduled_days);
+        assert_eq!(actual.lapses, repetition.lapses);
+        assert_eq!(actual.state, repetition.state);
+        assert_eq!(actual.last_review, repetition.last_review);
     }
 
     #[tokio::test]
     async fn get_repetitions_for_files_valid_input_returned_repetitions() {
         // Arrange
 
-        let mut deps = TestDependencies::new();
-        let file1_id = 1;
-        let file1_repetitions = vec![repetition::Model {
-            ..Default::default()
-        }];
-        deps.setup_get_file_repetitions(file1_id, file1_repetitions);
+        let service = create_service().await;
+        let (file1_id, cell1_id) = create_file_cell(&service, "file 1").await;
 
-        let file2_id = 2;
-        let file2_repetitions = vec![
-            repetition::Model {
+        service
+            .insert_repetitions(vec![
+                repetition::ActiveModel {
+                    file_id: Set(file1_id),
+                    cell_id: Set(cell1_id),
+                    ..Default::default()
+                },
+                repetition::ActiveModel {
+                    file_id: Set(file1_id),
+                    cell_id: Set(cell1_id),
+                    ..Default::default()
+                },
+            ])
+            .await
+            .unwrap();
+        let (file2_id, cell2_id) = create_file_cell(&service, "file 2").await;
+        service
+            .insert_repetitions(vec![repetition::ActiveModel {
+                file_id: Set(file2_id),
+                cell_id: Set(cell2_id),
                 ..Default::default()
-            },
-            repetition::Model {
-                ..Default::default()
-            },
-        ];
-        deps.setup_get_file_repetitions(file2_id, file2_repetitions);
+            }])
+            .await
+            .unwrap();
 
         // Act
 
-        let actual = deps
-            .to_service()
+        let actual = service
             .get_repetitions_for_files(vec![file1_id, file2_id])
             .await
             .unwrap();

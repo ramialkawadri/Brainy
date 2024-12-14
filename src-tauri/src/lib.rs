@@ -2,19 +2,14 @@ mod apis;
 mod entities;
 mod migration;
 mod models;
-mod repositories;
 mod services;
 
 use std::sync::Arc;
 
-use repositories::{
-    cell_repository::DefaultCellRepository, file_repository::DefaultFileRepository,
-    repetition_repository::DefaultRepetitionRepository,
-};
 use sea_orm::{Database, DbErr};
 use services::{
     cell_service::{CellService, DefaultCellService},
-    file_service::{DefaultFileServices, FileService},
+    file_service::{DefaultFileService, FileService},
     repetition_service::{DefaultRepetitionService, RepetitionService},
     settings_service::{DefaultSettingsService, SettingsService},
 };
@@ -39,18 +34,14 @@ pub async fn run() -> Result<(), DbErr> {
         .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
             let conn = Arc::new(conn);
-            let file_repository = Arc::new(DefaultFileRepository::new(conn.clone()));
-            let cell_repository = Arc::new(DefaultCellRepository::new(conn.clone()));
-            let repetition_repository = Arc::new(DefaultRepetitionRepository::new(conn.clone()));
-            let repetition_service =
-                Arc::new(DefaultRepetitionService::new(repetition_repository.clone()));
+            let repetition_service = Arc::new(DefaultRepetitionService::new(conn.clone()));
 
-            app.manage::<Arc<dyn FileService + Sync + Send>>(Arc::new(DefaultFileServices::new(
-                file_repository.clone(),
-                repetition_repository.clone(),
+            app.manage::<Arc<dyn FileService + Sync + Send>>(Arc::new(DefaultFileService::new(
+                conn.clone(),
+                repetition_service.clone(),
             )));
             app.manage::<Arc<dyn CellService + Sync + Send>>(Arc::new(DefaultCellService::new(
-                cell_repository.clone(),
+                conn.clone(),
                 repetition_service.clone(),
             )));
             app.manage::<Arc<dyn RepetitionService + Sync + Send>>(repetition_service);

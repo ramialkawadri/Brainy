@@ -27,6 +27,3 @@ async-trait = "0.1.83"
 chrono = "0.4.39"
 tauri-plugin-dialog = "2.2.0"
 dirs = "5.0.1"
-
-[dev-dependencies]
-mockall = "0.13.1"

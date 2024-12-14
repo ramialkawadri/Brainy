@@ -1,14 +1,15 @@
-#[cfg(test)]
-use mockall::{automock, predicate::*};
 use std::sync::Arc;
 
 use crate::models::file_with_repetitions_count::FileWithRepetitionsCount;
-use crate::repositories::file_repository::FileRepository;
-use crate::repositories::repetition_repository::RepetitionRepository;
 
 use async_trait::async_trait;
+use prelude::Expr;
+use sea_orm::{entity::*, query::*, DbConn};
 
-#[cfg_attr(test, automock)]
+use crate::entities::file;
+
+use super::repetition_service::RepetitionService;
+
 #[async_trait]
 pub trait FileService {
     async fn get_files(&self) -> Result<Vec<FileWithRepetitionsCount>, String>;
@@ -22,19 +23,19 @@ pub trait FileService {
     async fn rename_folder(&self, folder_id: i32, new_name: String) -> Result<(), String>;
 }
 
-pub struct DefaultFileServices {
-    repository: Arc<dyn FileRepository + Sync + Send>,
-    repetition_repository: Arc<dyn RepetitionRepository + Sync + Send>,
+pub struct DefaultFileService {
+    db_conn: Arc<DbConn>,
+    repetition_service: Arc<dyn RepetitionService + Sync + Send>,
 }
 
-impl DefaultFileServices {
+impl DefaultFileService {
     pub fn new(
-        repository: Arc<dyn FileRepository + Sync + Send>,
-        repetition_repository: Arc<dyn RepetitionRepository + Sync + Send>,
+        db_conn: Arc<DbConn>,
+        repetition_service: Arc<dyn RepetitionService + Sync + Send>,
     ) -> Self {
         Self {
-            repository,
-            repetition_repository,
+            db_conn,
+            repetition_service,
         }
     }
 
@@ -52,34 +53,100 @@ impl DefaultFileServices {
                 continue;
             }
 
-            if !self
-                .repository
-                .folder_exists(current_path.to_string())
-                .await?
-            {
-                folder_id = self
-                    .repository
-                    .create_folder(current_path.to_string())
-                    .await?;
+            if !self.folder_exists(current_path.to_string()).await? {
+                let active_model = file::ActiveModel {
+                    path: Set(current_path.clone()),
+                    is_folder: Set(true),
+                    ..Default::default()
+                };
+
+                let result = active_model.insert(&*self.db_conn).await;
+                folder_id = match result {
+                    Ok(insert_result) => insert_result.id,
+                    Err(err) => return Err(err.to_string()),
+                }
             }
         }
 
         Ok(folder_id)
     }
+
+    async fn file_exists(&self, path: String) -> Result<bool, String> {
+        let result = file::Entity::find()
+            .filter(file::Column::Path.eq(path))
+            .filter(file::Column::IsFolder.eq(false))
+            .count(&*self.db_conn)
+            .await;
+
+        match result {
+            Ok(result) => Ok(result > 0),
+            Err(err) => return Err(err.to_string()),
+        }
+    }
+
+    async fn folder_exists(&self, path: String) -> Result<bool, String> {
+        let result = file::Entity::find()
+            .filter(file::Column::Path.eq(path))
+            .filter(file::Column::IsFolder.eq(true))
+            .count(&*self.db_conn)
+            .await;
+
+        match result {
+            Ok(result) => Ok(result > 0),
+            Err(err) => return Err(err.to_string()),
+        }
+    }
+
+    async fn get_by_id(&self, id: i32) -> Result<file::Model, String> {
+        let result = file::Entity::find_by_id(id).one(&*self.db_conn).await;
+        match result {
+            Ok(result) => Ok(result.unwrap()),
+            Err(err) => Err(err.to_string()),
+        }
+    }
+
+    async fn update_path(&self, id: i32, new_path: String) -> Result<(), String> {
+        let result = file::Entity::update_many()
+            .col_expr(file::Column::Path, Expr::value(new_path))
+            .filter(file::Column::Id.eq(id))
+            .exec(&*self.db_conn)
+            .await;
+        match result {
+            Ok(_) => Ok(()),
+            Err(err) => return Err(err.to_string()),
+        }
+    }
+
+    async fn get_folder_sub_files(&self, id: i32) -> Result<Vec<file::Model>, String> {
+        let folder = self.get_by_id(id).await?;
+        let result = file::Entity::find()
+            .filter(file::Column::Path.starts_with(folder.path + "/"))
+            .all(&*self.db_conn)
+            .await;
+        match result {
+            Ok(rows) => Ok(rows),
+            Err(err) => return Err(err.to_string()),
+        }
+    }
 }
 
 #[async_trait]
-impl FileService for DefaultFileServices {
+impl FileService for DefaultFileService {
     async fn get_files(&self) -> Result<Vec<FileWithRepetitionsCount>, String> {
-        let files = self.repository.get_files().await?;
+        let result = file::Entity::find().all(&*self.db_conn).await;
+        let files = match result {
+            Ok(result) => result,
+            Err(err) => return Err(err.to_string()),
+        };
+
         let mut files_with_repetitions_counts: Vec<FileWithRepetitionsCount> = vec![];
         for file in files {
             let repetition_counts = if file.is_folder {
                 None
             } else {
                 Some(
-                    self.repetition_repository
-                        .get_study_repetitions_counts(file.id)
+                    self.repetition_service
+                        .get_study_repetition_counts(file.id)
                         .await?,
                 )
             };
@@ -104,10 +171,21 @@ impl FileService for DefaultFileServices {
             self.create_folder_recursively(&get_folder_path(&path))
                 .await?;
         }
-        if self.repository.file_exists(path.clone()).await? {
+        if self.file_exists(path.clone()).await? {
             return Err("File already exists!".into());
         }
-        self.repository.create_file(path).await
+
+        let active_model = file::ActiveModel {
+            path: Set(path),
+            is_folder: Set(false),
+            ..Default::default()
+        };
+
+        let result = active_model.insert(&*self.db_conn).await;
+        match result {
+            Ok(insert_result) => Ok(insert_result.id),
+            Err(err) => Err(err.to_string()),
+        }
     }
 
     async fn create_folder(&self, path: String) -> Result<i32, String> {
@@ -115,26 +193,61 @@ impl FileService for DefaultFileServices {
         if path.trim().is_empty() {
             return Err("Name cannot be empty!".into());
         }
-        if self.repository.folder_exists(path.clone()).await? {
+        if self.folder_exists(path.clone()).await? {
             return Err("Folder already exists!".into());
         }
         self.create_folder_recursively(&path).await
     }
 
     async fn delete_file(&self, file_id: i32) -> Result<(), String> {
-        self.repository.delete_file(file_id).await
+        let result = file::Entity::delete_many()
+            .filter(file::Column::Id.eq(file_id))
+            .exec(&*self.db_conn)
+            .await;
+
+        match result {
+            Ok(_) => Ok(()),
+            Err(err) => return Err(err.to_string()),
+        }
     }
 
     async fn delete_folder(&self, folder_id: i32) -> Result<(), String> {
-        self.repository.delete_folder(folder_id).await
+        let folder = self.get_by_id(folder_id).await?;
+
+        let txn = match self.db_conn.begin().await {
+            Ok(txn) => txn,
+            Err(err) => return Err(err.to_string()),
+        };
+
+        let result = file::Entity::delete_many()
+            .filter(file::Column::Path.starts_with(folder.path + "/"))
+            .exec(&txn)
+            .await;
+        if let Err(err) = result {
+            return Err(err.to_string());
+        }
+
+        let result = file::Entity::delete_many()
+            .filter(file::Column::Id.eq(folder_id))
+            .exec(&txn)
+            .await;
+        if let Err(err) = result {
+            return Err(err.to_string());
+        }
+
+        let result = txn.commit().await;
+        match result {
+            Ok(_) => Ok(()),
+            Err(err) => return Err(err.to_string()),
+        }
     }
 
     async fn move_file(&self, file_id: i32, destination_folder_id: i32) -> Result<(), String> {
-        let file = self.repository.get_by_id(file_id).await?;
+        let file = self.get_by_id(file_id).await?;
         let destination_path = if destination_folder_id == 0 {
             "".into()
         } else {
-            self.repository.get_by_id(destination_folder_id).await?.path
+            self.get_by_id(destination_folder_id).await?.path
         };
 
         if destination_path == get_folder_path(&file.path) {
@@ -147,19 +260,19 @@ impl FileService for DefaultFileServices {
             destination_path + "/" + file_name.as_str()
         };
 
-        if self.repository.file_exists(new_path.clone()).await? {
-            return Err("Another file with the same name exists!".into());
+        if self.file_exists(new_path.clone()).await? {
+            return Err("another file with the same name exists!".into());
         }
 
-        self.repository.update_path(file_id, new_path).await
+        self.update_path(file_id, new_path).await
     }
 
     async fn move_folder(&self, folder_id: i32, destination_folder_id: i32) -> Result<(), String> {
-        let folder = self.repository.get_by_id(folder_id).await?;
+        let folder = self.get_by_id(folder_id).await?;
         let destination_path = if destination_folder_id == 0 {
             "".into()
         } else {
-            self.repository.get_by_id(destination_folder_id).await?.path
+            self.get_by_id(destination_folder_id).await?.path
         };
 
         if destination_path == folder.path {
@@ -176,15 +289,13 @@ impl FileService for DefaultFileServices {
             destination_path + "/" + folder_name.as_str()
         };
 
-        if self.repository.folder_exists(new_path.clone()).await? {
+        if self.folder_exists(new_path.clone()).await? {
             return Err("Another folder with the same name exists!".into());
         }
 
-        let sub_files = self.repository.get_folder_sub_files(folder_id).await?;
+        let sub_files = self.get_folder_sub_files(folder_id).await?;
 
-        self.repository
-            .update_path(folder_id, new_path.clone())
-            .await?;
+        self.update_path(folder_id, new_path.clone()).await?;
 
         for row in sub_files {
             let new_row_path = new_path.clone()
@@ -194,7 +305,7 @@ impl FileService for DefaultFileServices {
                     .skip(folder.path.len())
                     .collect::<String>()
                     .as_str();
-            self.repository.update_path(row.id, new_row_path).await?;
+            self.update_path(row.id, new_row_path).await?;
         }
 
         Ok(())
@@ -206,17 +317,17 @@ impl FileService for DefaultFileServices {
             return Err("Please enter a non empty name!".into());
         }
 
-        let file = self.repository.get_by_id(file_id).await?;
+        let file = self.get_by_id(file_id).await?;
 
         let new_path = apply_new_name(&file.path, &new_name);
-        if self.repository.file_exists(new_path.clone()).await? {
+        if self.file_exists(new_path.clone()).await? {
             return Err("Another file with the same name already exists!".into());
         }
 
         self.create_folder_recursively(&get_folder_path(&new_path))
             .await?;
 
-        self.repository.update_path(file_id, new_path).await
+        self.update_path(file_id, new_path).await
     }
 
     async fn rename_folder(&self, folder_id: i32, new_name: String) -> Result<(), String> {
@@ -225,17 +336,15 @@ impl FileService for DefaultFileServices {
             return Err("Please enter a non empty name!".into());
         }
 
-        let folder = self.repository.get_by_id(folder_id).await?;
+        let folder = self.get_by_id(folder_id).await?;
         let new_path = apply_new_name(&folder.path, &new_name);
-        if self.repository.folder_exists(new_path.clone()).await? {
+        if self.folder_exists(new_path.clone()).await? {
             return Err("Another folder with the same name already exists!".into());
         }
 
-        let sub_files = self.repository.get_folder_sub_files(folder_id).await?;
+        let sub_files = self.get_folder_sub_files(folder_id).await?;
 
-        self.repository
-            .update_path(folder_id, new_path.clone())
-            .await?;
+        self.update_path(folder_id, new_path.clone()).await?;
         self.create_folder_recursively(&get_folder_path(&new_path))
             .await?;
 
@@ -247,7 +356,7 @@ impl FileService for DefaultFileServices {
                     .skip(folder.path.len())
                     .collect::<String>()
                     .as_str();
-            self.repository.update_path(row.id, new_row_path).await?;
+            self.update_path(row.id, new_row_path).await?;
         }
 
         Ok(())
@@ -280,186 +389,80 @@ fn apply_new_name(path: &String, new_name: &String) -> String {
 
 #[cfg(test)]
 pub mod tests {
-    use mockall::predicate;
-
-    use super::*;
     use crate::{
-        entities::file,
-        models::file_repetitions_count::FileRepetitionCounts,
-        repositories::{
-            file_repository::MockFileRepository, repetition_repository::MockRepetitionRepository,
+        entities::cell::{self, CellType},
+        services::{
+            cell_service::{CellService, DefaultCellService},
+            repetition_service::DefaultRepetitionService,
+            tests::get_db,
         },
     };
 
-    struct TestDependencies {
-        file_repository: MockFileRepository,
-        repetition_repository: MockRepetitionRepository,
+    use super::*;
+
+    async fn create_service() -> DefaultFileService {
+        let db_conn = Arc::new(get_db().await);
+        DefaultFileService::new(
+            db_conn.clone(),
+            Arc::new(DefaultRepetitionService::new(db_conn.clone())),
+        )
     }
 
-    impl TestDependencies {
-        fn new() -> Self {
-            TestDependencies {
-                file_repository: MockFileRepository::new(),
-                repetition_repository: MockRepetitionRepository::new(),
-            }
-        }
-
-        fn to_service(self) -> DefaultFileServices {
-            DefaultFileServices::new(
-                Arc::new(self.file_repository),
-                Arc::new(self.repetition_repository),
-            )
-        }
-
-        fn setup_get_files(&mut self, files: Vec<file::Model>) {
-            self.file_repository
-                .expect_get_files()
-                .return_once(|| Ok(files));
-        }
-
-        fn setup_get_by_id(&mut self, id: i32, model: file::Model) {
-            self.file_repository
-                .expect_get_by_id()
-                .with(predicate::eq(id))
-                .return_once(|_| Ok(model));
-        }
-
-        fn setup_get_folder_sub_files(&mut self, id: i32, files: Vec<file::Model>) {
-            self.file_repository
-                .expect_get_folder_sub_files()
-                .with(predicate::eq(id))
-                .return_once(|_| Ok(files));
-        }
-
-        fn setup_folder_exists(&mut self, path: &str, val: bool) {
-            self.file_repository
-                .expect_folder_exists()
-                .with(predicate::eq(path.to_string()))
-                .return_const(Ok(val));
-        }
-
-        fn setup_file_exists(&mut self, path: &str, val: bool) {
-            self.file_repository
-                .expect_file_exists()
-                .with(predicate::eq(path.to_string()))
-                .return_const(Ok(val));
-        }
-
-        fn setup_get_study_repetition_counts(
-            &mut self,
-            file_id: i32,
-            file_repetitions_count: FileRepetitionCounts,
-        ) {
-            self.repetition_repository
-                .expect_get_study_repetitions_counts()
-                .with(predicate::eq(file_id))
-                .return_const(Ok(file_repetitions_count));
-        }
-
-        fn assert_create_folder(&mut self, path: &str) {
-            self.file_repository
-                .expect_create_folder()
-                .with(predicate::eq(path.to_string()))
-                .once()
-                .return_const(Ok(1));
-        }
-
-        fn assert_create_file(&mut self, path: &str) {
-            self.file_repository
-                .expect_create_file()
-                .with(predicate::eq(path.to_string()))
-                .once()
-                .return_const(Ok(1));
-        }
-
-        fn assert_update_path(&mut self, id: i32, path: &str) {
-            self.file_repository
-                .expect_update_path()
-                .with(predicate::eq(id), predicate::eq(path.to_string()))
-                .once()
-                .return_const(Ok(()));
-        }
-
-        fn assert_delete_folder(&mut self, folder_id: i32) {
-            self.file_repository
-                .expect_delete_folder()
-                .with(predicate::eq(folder_id))
-                .once()
-                .return_const(Ok(()));
-        }
-
-        fn assert_delete_file(&mut self, file_id: i32) {
-            self.file_repository
-                .expect_delete_file()
-                .with(predicate::eq(file_id))
-                .once()
-                .return_const(Ok(()));
-        }
-
-        fn assert_no_create_folder(&mut self) {
-            self.file_repository.expect_create_folder().never();
-        }
+    fn create_cell_service(service: &DefaultFileService) -> DefaultCellService {
+        DefaultCellService::new(service.db_conn.clone(), service.repetition_service.clone())
     }
 
     #[tokio::test]
     async fn get_files_valid_input_returned_files() {
         // Arrange
 
-        let mut deps = TestDependencies::new();
-        let files: Vec<file::Model> = vec![file::Model {
-            id: 10,
-            ..Default::default()
-        }];
-        let file_repetition_count = FileRepetitionCounts {
-            new: 1,
-            learning: 2,
-            relearning: 3,
-            review: 4,
-        };
-        deps.setup_get_study_repetition_counts(files[0].id, file_repetition_count.clone());
-        deps.setup_get_files(files);
+        let service = create_service().await;
+        service.create_file("file".into()).await.unwrap();
+        service.create_folder("folder".into()).await.unwrap();
 
         // Act
 
-        let actual = deps.to_service().get_files().await.unwrap();
+        let actual = service.get_files().await.unwrap();
 
         // Assert
 
-        assert_eq!(actual.len(), 1);
-        assert_eq!(actual[0].id, 10);
-        assert_eq!(actual[0].repetition_counts, Some(file_repetition_count));
+        assert_eq!(actual.len(), 2);
+        assert!(actual.iter().any(|f| f.path == "file".to_string()));
+        assert!(actual.iter().any(|f| f.path == "folder".to_string()));
     }
 
     #[tokio::test]
     async fn create_folder_nested_path_created_all_folders() {
         // Arrange
 
-        let mut deps = TestDependencies::new();
-        deps.setup_folder_exists("folder 1", false);
-        deps.setup_folder_exists("folder 1/folder 2", false);
-
-        // Assert
-
-        deps.assert_create_folder("folder 1");
-        deps.assert_create_folder("folder 1/folder 2");
+        let service = create_service().await;
 
         // Act
 
-        deps.to_service()
+        service
             .create_folder("folder 1/folder 2/".into())
             .await
             .unwrap();
+
+        // Assert
+
+        let actual = service.get_files().await.unwrap();
+        assert_eq!(actual.len(), 2);
+        assert!(actual.iter().any(|f| f.path == "folder 1".to_string()));
+        assert!(actual
+            .iter()
+            .any(|f| f.path == "folder 1/folder 2".to_string()));
     }
 
     #[tokio::test]
     async fn create_folder_empty_name_returned_error() {
         // Arrange
 
-        let deps = TestDependencies::new();
+        let service = create_service().await;
 
         // Act
 
-        let actual = deps.to_service().create_folder("  ".into()).await;
+        let actual = service.create_folder("  ".into()).await;
 
         // Assert
 
@@ -470,12 +473,12 @@ pub mod tests {
     async fn create_folder_existing_folder_returned_error() {
         // Arrange
 
-        let mut deps = TestDependencies::new();
-        deps.setup_folder_exists("folder 1", true);
+        let service = create_service().await;
+        service.create_folder("folder 1".into()).await.unwrap();
 
         // Act
 
-        let actual = deps.to_service().create_folder("folder 1".into()).await;
+        let actual = service.create_folder("folder 1".into()).await;
 
         // Assert
 
@@ -483,36 +486,14 @@ pub mod tests {
     }
 
     #[tokio::test]
-    async fn create_file_nested_path_created_all_folders() {
-        // Arrange
-
-        let mut deps = TestDependencies::new();
-        deps.setup_folder_exists("folder 1", true);
-        deps.setup_folder_exists("folder 1/folder 2", false);
-        deps.setup_file_exists("folder 1/folder 2/file 1", false);
-
-        // Assert
-
-        deps.assert_create_folder("folder 1/folder 2");
-        deps.assert_create_file("folder 1/folder 2/file 1");
-
-        // Act
-
-        deps.to_service()
-            .create_file("folder 1/folder 2/file 1/".into())
-            .await
-            .unwrap();
-    }
-
-    #[tokio::test]
     async fn create_file_empty_name_returned_error() {
         // Arrange
 
-        let deps = TestDependencies::new();
+        let service = create_service().await;
 
         // Act
 
-        let actual = deps.to_service().create_file("  ".into()).await;
+        let actual = service.create_file("  ".into()).await;
 
         // Assert
 
@@ -523,12 +504,12 @@ pub mod tests {
     async fn create_file_existing_file_returned_error() {
         // Arrange
 
-        let mut deps = TestDependencies::new();
-        deps.setup_file_exists("file 1", true);
+        let service = create_service().await;
+        service.create_file("file 1".into()).await.unwrap();
 
         // Act
 
-        let actual = deps.to_service().create_file("file 1".into()).await;
+        let actual = service.create_file("file 1".into()).await;
 
         // Assert
 
@@ -539,115 +520,130 @@ pub mod tests {
     async fn delete_file_valid_input_deleted_file() {
         // Arrange
 
-        let mut deps = TestDependencies::new();
+        let service = create_service().await;
+        service.create_folder("test".into()).await.unwrap();
+        service.create_file("test".into()).await.unwrap();
+        service.create_file("test 2".into()).await.unwrap();
+        let cell_service = create_cell_service(&service);
 
-        // Assert
+        let file_id = get_id(&service.db_conn, "test", false).await;
+        cell_service
+            .create_cell(file_id, "".into(), CellType::FlashCard, 0)
+            .await
+            .unwrap();
 
-        deps.assert_delete_file(10);
+        let file_id = get_id(&service.db_conn, "test 2", false).await;
+        cell_service
+            .create_cell(file_id, "".into(), CellType::FlashCard, 0)
+            .await
+            .unwrap();
 
         // Act
 
-        deps.to_service().delete_file(10).await.unwrap();
+        service
+            .delete_file(get_id(&service.db_conn, "test", false).await)
+            .await
+            .unwrap();
+
+        // Assert
+
+        let actual = service.get_files().await.unwrap();
+        assert_eq!(actual.len(), 2);
+        let cell_counts = cell::Entity::find().all(&*service.db_conn).await.unwrap();
+        assert_eq!(cell_counts.len(), 1);
     }
 
     #[tokio::test]
     async fn delete_folder_valid_input_deleted_folder() {
         // Arrange
 
-        let mut deps = TestDependencies::new();
+        let service = create_service().await;
+        service.create_folder("test".into()).await.unwrap();
+        service.create_file("test/file".into()).await.unwrap();
+        let file_id = get_id(&service.db_conn, "test/file", false).await;
+        let cell_service = create_cell_service(&service);
+        cell_service
+            .create_cell(file_id, "".into(), CellType::FlashCard, 0)
+            .await
+            .unwrap();
 
-        // Assert
-
-        deps.assert_delete_folder(10);
+        service.create_file("test".into()).await.unwrap();
+        let file_id = get_id(&service.db_conn, "test", false).await;
+        cell_service
+            .create_cell(file_id, "".into(), CellType::FlashCard, 0)
+            .await
+            .unwrap();
 
         // Act
 
-        deps.to_service().delete_folder(10).await.unwrap();
+        service
+            .delete_folder(get_id(&service.db_conn, "test", true).await)
+            .await
+            .unwrap();
+
+        // Assert
+
+        let actual = service.get_files().await.unwrap();
+        assert_eq!(actual.len(), 1);
+        let cell_counts = cell::Entity::find().all(&*service.db_conn).await.unwrap();
+        assert_eq!(cell_counts.len(), 1);
     }
 
     #[tokio::test]
     async fn move_file_valid_input_moved_file() {
         // Arrange
 
-        let mut deps = TestDependencies::new();
-        let file_id = 1;
-        deps.setup_get_by_id(
-            file_id,
-            file::Model {
-                path: "file".into(),
-                ..Default::default()
-            },
-        );
-        let destination_folder_id = 2;
-        deps.setup_get_by_id(
-            destination_folder_id,
-            file::Model {
-                path: "test".into(),
-                ..Default::default()
-            },
-        );
-        deps.setup_file_exists("test/file", false);
-
-        // Assert
-
-        deps.assert_update_path(file_id, "test/file");
+        let service = create_service().await;
+        let file_id = service.create_file("test/file".into()).await.unwrap();
+        let destination_folder_id = service.create_folder("test 2".into()).await.unwrap();
 
         // Act
 
-        deps.to_service()
+        service
             .move_file(file_id, destination_folder_id)
             .await
             .unwrap();
+
+        // Assert
+
+        let actual = service.get_files().await.unwrap();
+        assert_eq!(actual[1].path, "test 2/file".to_string());
     }
 
     #[tokio::test]
     async fn move_file_move_to_root_moved_file() {
         // Arrange
 
-        let mut deps = TestDependencies::new();
-        let file_id = 1;
-        deps.setup_get_by_id(
-            file_id,
-            file::Model {
-                path: "folder 1/file".into(),
-                ..Default::default()
-            },
-        );
-        deps.setup_file_exists("file", false);
-
-        // Assert
-
-        deps.assert_update_path(file_id, "file");
+        let service = create_service().await;
+        let file_id = service.create_file("test/file".into()).await.unwrap();
 
         // Act
 
-        deps.to_service().move_file(file_id, 0).await.unwrap();
+        service.move_file(file_id, 0).await.unwrap();
+
+        // Assert
+
+        let actual = service.get_files().await.unwrap();
+        assert_eq!(actual[1].path, "file".to_string());
     }
 
     #[tokio::test]
     async fn move_file_existing_file_error_returned() {
         // Arrange
 
-        let mut deps = TestDependencies::new();
-        let file_id = 1;
-        deps.setup_get_by_id(
-            file_id,
-            file::Model {
-                path: "folder 1/file".into(),
-                ..Default::default()
-            },
-        );
-        deps.setup_file_exists("file", true);
+        let service = create_service().await;
+        let file_id = service.create_file("test/file".into()).await.unwrap();
+        service.create_file("file".into()).await.unwrap();
 
         // Act
 
-        let actual = deps.to_service().move_file(file_id, 0).await;
+        let actual = service.move_file(file_id, 0).await;
 
         // Assert
 
         assert_eq!(
             actual,
-            Err("Another file with the same name exists!".to_string())
+            Err("another file with the same name exists!".to_string())
         );
     }
 
@@ -655,130 +651,84 @@ pub mod tests {
     async fn move_folder_valid_input_moved_folder() {
         // Arrange
 
-        let mut deps = TestDependencies::new();
-        let folder_id = 1;
-        deps.setup_get_by_id(
-            folder_id,
-            file::Model {
-                path: "test".into(),
-                is_folder: true,
-                ..Default::default()
-            },
-        );
-        let destination_folder_id = 2;
-        deps.setup_get_by_id(
-            destination_folder_id,
-            file::Model {
-                path: "test 2".into(),
-                is_folder: true,
-                ..Default::default()
-            },
-        );
-        deps.setup_folder_exists("test 2/test", false);
-        deps.setup_folder_exists("test 2", true);
-        let files: Vec<file::Model> = vec![
-            file::Model {
-                id: 10,
-                path: "test/folder 1/folder 2".into(),
-                ..Default::default()
-            },
-            file::Model {
-                id: 11,
-                path: "test/folder 1/folder 2/file".into(),
-                ..Default::default()
-            },
-            file::Model {
-                id: 12,
-                path: "test/file".into(),
-                ..Default::default()
-            },
-        ];
-        deps.setup_get_folder_sub_files(folder_id, files);
+        let service = create_service().await;
+        let folder_id = service.create_folder("test".into()).await.unwrap();
+        let destination_folder_id = service.create_folder("destination".into()).await.unwrap();
 
-        // Assert
-
-        deps.assert_update_path(folder_id, "test 2/test");
-        deps.assert_update_path(10, "test 2/test/folder 1/folder 2");
-        deps.assert_update_path(11, "test 2/test/folder 1/folder 2/file");
-        deps.assert_update_path(12, "test 2/test/file");
+        service
+            .create_file("test/folder 1/folder 2/file".into())
+            .await
+            .unwrap();
+        service.create_file("test/file".into()).await.unwrap();
 
         // Act
 
-        deps.to_service()
+        service
             .move_folder(folder_id, destination_folder_id)
             .await
             .unwrap();
+
+        // Assert
+
+        let actual = service.get_files().await.unwrap();
+        assert!(actual.iter().any(|f| f.path == "destination".to_string()));
+        assert!(actual
+            .iter()
+            .any(|f| f.path == "destination/test/folder 1".to_string()));
+        assert!(actual
+            .iter()
+            .any(|f| f.path == "destination/test/folder 1/folder 2".to_string()));
+        assert!(actual
+            .iter()
+            .any(|f| f.path == "destination/test/folder 1/folder 2/file".to_string()));
+        assert!(actual
+            .iter()
+            .any(|f| f.path == "destination/test/file".to_string()));
     }
 
     #[tokio::test]
     async fn move_folder_move_to_root_moved_folder() {
         // Arrange
 
-        let mut deps = TestDependencies::new();
-        let folder_id = 1;
-        deps.setup_get_by_id(
-            folder_id,
-            file::Model {
-                path: "test/folder 1".into(),
-                ..Default::default()
-            },
-        );
-        let files: Vec<file::Model> = vec![
-            file::Model {
-                id: 10,
-                path: "test/folder 1/folder 2".into(),
-                ..Default::default()
-            },
-            file::Model {
-                id: 11,
-                path: "test/folder 1/folder 2/file".into(),
-                ..Default::default()
-            },
-        ];
-        deps.setup_get_folder_sub_files(folder_id, files);
-        deps.setup_folder_exists("folder 1", false);
+        let service = create_service().await;
+        service.create_folder("test".into()).await.unwrap();
+        let folder_id = service.create_folder("test/folder 1".into()).await.unwrap();
 
-        // Assert
-
-        deps.assert_update_path(folder_id, "folder 1");
-        deps.assert_update_path(10, "folder 1/folder 2");
-        deps.assert_update_path(11, "folder 1/folder 2/file");
+        service
+            .create_file("test/folder 1/folder 2/file".into())
+            .await
+            .unwrap();
+        service.create_file("test/file".into()).await.unwrap();
 
         // Act
 
-        deps.to_service().move_folder(folder_id, 0).await.unwrap();
+        service.move_folder(folder_id, 0).await.unwrap();
+
+        // Assert
+
+        let actual = service.get_files().await.unwrap();
+        assert!(actual.iter().any(|f| f.path == "test".to_string()));
+        assert!(actual.iter().any(|f| f.path == "folder 1".to_string()));
+        assert!(actual
+            .iter()
+            .any(|f| f.path == "folder 1/folder 2".to_string()));
+        assert!(actual
+            .iter()
+            .any(|f| f.path == "folder 1/folder 2/file".to_string()));
+        assert!(actual.iter().any(|f| f.path == "test/file".to_string()));
     }
 
     #[tokio::test]
     async fn move_folder_move_to_inner_folder_error_returned() {
         // Arrange
 
-        let mut deps = TestDependencies::new();
-        let folder_id = 1;
-        deps.setup_get_by_id(
-            folder_id,
-            file::Model {
-                id: folder_id,
-                path: "test".to_string(),
-                ..Default::default()
-            },
-        );
-        let inner_folder_id = 2;
-        deps.setup_get_by_id(
-            inner_folder_id,
-            file::Model {
-                id: inner_folder_id,
-                path: "test/folder".to_string(),
-                ..Default::default()
-            },
-        );
+        let service = create_service().await;
+        let folder_id = service.create_folder("test".into()).await.unwrap();
+        let inner_folder_id = service.create_folder("test/folder 1".into()).await.unwrap();
 
         // Act
 
-        let actual = deps
-            .to_service()
-            .move_folder(folder_id, inner_folder_id)
-            .await;
+        let actual = service.move_folder(folder_id, inner_folder_id).await;
 
         // Assert
 
@@ -792,33 +742,13 @@ pub mod tests {
     async fn move_folder_existing_folder_error_returned() {
         // Arrange
 
-        let mut deps = TestDependencies::new();
-        let folder_id = 1;
-        deps.setup_get_by_id(
-            folder_id,
-            file::Model {
-                id: folder_id,
-                path: "folder".to_string(),
-                ..Default::default()
-            },
-        );
-        let destination_folder_id = 2;
-        deps.setup_get_by_id(
-            destination_folder_id,
-            file::Model {
-                id: destination_folder_id,
-                path: "test".to_string(),
-                ..Default::default()
-            },
-        );
-        deps.setup_folder_exists("test/folder", true);
+        let service = create_service().await;
+        let folder_id = service.create_folder("test/folder 1".into()).await.unwrap();
+        service.create_folder("folder 1".into()).await.unwrap();
 
         // Act
 
-        let actual = deps
-            .to_service()
-            .move_folder(folder_id, destination_folder_id)
-            .await;
+        let actual = service.move_folder(folder_id, 0).await;
 
         // Assert
 
@@ -832,82 +762,53 @@ pub mod tests {
     async fn rename_file_inside_folder_renamed_file() {
         // Arrange
 
-        let mut deps = TestDependencies::new();
-        let file_id = 1;
-        deps.setup_get_by_id(
-            file_id,
-            file::Model {
-                id: file_id,
-                path: "folder/test".to_string(),
-                ..Default::default()
-            },
-        );
-        deps.setup_file_exists("folder/new name", false);
-        deps.setup_folder_exists("folder", true);
-
-        // Assert
-
-        deps.assert_update_path(file_id, "folder/new name");
+        let service = create_service().await;
+        let file_id = service.create_file("folder/test".into()).await.unwrap();
 
         // Act
 
-        deps.to_service()
-            .rename_file(file_id, "/new name".into())
+        service
+            .rename_file(file_id, "/new name/".into())
             .await
             .unwrap();
+
+        // Assert
+
+        let actual = service.get_files().await.unwrap();
+        assert_eq!(actual[1].path, "folder/new name".to_string());
     }
 
     #[tokio::test]
     async fn rename_file_placed_on_root_file_renamed() {
         // Arrange
 
-        let mut deps = TestDependencies::new();
-        let file_id = 1;
-        deps.setup_get_by_id(
-            file_id,
-            file::Model {
-                id: file_id,
-                path: "test".to_string(),
-                ..Default::default()
-            },
-        );
-        deps.setup_file_exists("new name", false);
-
-        // Assert
-
-        deps.assert_update_path(file_id, "new name");
-        deps.assert_no_create_folder();
+        let service = create_service().await;
+        let file_id = service.create_file("test".into()).await.unwrap();
 
         // Act
 
-        deps.to_service()
-            .rename_file(file_id, "new name".into())
+        service
+            .rename_file(file_id, "/new name/".into())
             .await
             .unwrap();
+
+        // Assert
+
+        let actual = service.get_files().await.unwrap();
+        assert_eq!(actual[0].path, "new name".to_string());
     }
 
     #[tokio::test]
     async fn rename_file_existing_file_error_returned() {
         // Arrange
 
-        let mut deps = TestDependencies::new();
-        let file_id = 1;
-        deps.setup_get_by_id(
-            file_id,
-            file::Model {
-                id: file_id,
-                path: "folder/test".to_string(),
-                ..Default::default()
-            },
-        );
-        deps.setup_file_exists("folder/new name", true);
+        let service = create_service().await;
+        let file_id = service.create_file("test".into()).await.unwrap();
+        service.create_file("new name".into()).await.unwrap();
 
         // Act
 
-        let actual = deps
-            .to_service()
-            .rename_file(file_id, "new name".into())
-            .await;
+        let actual = service.rename_file(file_id, "/new name/".into()).await;
 
         // Assert
 
@@ -921,70 +822,55 @@ pub mod tests {
     async fn rename_folder_valid_input_renamed_folder() {
         // Arrange
 
-        let mut deps = TestDependencies::new();
-        let folder_id = 1;
-        deps.setup_get_by_id(
-            folder_id,
-            file::Model {
-                id: folder_id,
-                path: "test/folder 1".into(),
-                ..Default::default()
-            },
-        );
-        let files: Vec<file::Model> = vec![
-            file::Model {
-                id: 10,
-                path: "test/folder 1/folder 2".into(),
-                ..Default::default()
-            },
-            file::Model {
-                id: 11,
-                path: "test/folder 1/folder 2/file".into(),
-                ..Default::default()
-            },
-        ];
-        deps.setup_get_folder_sub_files(folder_id, files);
-        deps.setup_folder_exists("test", true);
-        deps.setup_folder_exists("test/new name", false);
-        deps.setup_folder_exists("test/new name/subfolder", false);
-
-        // Assert
-
-        deps.assert_create_folder("test/new name");
-        deps.assert_update_path(folder_id, "test/new name/subfolder");
-        deps.assert_update_path(10, "test/new name/subfolder/folder 2");
-        deps.assert_update_path(11, "test/new name/subfolder/folder 2/file");
+        let service = create_service().await;
+        let folder_id = service.create_folder("folder 1".into()).await.unwrap();
+        service
+            .create_file("folder 1/folder 2/file".into())
+            .await
+            .unwrap();
+        service
+            .create_file("folder 1/folder 2/folder 3/file".into())
+            .await
+            .unwrap();
 
         // Act
 
-        deps.to_service()
+        service
             .rename_folder(folder_id, "/new name/subfolder".into())
             .await
             .unwrap();
+
+        // Assert
+
+        let actual = service.get_files().await.unwrap();
+        assert!(actual
+            .iter()
+            .any(|f| f.path == "new name/subfolder".to_string()));
+        assert!(actual
+            .iter()
+            .any(|f| f.path == "new name/subfolder/folder 2".to_string()));
+        assert!(actual
+            .iter()
+            .any(|f| f.path == "new name/subfolder/folder 2/file".to_string()));
+        assert!(actual
+            .iter()
+            .any(|f| f.path == "new name/subfolder/folder 2/folder 3".to_string()));
+        assert!(actual
+            .iter()
+            .any(|f| f.path == "new name/subfolder/folder 2/folder 3/file".to_string()));
     }
 
     #[tokio::test]
     async fn rename_folder_existing_folder_returned_error() {
         // Arrange
 
-        let mut deps = TestDependencies::new();
-        let folder_id = 1;
-        deps.setup_get_by_id(
-            folder_id,
-            file::Model {
-                id: folder_id,
-                path: "test/folder 1".into(),
-                ..Default::default()
-            },
-        );
-        deps.setup_folder_exists("test/new name", true);
+        let service = create_service().await;
+        let folder_id = service.create_folder("folder 1".into()).await.unwrap();
+        service.create_folder("folder 2".into()).await.unwrap();
 
         // Act
 
-        let actual = deps
-            .to_service()
-            .rename_folder(folder_id, "new name".into())
-            .await;
+        let actual = service.rename_folder(folder_id, "folder 2".into()).await;
 
         // Assert
 
@@ -992,5 +878,16 @@ pub mod tests {
             actual,
             Err("Another folder with the same name already exists!".into())
         );
+    }
+
+    pub async fn get_id(db: &DbConn, path: &str, is_folder: bool) -> i32 {
+        file::Entity::find()
+            .filter(file::Column::Path.eq(path))
+            .filter(file::Column::IsFolder.eq(is_folder))
+            .one(db)
+            .await
+            .unwrap()
+            .unwrap()
+            .id
     }
 }

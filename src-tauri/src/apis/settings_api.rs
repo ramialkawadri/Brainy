@@ -1,10 +1,12 @@
-
 use std::sync::Arc;
 
 use tauri::State;
 use tokio::sync::Mutex;
 
-use crate::{models::{settings::Settings, update_settings_request::UpdateSettingsRequest}, services::settings_service::SettingsService};
+use crate::{
+    models::{settings::Settings, update_settings_request::UpdateSettingsRequest},
+    services::settings_service::SettingsService,
+};
 
 #[tauri::command]
 pub async fn get_settings(
@@ -15,7 +17,7 @@ pub async fn get_settings(
 }
 
 #[tauri::command]
-pub async fn update_settings (
+pub async fn update_settings(
     settings_service: State<'_, Arc<Mutex<dyn SettingsService + Sync + Send>>>,
     new_settings: UpdateSettingsRequest,
 ) -> Result<(), String> {
