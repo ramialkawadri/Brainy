@@ -4,22 +4,21 @@
 	border-right: 1px solid var(--border-color);
 	background-color: #fafafa;
 	width: 36rem;
-	transition: 0.25s all;
+	transition: 0.18s all;
 
 	& * {
 		font-size: 1.6rem;
 	}
 
 	&.closed {
-		width: 7rem;
+		width: 72px;
 		overflow: hidden;
 
 		& > * {
-			visibility: hidden;
+            display: none;
 		}
 
 		& .header {
-			visibility: visible;
 			display: block;
 
 			& h2 {
@@ -28,15 +27,14 @@
 
 			& .toggle-button {
 				transform: rotate(180deg);
-				width: 100%;
+                width: 100%;
 			}
 		}
 
 		& .row {
+            display: flex;
 			visibility: visible;
-			display: block;
-			padding-right: 0;
-			padding-left: 0;
+            justify-content: center;
 
 			& p {
 				display: none;
@@ -64,6 +62,7 @@
 	& .toggle-button {
 		transition: 0s tansform;
 		transition: 0s width;
+        padding: var(--medium-padding);
 	}
 }
 
@@ -72,9 +71,8 @@
 	flex-direction: row;
 	gap: 4px;
 	width: 100%;
-	padding-top: var(--medium-padding);
-	padding-bottom: var(--medium-padding);
-	margin-bottom: 2px;
+    padding: var(--medium-padding);
+	margin-bottom: 4px;
 }
 
 .search-bar {
