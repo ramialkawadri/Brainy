@@ -10,15 +10,20 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
+  build_rust:
     runs-on: ubuntu-latest
-
+    
     steps:
     - uses: actions/checkout@v4
     - name: Build Rust Porject
       run: cd src-tauri && cargo build --verbose
     - name: Run Rust Tests
       run: cargo test --verbose
+      
+  build_node:
+    runs-on: ubuntu-latest
+    
+    steps:
     - name: Install Node
       uses: actions/setup-node@v4
       with:
