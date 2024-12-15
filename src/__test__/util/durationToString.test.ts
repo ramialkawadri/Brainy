@@ -1,4 +1,4 @@
-    import durationToString from "../../util/durationToString";
+import durationToString from "../../util/durationToString";
 
 describe(durationToString, () => {
 	it("Displays minutes correctly", () => {

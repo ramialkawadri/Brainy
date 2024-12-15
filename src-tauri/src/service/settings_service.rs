@@ -34,7 +34,6 @@ impl DefaultSettingsService {
     }
 }
 
-// TODO: test
 #[async_trait]
 impl SettingsService for DefaultSettingsService {
     fn load_settings(&mut self) {

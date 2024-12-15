@@ -57,12 +57,11 @@ function Editor({ onError, onStudyButtonClick }: Props) {
 	// together instead of updating one by one.
 	const changedCellsIndices = useRef(new Set<number>());
 
-	useOutsideClick(editorRef as React.MutableRefObject<HTMLElement>, () =>
+	useOutsideClick(editorRef as React.RefObject<HTMLElement>, () =>
 		setShowInsertNewCell(false),
 	);
-	useOutsideClick(
-		addNewCellPopupRef as React.MutableRefObject<HTMLElement>,
-		() => setShowAddNewCellPopup(false),
+	useOutsideClick(addNewCellPopupRef as React.RefObject<HTMLElement>, () =>
+		setShowAddNewCellPopup(false),
 	);
 	useGlobalKey(e => {
 		if (e.key === "Escape" && showAddNewCellPopup) {

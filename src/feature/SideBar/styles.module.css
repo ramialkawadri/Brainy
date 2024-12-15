@@ -45,6 +45,10 @@
 	}
 }
 
+.error-box {
+    margin: 6px 0;
+}
+
 .header {
 	display: flex;
 	justify-content: space-between;

@@ -113,7 +113,10 @@ function App() {
 			</div>
 
 			{showSettings && (
-				<SettingsPopup onClose={() => setShowSettings(false)} />
+				<SettingsPopup
+					onClose={() => setShowSettings(false)}
+					onError={setErrorMessage}
+				/>
 			)}
 		</div>
 	);

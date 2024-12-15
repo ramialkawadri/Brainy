@@ -4,15 +4,16 @@ import Icon from "@mdi/react";
 
 interface Props {
 	message: string;
+    className?: string,
 	onClose?: () => void;
 }
 
-function ErrorBox({ message, onClose: onCloseClick }: Props) {
+function ErrorBox({ message, onClose, className }: Props) {
 	return (
-		<div className={`${styles.errorBox}`}>
+		<div className={`${styles.errorBox} ${className}`}>
 			<p>{message}</p>
-			{onCloseClick && (
-				<button type="button" onClick={onCloseClick}>
+			{onClose && (
+				<button type="button" onClick={onClose}>
 					<Icon path={mdiCloseThick} size={1} />
 				</button>
 			)}

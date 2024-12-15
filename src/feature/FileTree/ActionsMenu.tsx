@@ -18,7 +18,7 @@ interface Props {
 function ActionsMenu({ onOutsideClick, actions }: Props) {
 	const containerRef = useRef<HTMLDivElement>(null);
 	useOutsideClick(
-		containerRef as React.MutableRefObject<HTMLElement>,
+		containerRef as React.RefObject<HTMLElement>,
 		onOutsideClick ??
 			(() => {
 				/* Do nothing */
