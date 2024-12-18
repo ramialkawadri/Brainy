@@ -4,24 +4,19 @@ mod entity;
 mod migration;
 mod model;
 mod service;
+mod util;
 
-use sea_orm::{Database, DbErr};
 use service::settings_service;
 use tauri::Manager;
 
 use api::*;
 use tokio::sync::Mutex;
+use util::database_util::load_database;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
-pub async fn run() -> Result<(), DbErr> {
+pub async fn run() -> Result<(), String> {
     settings_service::init_settings();
-    let db_conn = Database::connect(format!(
-        "sqlite:///{}?mode=rwc",
-        settings_service::get_settings().database_location
-    ))
-    .await?;
-
-    migration::setup_schema(&db_conn).await?;
+    let db_conn = load_database(&settings_service::get_settings().database_location).await;
 
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())

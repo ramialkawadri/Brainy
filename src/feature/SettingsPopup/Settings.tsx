@@ -7,6 +7,9 @@ import Settings from "../../type/backend/model/settings";
 import { getSettings, updateSettings } from "../../service/settingsService";
 import useOutsideClick from "../../hooks/useOutsideClick";
 import useGlobalKey from "../../hooks/useGlobalKey";
+import useAppDispatch from "../../hooks/useAppDispatch";
+import { fetchFiles } from "../../store/actions/fileSystemActions";
+import { setSelectedFileId } from "../../store/reducers/fileSystemReducers";
 
 interface Props {
 	onClose: () => void;
@@ -16,6 +19,7 @@ interface Props {
 function SettingsPopup({ onClose, onError }: Props) {
 	const [settings, setSettings] = useState<Settings | null>(null);
 	const boxRef = useRef<HTMLDivElement>(null);
+    const dispatch = useAppDispatch();
 
 	useOutsideClick(
 		boxRef as React.RefObject<HTMLElement>,
@@ -56,6 +60,8 @@ function SettingsPopup({ onClose, onError }: Props) {
 			await updateSettings({
 				databaseLocation: settings!.databaseLocation,
 			});
+		    await dispatch(fetchFiles());
+            dispatch(setSelectedFileId(null));
 			onClose();
 		} catch (e) {
 			if (e instanceof Error) onError(e.message);

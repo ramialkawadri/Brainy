@@ -1,10 +1,15 @@
 use dirs;
+use sea_orm::DbConn;
 use std::{
     fs::{self, File},
     path::PathBuf,
 };
+use tokio::sync::Mutex;
 
-use crate::{dto::update_settings_dto::UpdateSettingsRequest, model::settings::Settings};
+use crate::{
+    dto::update_settings_dto::UpdateSettingsRequest, model::settings::Settings,
+    util::database_util::load_database,
+};
 
 pub fn init_settings() {
     let settings_path = get_settings_path();
@@ -14,9 +19,11 @@ pub fn init_settings() {
     }
 }
 
-pub fn update_settings(new_settings: UpdateSettingsRequest) {
+pub async fn update_settings(new_settings: UpdateSettingsRequest, db_conn: &Mutex<DbConn>) {
     let mut settings = get_settings();
     if let Some(database_location) = new_settings.database_location {
+        let mut db_conn = db_conn.lock().await;
+        *db_conn = load_database(&database_location).await;
         settings.database_location = database_location;
     }
     write_settings_to_disk(&settings);

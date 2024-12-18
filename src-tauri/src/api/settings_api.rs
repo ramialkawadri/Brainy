@@ -1,3 +1,7 @@
+use sea_orm::DbConn;
+use tauri::State;
+use tokio::sync::Mutex;
+
 use crate::{
     dto::update_settings_dto::UpdateSettingsRequest, model::settings::Settings,
     service::settings_service,
@@ -9,7 +13,10 @@ pub async fn get_settings() -> Result<Settings, ()> {
 }
 
 #[tauri::command]
-pub async fn update_settings(new_settings: UpdateSettingsRequest) -> Result<(), String> {
-    settings_service::update_settings(new_settings);
+pub async fn update_settings(
+    db_conn: State<'_, Mutex<DbConn>>,
+    new_settings: UpdateSettingsRequest,
+) -> Result<(), String> {
+    settings_service::update_settings(new_settings, &db_conn).await;
     Ok(())
 }
