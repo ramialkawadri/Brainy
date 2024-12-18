@@ -1,42 +1,44 @@
-use std::sync::Arc;
-
 use crate::entity::repetition;
 use crate::model::file_repetitions_count::FileRepetitionCounts;
-use crate::service::repetition_service::RepetitionService;
+use crate::service::repetition_service;
+use sea_orm::DbConn;
 use tauri::State;
+use tokio::sync::Mutex;
 
 /// Returns the count of repetitions ready for study, i.e. their due is less
 /// than or equal to now.
 #[tauri::command]
 pub async fn get_study_repetition_counts(
-    repetition_service: State<'_, Arc<dyn RepetitionService + Sync + Send>>,
+    db_conn: State<'_, Mutex<DbConn>>,
     file_id: i32,
 ) -> Result<FileRepetitionCounts, String> {
-    repetition_service
-        .get_study_repetition_counts(file_id)
-        .await
+    let db_conn = db_conn.lock().await;
+    repetition_service::get_study_repetition_counts(&db_conn, file_id).await
 }
 
 #[tauri::command]
 pub async fn get_file_repetitions(
-    repetition_service: State<'_, Arc<dyn RepetitionService + Sync + Send>>,
+    db_conn: State<'_, Mutex<DbConn>>,
     file_id: i32,
 ) -> Result<Vec<repetition::Model>, String> {
-    repetition_service.get_file_repetitions(file_id).await
+    let db_conn = db_conn.lock().await;
+    repetition_service::get_file_repetitions(&db_conn, file_id).await
 }
 
 #[tauri::command]
 pub async fn update_repetition(
-    repetition_service: State<'_, Arc<dyn RepetitionService + Sync + Send>>,
+    db_conn: State<'_, Mutex<DbConn>>,
     repetition: repetition::Model,
 ) -> Result<(), String> {
-    repetition_service.update_repetition(repetition).await
+    let db_conn = db_conn.lock().await;
+    repetition_service::update_repetition(&db_conn, repetition).await
 }
 
 #[tauri::command]
 pub async fn get_repetitions_for_files(
-    repetition_service: State<'_, Arc<dyn RepetitionService + Sync + Send>>,
+    db_conn: State<'_, Mutex<DbConn>>,
     file_ids: Vec<i32>,
 ) -> Result<Vec<repetition::Model>, String> {
-    repetition_service.get_repetitions_for_files(file_ids).await
+    let db_conn = db_conn.lock().await;
+    repetition_service::get_repetitions_for_files(&db_conn, file_ids).await
 }

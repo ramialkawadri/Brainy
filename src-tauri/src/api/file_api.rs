@@ -1,82 +1,81 @@
-use std::sync::Arc;
-
-use crate::{dto::file_with_repetitions_count_dto::FileWithRepetitionsCount, 
-    service::file_service::FileService};
+use crate::{
+    dto::file_with_repetitions_count_dto::FileWithRepetitionsCount, service::file_service,
+};
+use sea_orm::DbConn;
 use tauri::State;
+use tokio::sync::Mutex;
 
 #[tauri::command]
 pub async fn get_files(
-    file_service: State<'_, Arc<dyn FileService + Sync + Send>>,
+    db_conn: State<'_, Mutex<DbConn>>,
 ) -> Result<Vec<FileWithRepetitionsCount>, String> {
-    file_service.get_files().await
+    let db_conn = db_conn.lock().await;
+    file_service::get_files(&db_conn).await
 }
 
 #[tauri::command]
-pub async fn create_folder(
-    file_service: State<'_, Arc<dyn FileService + Sync + Send>>,
-    path: String,
-) -> Result<i32, String> {
-    file_service.create_folder(path).await
+pub async fn create_folder(db_conn: State<'_, Mutex<DbConn>>, path: String) -> Result<i32, String> {
+    let db_conn = db_conn.lock().await;
+    file_service::create_folder(&db_conn, path).await
 }
 
 #[tauri::command]
-pub async fn create_file(
-    file_service: State<'_, Arc<dyn FileService + Sync + Send>>,
-    path: String,
-) -> Result<i32, String> {
-    file_service.create_file(path).await
+pub async fn create_file(db_conn: State<'_, Mutex<DbConn>>, path: String) -> Result<i32, String> {
+    let db_conn = db_conn.lock().await;
+    file_service::create_file(&db_conn, path).await
 }
 
 #[tauri::command]
-pub async fn delete_file(
-    file_service: State<'_, Arc<dyn FileService + Sync + Send>>,
-    file_id: i32,
-) -> Result<(), String> {
-    file_service.delete_file(file_id).await
+pub async fn delete_file(db_conn: State<'_, Mutex<DbConn>>, file_id: i32) -> Result<(), String> {
+    let db_conn = db_conn.lock().await;
+    file_service::delete_file(&db_conn, file_id).await
 }
 
 #[tauri::command]
 pub async fn delete_folder(
-    file_service: State<'_, Arc<dyn FileService + Sync + Send>>,
+    db_conn: State<'_, Mutex<DbConn>>,
     folder_id: i32,
 ) -> Result<(), String> {
-    file_service.delete_folder(folder_id).await
+    let db_conn = db_conn.lock().await;
+    file_service::delete_folder(&db_conn, folder_id).await
 }
 
 #[tauri::command]
 pub async fn move_file(
-    file_service: State<'_, Arc<dyn FileService + Sync + Send>>,
+    db_conn: State<'_, Mutex<DbConn>>,
     file_id: i32,
     destination_folder_id: i32,
 ) -> Result<(), String> {
-    file_service.move_file(file_id, destination_folder_id).await
+    let db_conn = db_conn.lock().await;
+    file_service::move_file(&db_conn, file_id, destination_folder_id).await
 }
 
 #[tauri::command]
 pub async fn move_folder(
-    file_service: State<'_, Arc<dyn FileService + Sync + Send>>,
+    db_conn: State<'_, Mutex<DbConn>>,
     folder_id: i32,
     destination_folder_id: i32,
 ) -> Result<(), String> {
-    file_service
-        .move_folder(folder_id, destination_folder_id)
-        .await
+    let db_conn = db_conn.lock().await;
+    file_service::move_folder(&db_conn, folder_id, destination_folder_id).await
 }
 
 #[tauri::command]
 pub async fn rename_file(
-    file_service: State<'_, Arc<dyn FileService + Sync + Send>>,
+    db_conn: State<'_, Mutex<DbConn>>,
     file_id: i32,
     new_name: String,
 ) -> Result<(), String> {
-    file_service.rename_file(file_id, new_name).await
+    let db_conn = db_conn.lock().await;
+    file_service::rename_file(&db_conn, file_id, new_name).await
 }
 
 #[tauri::command]
 pub async fn rename_folder(
-    file_service: State<'_, Arc<dyn FileService + Sync + Send>>,
+    db_conn: State<'_, Mutex<DbConn>>,
     folder_id: i32,
     new_name: String,
 ) -> Result<(), String> {
-    file_service.rename_folder(folder_id, new_name).await
+    let db_conn = db_conn.lock().await;
+    file_service::rename_folder(&db_conn, folder_id, new_name).await
 }
