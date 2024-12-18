@@ -21,7 +21,7 @@ import {
 	deleteCell,
 	getFileCellsOrderedByIndex,
 	moveCell,
-	updateCell,
+	updateCellContent,
 } from "../../service/cellService";
 import { getStudyRepetitionCounts } from "../../service/repetitionService";
 
@@ -101,7 +101,7 @@ function Editor({ onError, onStudyButtonClick }: Props) {
 	const saveChanges = async (cells: Cell[]) => {
 		await executeRequest(async () => {
 			for (const index of changedCellsIndices.current) {
-				await updateCell(cells[index].id!, cells[index].content);
+				await updateCellContent(cells[index].id!, cells[index].content);
 			}
 			changedCellsIndices.current.clear();
 			await retrieveRepetitionCounts();

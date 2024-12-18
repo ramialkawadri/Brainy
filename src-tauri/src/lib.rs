@@ -35,7 +35,7 @@ pub async fn run() -> Result<(), DbErr> {
             delete_cell,
             get_file_cells_ordered_by_index,
             move_cell,
-            update_cell,
+            update_cell_content,
             get_cells_for_files,
             // Files & Folders
             create_file,

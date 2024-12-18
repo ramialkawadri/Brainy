@@ -43,9 +43,8 @@ pub async fn move_cell(
     cell_service::move_cell(&db_conn, cell_id, new_index).await
 }
 
-// TODO: rename to update cell content
 #[tauri::command]
-pub async fn update_cell(
+pub async fn update_cell_content(
     db_conn: State<'_, Mutex<DbConn>>,
     cell_id: i32,
     content: String,

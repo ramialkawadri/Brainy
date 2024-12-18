@@ -1,5 +1,3 @@
-// TODO: fix order of private + public in all services
-
 use prelude::Expr;
 use sea_orm::{entity::*, query::*, DbConn};
 

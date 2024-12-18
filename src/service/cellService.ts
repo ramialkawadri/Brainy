@@ -7,8 +7,8 @@ export function getFileCellsOrderedByIndex(fileId: number): Promise<Cell[]> {
 	});
 }
 
-export function updateCell(cellId: number, content: string) {
-	return invoke("update_cell", {
+export function updateCellContent(cellId: number, content: string) {
+	return invoke("update_cell_content", {
 		cellId,
 		content,
 	});
