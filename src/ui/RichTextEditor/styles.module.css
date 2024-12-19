@@ -57,3 +57,8 @@
 .active-button:hover {
 	opacity: 0.8;
 }
+
+.vertical-border {
+    height: 1.6rem;
+    border-right: 1px solid var(--hover-border-color);
+}

@@ -35,6 +35,7 @@ const extensions = [
 interface additionalCommand {
 	icon: string;
 	name: string;
+    title: string;
 	onClick: (chaindedCommand: ChainedCommands) => ChainedCommands;
 }
 
@@ -87,12 +88,12 @@ function RichTextEditor({
 										.run()
 								}
 								className={`transparent ${editor.isActive(additionalCommand.name) && styles.activeButton}`}
-								title={additionalCommand.name}
-								aria-label={additionalCommand.name}>
+								title={additionalCommand.title}
+								aria-label={additionalCommand.title}>
 								<Icon path={additionalCommand.icon} size={1} />
 							</button>
 						))}
-
+                        {additionalCommands && additionalCommands.length > 0 && <div className={styles.verticalBorder} />}
 						<button
 							onClick={() =>
 								editor.chain().focus().toggleBold().run()

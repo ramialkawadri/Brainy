@@ -1,7 +1,7 @@
 import { mergeAttributes, Mark } from "@tiptap/core";
 import RichTextEditor from "../../ui/RichTextEditor/RichTextEditor";
 import styles from "./styles.module.css";
-import { mdiDotsHorizontal } from "@mdi/js";
+import { mdiDotsHorizontal, mdiNumericNegative1, mdiNumericPositive1 } from "@mdi/js";
 import Cell from "../../type/backend/entity/cell";
 
 declare module "@tiptap/core" {
@@ -65,7 +65,8 @@ interface Props {
 }
 
 function ClozeCell({ cell, editable, onUpdate }: Props) {
-    // TODO: style, cloze index, rust backend
+    // TODO: cloze index, add, decrease index commands, rust backend
+
 	return (
 		<RichTextEditor
 			extraExtensions={[mark]}
@@ -73,6 +74,19 @@ function ClozeCell({ cell, editable, onUpdate }: Props) {
 				{
 					name,
 					icon: mdiDotsHorizontal,
+                    title: "Cloze",
+					onClick: c => c.toggleCloze(1),
+				},
+				{
+					name,
+					icon: mdiNumericPositive1,
+                    title: "Increase cloze number",
+					onClick: c => c.toggleCloze(1),
+				},
+				{
+					name,
+					icon: mdiNumericNegative1,
+                    title: "Decrease cloze number",
 					onClick: c => c.toggleCloze(1),
 				},
 			]}
