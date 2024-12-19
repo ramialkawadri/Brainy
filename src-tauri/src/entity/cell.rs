@@ -9,6 +9,8 @@ pub enum CellType {
     FlashCard,
     #[sea_orm(string_value = "Note")]
     Note,
+    #[sea_orm(string_value = "Cloze")]
+    Cloze,
 }
 
 impl Default for CellType {

@@ -1,4 +1,9 @@
-import { mdiCardMultipleOutline, mdiHelp, mdiNoteOutline } from "@mdi/js";
+import {
+	mdiCardMultipleOutline,
+	mdiDotsHorizontal,
+	mdiHelp,
+	mdiNoteOutline,
+} from "@mdi/js";
 import getCellIcon from "../../util/getCellIcon";
 import { CellType } from "../../type/backend/entity/cell";
 
@@ -9,6 +14,7 @@ describe(getCellIcon, () => {
 		const typesIcons = [
 			["FlashCard", mdiCardMultipleOutline],
 			["Note", mdiNoteOutline],
+			["cloze", mdiDotsHorizontal],
 			["other", mdiHelp],
 		];
 

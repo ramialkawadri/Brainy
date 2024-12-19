@@ -17,6 +17,7 @@ function createDefaultCell(cellType: CellType, fileId: number, index: number) {
 			} as FlashCard);
 			break;
 		case "Note":
+		case "Cloze":
 			break;
 	}
 	return cell;

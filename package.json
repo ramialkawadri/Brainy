@@ -20,7 +20,6 @@
 		"@reduxjs/toolkit": "2.5.0",
 		"@tauri-apps/api": "2.1.1",
 		"@tauri-apps/plugin-dialog": "2.2.0",
-		"@tiptap/extension-link": "2.10.3",
 		"@tiptap/extension-subscript": "2.10.3",
 		"@tiptap/extension-superscript": "2.10.3",
 		"@tiptap/extension-underline": "2.10.3",

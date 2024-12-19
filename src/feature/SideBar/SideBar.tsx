@@ -79,7 +79,7 @@ function SideBar({
 
 			{errorMessage && (
 				<ErrorBox
-                    className={styles.errorBox}
+					className={styles.errorBox}
 					message={errorMessage}
 					onClose={() => dispatch(setErrorMessage(""))}
 				/>

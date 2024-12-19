@@ -1,5 +1,6 @@
 import Cell from "../../type/backend/entity/cell";
 import RichTextEditor from "../../ui/RichTextEditor/RichTextEditor";
+import ClozeCell from "./Cloze";
 import FlashCardCell from "./FlashCardCell";
 
 interface Props {
@@ -22,6 +23,14 @@ function EditorCell({ cell, editable, onUpdate }: Props) {
 			return (
 				<RichTextEditor
 					content={cell.content}
+					editable={editable}
+					onUpdate={onUpdate}
+				/>
+			);
+		case "Cloze":
+			return (
+				<ClozeCell
+					cell={cell}
 					editable={editable}
 					onUpdate={onUpdate}
 				/>

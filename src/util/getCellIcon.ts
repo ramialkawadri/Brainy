@@ -1,4 +1,9 @@
-import { mdiCardMultipleOutline, mdiHelp, mdiNoteOutline } from "@mdi/js";
+import {
+	mdiCardMultipleOutline,
+	mdiDotsHorizontal,
+	mdiHelp,
+	mdiNoteOutline,
+} from "@mdi/js";
 import { CellType } from "../type/backend/entity/cell";
 
 function getCellIcon(cellType: CellType): string {
@@ -7,6 +12,8 @@ function getCellIcon(cellType: CellType): string {
 			return mdiCardMultipleOutline;
 		case "Note":
 			return mdiNoteOutline;
+		case "Cloze":
+			return mdiDotsHorizontal;
 		default:
 			return mdiHelp;
 	}

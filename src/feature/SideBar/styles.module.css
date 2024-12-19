@@ -15,7 +15,7 @@
 		overflow: hidden;
 
 		& > * {
-            display: none;
+			display: none;
 		}
 
 		& .header {
@@ -27,14 +27,14 @@
 
 			& .toggle-button {
 				transform: rotate(180deg);
-                width: 100%;
+				width: 100%;
 			}
 		}
 
 		& .row {
-            display: flex;
+			display: flex;
 			visibility: visible;
-            justify-content: center;
+			justify-content: center;
 
 			& p {
 				display: none;
@@ -44,7 +44,7 @@
 }
 
 .error-box {
-    margin: 6px 0;
+	margin: 6px 0;
 }
 
 .header {
@@ -62,7 +62,7 @@
 	& .toggle-button {
 		transition: 0s tansform;
 		transition: 0s width;
-        padding: var(--medium-padding);
+		padding: var(--medium-padding);
 	}
 }
 
@@ -71,7 +71,7 @@
 	flex-direction: row;
 	gap: 4px;
 	width: 100%;
-    padding: var(--medium-padding);
+	padding: var(--medium-padding);
 	margin-bottom: 4px;
 }
 

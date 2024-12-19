@@ -1,5 +1,5 @@
-export type CellType = "FlashCard" | "Note";
-export const allCellTypes: CellType[] = ["FlashCard", "Note"];
+export type CellType = "FlashCard" | "Note" | "Cloze";
+export const allCellTypes: CellType[] = ["Cloze", "FlashCard", "Note"];
 
 export default interface Cell {
 	id?: number;

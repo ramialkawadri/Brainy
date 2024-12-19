@@ -19,12 +19,9 @@ interface Props {
 function SettingsPopup({ onClose, onError }: Props) {
 	const [settings, setSettings] = useState<Settings | null>(null);
 	const boxRef = useRef<HTMLDivElement>(null);
-    const dispatch = useAppDispatch();
+	const dispatch = useAppDispatch();
 
-	useOutsideClick(
-		boxRef as React.RefObject<HTMLElement>,
-        onClose,
-	);
+	useOutsideClick(boxRef as React.RefObject<HTMLElement>, onClose);
 
 	useEffect(() => {
 		void (async () => {
@@ -60,8 +57,8 @@ function SettingsPopup({ onClose, onError }: Props) {
 			await updateSettings({
 				databaseLocation: settings!.databaseLocation,
 			});
-		    await dispatch(fetchFiles());
-            dispatch(setSelectedFileId(null));
+			await dispatch(fetchFiles());
+			dispatch(setSelectedFileId(null));
 			onClose();
 		} catch (e) {
 			if (e instanceof Error) onError(e.message);

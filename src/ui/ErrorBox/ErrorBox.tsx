@@ -4,7 +4,7 @@ import Icon from "@mdi/react";
 
 interface Props {
 	message: string;
-    className?: string,
+	className?: string;
 	onClose?: () => void;
 }
 

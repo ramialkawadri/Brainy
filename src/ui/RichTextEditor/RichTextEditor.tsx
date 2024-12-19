@@ -1,4 +1,10 @@
-import { BubbleMenu, useEditor, EditorContent } from "@tiptap/react";
+import {
+	BubbleMenu,
+	useEditor,
+	EditorContent,
+	AnyExtension,
+	ChainedCommands,
+} from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import styles from "./styles.module.css";
 import Icon from "@mdi/react";
@@ -10,10 +16,7 @@ import {
 	mdiFormatSubscript,
 	mdiFormatSuperscript,
 	mdiFormatUnderline,
-	mdiLink,
 } from "@mdi/js";
-import Link from "@tiptap/extension-link";
-import { useCallback } from "react";
 import Underline from "@tiptap/extension-underline";
 import Subscript from "@tiptap/extension-subscript";
 import Superscript from "@tiptap/extension-superscript";
@@ -24,26 +27,37 @@ const extensions = [
 	ImageResize.configure({
 		allowBase64: true,
 	}),
-	Link.configure({
-		openOnClick: false,
-		autolink: true,
-	}),
 	Underline,
 	Subscript,
 	Superscript,
 ];
 
+interface additionalCommand {
+	icon: string;
+	name: string;
+	onClick: (chaindedCommand: ChainedCommands) => ChainedCommands;
+}
+
 interface Props {
 	content: string;
 	title?: string;
 	editable?: boolean;
+	extraExtensions?: AnyExtension[];
+	additionalCommands?: additionalCommand[];
 	onUpdate: (html: string) => void;
 }
 
-function RichTextEditor({ content, title, editable, onUpdate }: Props) {
+function RichTextEditor({
+	content,
+	title,
+	editable,
+	extraExtensions,
+	onUpdate,
+	additionalCommands,
+}: Props) {
 	const editor = useEditor(
 		{
-			extensions,
+			extensions: [...extensions, ...(extraExtensions ?? [])],
 			content,
 			editable,
 			onUpdate: e => {
@@ -53,27 +67,6 @@ function RichTextEditor({ content, title, editable, onUpdate }: Props) {
 		},
 		[editable],
 	);
-
-	const setLink = useCallback(() => {
-		if (!editor) return;
-
-		const previousUrl = String(editor.getAttributes("link").href ?? "");
-		const url = window.prompt("URL", previousUrl);
-
-		if (url === null) return;
-
-		if (url === "") {
-			editor.chain().focus().extendMarkRange("link").unsetLink().run();
-			return;
-		}
-
-		editor
-			.chain()
-			.focus()
-			.extendMarkRange("link")
-			.setLink({ href: url })
-			.run();
-	}, [editor]);
 
 	return (
 		<>
@@ -85,6 +78,21 @@ function RichTextEditor({ content, title, editable, onUpdate }: Props) {
 						editor={editor}
 						tippyOptions={{ duration: 100 }}
 						className={styles.bubbleMenu}>
+						{additionalCommands?.map(additionalCommand => (
+							<button
+								key={additionalCommand.icon}
+								onClick={() =>
+									additionalCommand
+										.onClick(editor.chain().focus())
+										.run()
+								}
+								className={`transparent ${editor.isActive(additionalCommand.name) && styles.activeButton}`}
+								title={additionalCommand.name}
+								aria-label={additionalCommand.name}>
+								<Icon path={additionalCommand.icon} size={1} />
+							</button>
+						))}
+
 						<button
 							onClick={() =>
 								editor.chain().focus().toggleBold().run()
@@ -129,13 +137,6 @@ function RichTextEditor({ content, title, editable, onUpdate }: Props) {
 							title="Bullet list"
 							aria-label="Bullet list">
 							<Icon path={mdiFormatListBulleted} size={1} />
-						</button>
-						<button
-							onClick={setLink}
-							className={`transparent ${editor.isActive("link") && styles.activeButton}`}
-							title="Link"
-							aria-label="Link">
-							<Icon path={mdiLink} size={1} />
 						</button>
 						<button
 							onClick={() =>

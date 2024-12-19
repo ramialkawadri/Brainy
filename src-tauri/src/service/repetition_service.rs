@@ -25,7 +25,9 @@ pub async fn update_repetitions_for_cell(
                     ..Default::default()
                 });
             }
-        }
+        },
+        // TODO:
+        CellType::Cloze => (),
     }
     insert_repetitions(db_conn, repetitions_to_insert).await
 }
