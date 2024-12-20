@@ -1,3 +1,4 @@
+// TODO: refactor
 import {
 	BubbleMenu,
 	useEditor,
@@ -35,7 +36,7 @@ const extensions = [
 interface additionalCommand {
 	icon: string;
 	name: string;
-    title: string;
+	title: string;
 	onClick: (chaindedCommand: ChainedCommands) => ChainedCommands;
 }
 
@@ -93,7 +94,10 @@ function RichTextEditor({
 								<Icon path={additionalCommand.icon} size={1} />
 							</button>
 						))}
-                        {additionalCommands && additionalCommands.length > 0 && <div className={styles.verticalBorder} />}
+						{additionalCommands &&
+							additionalCommands.length > 0 && (
+								<div className={styles.verticalBorder} />
+							)}
 						<button
 							onClick={() =>
 								editor.chain().focus().toggleBold().run()
