@@ -67,6 +67,7 @@ function Reviewer({
 				dueToday[currentCellIndex].id,
 				dueToday[currentCellIndex].fileId,
 				dueToday[currentCellIndex].cellId,
+				dueToday[currentCellIndex].additionalContent,
 			);
 			await updateRepetition(repetition);
 		} catch (e) {
@@ -143,6 +144,7 @@ function Reviewer({
 							c => c.id === dueToday[currentCellIndex].cellId,
 						)!
 					}
+					repetition={dueToday[currentCellIndex]}
 					showAnswer={showAnswer}
 				/>
 			</div>

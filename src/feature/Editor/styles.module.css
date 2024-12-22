@@ -3,6 +3,7 @@
 	display: flex;
 	flex-direction: column;
 	height: 100%;
+	background: rgba(245, 245, 245);
 }
 
 .title-bar {
@@ -62,6 +63,8 @@
 	padding: var(--large-padding);
 	padding-top: var(--xl-padding);
 	width: 100%;
+	border: 1px solid rgb(235, 235, 235);
+	border-top: 0px;
 
 	& .add-button-container {
 		padding: var(--default-padding);

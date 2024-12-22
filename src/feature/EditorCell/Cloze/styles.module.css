@@ -1,0 +1,16 @@
+.cloze-mark {
+	display: inline-block;
+	padding: var(--small-padding);
+	border-radius: var(--default-border-radius);
+	border: 1px solid #000;
+	margin: 1px 0;
+}
+
+.cloze-mark:before {
+	content: attr(index);
+	padding-right: var(--extra-small-padding);
+	margin-right: var(--extra-small-padding);
+	border-right: 1px solid #000;
+	font-weight: normal;
+	font-style: normal;
+}

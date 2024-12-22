@@ -1,6 +1,6 @@
 import Cell from "../../type/backend/entity/cell";
 import RichTextEditor from "../../ui/RichTextEditor/RichTextEditor";
-import ClozeCell from "./Cloze";
+import ClozeCell from "./Cloze/Cloze";
 import FlashCardCell from "./FlashCardCell";
 
 interface Props {

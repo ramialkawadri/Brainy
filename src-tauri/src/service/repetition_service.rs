@@ -1,4 +1,7 @@
+use std::collections::HashSet;
+
 use chrono::Utc;
+use regex::Regex;
 use sea_orm::{DbConn, Set};
 
 use crate::entity::cell::CellType;
@@ -12,9 +15,12 @@ pub async fn update_repetitions_for_cell(
     file_id: i32,
     cell_id: i32,
     cell_type: CellType,
+    content: &String,
 ) -> Result<(), String> {
     let cell_repetitions = get_repetitions_by_cell_id(db_conn, cell_id).await?;
     let mut repetitions_to_insert: Vec<repetition::ActiveModel> = vec![];
+    let mut repetitions_to_remove: Vec<i32> = vec![];
+
     match cell_type {
         CellType::Note => (),
         CellType::FlashCard => {
@@ -25,11 +31,44 @@ pub async fn update_repetitions_for_cell(
                     ..Default::default()
                 });
             }
-        },
-        // TODO:
-        CellType::Cloze => (),
+        }
+        // TODO: test
+        CellType::Cloze => {
+            update_repetitions_for_cloze_cell(
+                content,
+                file_id,
+                cell_id,
+                &cell_repetitions,
+                &mut repetitions_to_insert,
+                &mut repetitions_to_remove,
+            );
+        }
     }
-    insert_repetitions(db_conn, repetitions_to_insert).await
+
+    let txn = match db_conn.begin().await {
+        Ok(txn) => txn,
+        Err(err) => return Err(err.to_string()),
+    };
+
+    for active_model in repetitions_to_insert {
+        let result = repetition::Entity::insert(active_model).exec(&txn).await;
+        if let Err(err) = result {
+            return Err(err.to_string());
+        }
+    }
+
+    for id in repetitions_to_remove {
+        let result = repetition::Entity::delete_by_id(id).exec(&txn).await;
+        if let Err(err) = result {
+            return Err(err.to_string());
+        }
+    }
+
+    let result = txn.commit().await;
+    match result {
+        Ok(_) => Ok(()),
+        Err(err) => Err(err.to_string()),
+    }
 }
 
 async fn get_repetitions_by_cell_id(
@@ -46,26 +85,41 @@ async fn get_repetitions_by_cell_id(
     }
 }
 
-async fn insert_repetitions(
-    db_conn: &DbConn,
-    repetitions: Vec<repetition::ActiveModel>,
-) -> Result<(), String> {
-    let txn = match db_conn.begin().await {
-        Ok(txn) => txn,
-        Err(err) => return Err(err.to_string()),
-    };
+fn update_repetitions_for_cloze_cell(
+    content: &String,
+    file_id: i32,
+    cell_id: i32,
+    current_cell_repetitions: &Vec<repetition::Model>,
+    repetitions_to_insert: &mut Vec<repetition::ActiveModel>,
+    repetitions_to_remove: &mut Vec<i32>,
+) {
+    let re = Regex::new("<cloze[^>]*index=\"(\\d+)\"[^>]*>").expect("Invalid regex");
+    let indices: HashSet<&str> = re
+        .captures_iter(&content[..])
+        .map(|c| c.extract())
+        .map(|c: (&str, [&str; 1])| c.1[0])
+        .collect();
 
-    for active_model in repetitions {
-        let result = repetition::Entity::insert(active_model).exec(&txn).await;
-        if let Err(err) = result {
-            return Err(err.to_string());
+    for repetition in current_cell_repetitions {
+        if !indices.iter().any(|i| {
+            repetition.cell_id == cell_id && i.to_string() == repetition.additional_content
+        }) {
+            repetitions_to_remove.push(repetition.id);
         }
     }
 
-    let result = txn.commit().await;
-    match result {
-        Ok(_) => Ok(()),
-        Err(err) => Err(err.to_string()),
+    for &index in &indices {
+        if !current_cell_repetitions
+            .iter()
+            .any(|c| c.cell_id == cell_id && c.additional_content == index)
+        {
+            repetitions_to_insert.push(repetition::ActiveModel {
+                file_id: Set(file_id),
+                cell_id: Set(cell_id),
+                additional_content: Set(index.to_string()),
+                ..Default::default()
+            });
+        }
     }
 }
 
@@ -137,6 +191,7 @@ pub async fn update_repetition(
         lapses: Set(repetition.lapses),
         state: Set(repetition.state),
         last_review: Set(repetition.last_review),
+        additional_content: Set(repetition.additional_content),
     };
     let result = active_entity.update(db_conn).await;
     match result {
@@ -184,7 +239,7 @@ mod tests {
 
         // Act
 
-        update_repetitions_for_cell(&db_conn, file_id, cell_id, CellType::FlashCard)
+        update_repetitions_for_cell(&db_conn, file_id, cell_id, CellType::FlashCard, &"".into())
             .await
             .unwrap();
 
@@ -211,7 +266,7 @@ mod tests {
 
         // Act
 
-        update_repetitions_for_cell(&db_conn, file_id, cell_id, CellType::FlashCard)
+        update_repetitions_for_cell(&db_conn, file_id, cell_id, CellType::FlashCard, &"".into())
             .await
             .unwrap();
 
@@ -352,6 +407,7 @@ mod tests {
             lapses: 7,
             state: State::New,
             last_review: date,
+            additional_content: "".into(),
         };
 
         // Act
@@ -426,5 +482,28 @@ mod tests {
         // Assert
 
         assert_eq!(3, actual.len());
+    }
+
+    async fn insert_repetitions(
+        db_conn: &DbConn,
+        repetitions: Vec<repetition::ActiveModel>,
+    ) -> Result<(), String> {
+        let txn = match db_conn.begin().await {
+            Ok(txn) => txn,
+            Err(err) => return Err(err.to_string()),
+        };
+
+        for active_model in repetitions {
+            let result = repetition::Entity::insert(active_model).exec(&txn).await;
+            if let Err(err) = result {
+                return Err(err.to_string());
+            }
+        }
+
+        let result = txn.commit().await;
+        match result {
+            Ok(_) => Ok(()),
+            Err(err) => Err(err.to_string()),
+        }
     }
 }

@@ -39,6 +39,7 @@ pub struct Model {
     pub lapses: i32,
     pub state: State,
     pub last_review: DateTimeUtc,
+    pub additional_content: String,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter)]

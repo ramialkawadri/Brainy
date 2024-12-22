@@ -32,7 +32,7 @@ pub async fn create_cell(
     let active_model = cell::ActiveModel {
         file_id: Set(file_id),
         cell_type: Set(cell_type.clone()),
-        content: Set(content),
+        content: Set(content.clone()),
         index: Set(index),
         ..Default::default()
     };
@@ -42,7 +42,8 @@ pub async fn create_cell(
         Err(err) => return Err(err.to_string()),
     };
 
-    repetition_service::update_repetitions_for_cell(db_conn, file_id, cell_id, cell_type).await?;
+    repetition_service::update_repetitions_for_cell(db_conn, file_id, cell_id, cell_type, &content)
+        .await?;
     Ok(cell_id)
 }
 
@@ -113,14 +114,20 @@ pub async fn update_cell_content(
         db_conn,
         cell::ActiveModel {
             id: Set(cell_id),
-            content: Set(content),
+            content: Set(content.clone()),
             ..Default::default()
         },
     )
     .await?;
 
-    repetition_service::update_repetitions_for_cell(db_conn, cell.file_id, cell_id, cell.cell_type)
-        .await
+    repetition_service::update_repetitions_for_cell(
+        db_conn,
+        cell.file_id,
+        cell_id,
+        cell.cell_type,
+        &content,
+    )
+    .await
 }
 
 async fn get_cell_by_id(db_conn: &DbConn, cell_id: i32) -> Result<cell::Model, String> {

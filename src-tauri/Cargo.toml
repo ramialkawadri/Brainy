@@ -26,3 +26,4 @@ sea-orm = { version = "1.1.1", features = [ "sqlx-sqlite", "runtime-tokio-native
 chrono = "0.4.39"
 tauri-plugin-dialog = "2.2.0"
 dirs = "5.0.1"
+regex = "1.11.1"
