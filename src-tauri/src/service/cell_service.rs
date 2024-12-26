@@ -215,7 +215,7 @@ mod tests {
         let actual = get_file_cells_ordered_by_index(&db_conn, file_id)
             .await
             .unwrap();
-        assert_eq!(actual[1].content, "New cell content".to_string());
+        assert_eq!(actual[1].content, String::from("New cell content"));
     }
 
     #[tokio::test]

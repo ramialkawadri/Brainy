@@ -102,7 +102,8 @@ fn update_repetitions_for_cloze_cell(
 
     for repetition in current_cell_repetitions {
         if !indices.iter().any(|i| {
-            repetition.cell_id == cell_id && i.to_string() == repetition.additional_content
+            repetition.cell_id == cell_id
+                && i.to_string() == repetition.additional_content.as_ref().unwrap()[..]
         }) {
             repetitions_to_remove.push(repetition.id);
         }
@@ -111,12 +112,12 @@ fn update_repetitions_for_cloze_cell(
     for &index in &indices {
         if !current_cell_repetitions
             .iter()
-            .any(|c| c.cell_id == cell_id && c.additional_content == index)
+            .any(|c| c.cell_id == cell_id && c.additional_content.as_ref().unwrap() == index)
         {
             repetitions_to_insert.push(repetition::ActiveModel {
                 file_id: Set(file_id),
                 cell_id: Set(cell_id),
-                additional_content: Set(index.to_string()),
+                additional_content: Set(Some(index.to_string())),
                 ..Default::default()
             });
         }
@@ -407,7 +408,7 @@ mod tests {
             lapses: 7,
             state: State::New,
             last_review: date,
-            additional_content: "".into(),
+            additional_content: Some("".into()),
         };
 
         // Act
