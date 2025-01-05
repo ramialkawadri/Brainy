@@ -2,7 +2,6 @@ use serde::{Deserialize, Serialize};
 
 use crate::model::file_repetitions_count::FileRepetitionCounts;
 
-
 #[derive(Clone, Debug, PartialEq, Eq, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct FileWithRepetitionsCount {

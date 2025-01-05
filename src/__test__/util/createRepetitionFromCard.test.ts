@@ -35,11 +35,12 @@ describe(createRepetitionFromCard, () => {
 			difficulty: 4,
 			elapsedDays: 5,
 			scheduledDays: 7,
+            additionalContent: "0",
 		};
 
 		// Act
 
-		const actual = createRepetitionFromCard(card, id, fileId, cellId);
+		const actual = createRepetitionFromCard(card, id, fileId, cellId, "0");
 
 		// Assert
 

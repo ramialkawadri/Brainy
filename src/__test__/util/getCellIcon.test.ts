@@ -14,7 +14,7 @@ describe(getCellIcon, () => {
 		const typesIcons = [
 			["FlashCard", mdiCardMultipleOutline],
 			["Note", mdiNoteOutline],
-			["cloze", mdiDotsHorizontal],
+			["Cloze", mdiDotsHorizontal],
 			["other", mdiHelp],
 		];
 

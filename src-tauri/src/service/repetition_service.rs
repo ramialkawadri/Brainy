@@ -32,7 +32,6 @@ pub async fn update_repetitions_for_cell(
                 });
             }
         }
-        // TODO: test
         CellType::Cloze => {
             update_repetitions_for_cloze_cell(
                 content,
@@ -275,6 +274,41 @@ mod tests {
 
         let actual = get_file_repetitions(&db_conn, file_id).await.unwrap();
         assert_eq!(actual.len(), 1);
+    }
+
+    #[tokio::test]
+    async fn update_repetitions_for_cloze_added_new_repetitions() {
+        // Arrange
+
+        let db_conn = get_db().await;
+        let (file_id, cell_id) = create_file_cell(&db_conn, "file 1").await;
+        let content = r#"
+            <cloze index="0">First cloze</cloze>
+            <cloze index="1">Second cloze</cloze>
+        "#;
+        // Only adding the first cloze.
+        repetition::ActiveModel {
+            file_id: Set(file_id),
+            cell_id: Set(cell_id),
+            additional_content: Set(Some("0".into())),
+            ..Default::default()
+        }
+        .insert(&db_conn)
+        .await
+        .unwrap();
+
+        // Act
+
+        update_repetitions_for_cell(&db_conn, file_id, cell_id, CellType::Cloze, &content.into())
+            .await
+            .unwrap();
+
+        // Assert
+
+        let actual = get_file_repetitions(&db_conn, file_id).await.unwrap();
+        assert_eq!(actual.len(), 2);
+        assert_eq!(actual[0].additional_content, Some("0".to_string()));
+        assert_eq!(actual[1].additional_content, Some("1".to_string()));
     }
 
     #[tokio::test]
