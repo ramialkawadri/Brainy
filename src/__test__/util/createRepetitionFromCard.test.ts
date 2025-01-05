@@ -35,7 +35,7 @@ describe(createRepetitionFromCard, () => {
 			difficulty: 4,
 			elapsedDays: 5,
 			scheduledDays: 7,
-            additionalContent: "0",
+			additionalContent: "0",
 		};
 
 		// Act

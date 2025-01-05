@@ -50,10 +50,40 @@ const clozeMark = Mark.create({
 					if (editor.isActive(clozeMarkName)) {
 						commands.extendMarkRange(clozeMarkName);
 						return commands.unsetMark(clozeMarkName);
-					} else {
-						commands.unsetAllMarks();
-						return commands.setMark(clozeMarkName, { index });
 					}
+
+					const { from: selectionStart, to: selectionEnd } =
+						editor.state.selection;
+					const text = editor.getText();
+					if (text.trim() === "") return true;
+
+					let newSelectionStart = selectionStart;
+					let newSelectionEnd = selectionEnd;
+
+                    // Removing extra whitespace at start.
+					while (
+						editor.state.doc
+							.textBetween(newSelectionStart, newSelectionEnd)
+							.endsWith(" ")
+					) {
+						newSelectionEnd--;
+					}
+
+                    // Removing extra whitespace at end.
+					while (
+						editor.state.doc
+							.textBetween(newSelectionStart, newSelectionEnd)
+							.startsWith(" ")
+					) {
+						newSelectionStart++;
+					}
+
+					commands.setTextSelection({
+						from: newSelectionStart,
+						to: newSelectionEnd,
+					});
+					commands.unsetAllMarks();
+					return commands.setMark(clozeMarkName, { index });
 				},
 			increaseClozeIndex:
 				() =>
