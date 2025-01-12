@@ -11,10 +11,13 @@ use crate::{
     util::database_util::load_database,
 };
 
+const SETTINGS_FILE_NAME: &str = "settings.json";
+const DEFAULT_DATABASE_FILE_NAME: &str = "db.db";
+
 pub fn init_settings() {
-    let settings_path = get_settings_path();
+    let settings_path = get_settings_dir().join(DEFAULT_DATABASE_FILE_NAME);
     if !settings_path.exists() {
-        let settings = Settings::new(settings_path.to_str().unwrap().into());
+        let settings = Settings::new(settings_path.to_str().unwrap().into(), false);
         write_settings_to_disk(&settings);
     }
 }
@@ -31,23 +34,22 @@ pub async fn update_settings(new_settings: UpdateSettingsRequest, db_conn: &Mute
 
 fn write_settings_to_disk(settings: &Settings) {
     fs::write(
-        get_settings_path(),
+        get_settings_dir().join(SETTINGS_FILE_NAME),
         serde_json::to_string(settings).unwrap(),
     )
     .expect("Cannot write to config file");
 }
 
 pub fn get_settings() -> Settings {
-    let settings_path = get_settings_path();
+    let settings_path = get_settings_dir().join(SETTINGS_FILE_NAME);
     let file = File::open(settings_path).expect("Cannot read config file");
     serde_json::from_reader(file).expect("Cannot parse settings!")
 }
 
-fn get_settings_path() -> PathBuf {
+fn get_settings_dir() -> PathBuf {
     let dir_path = dirs::config_dir()
         .expect("No config directory is found on your system!")
         .join("Brainy");
     fs::create_dir_all(dir_path.clone()).expect("Cannot create config directory!");
-
-    dir_path.join("config.json")
+    dir_path
 }

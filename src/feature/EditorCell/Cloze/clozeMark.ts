@@ -60,7 +60,7 @@ const clozeMark = Mark.create({
 					let newSelectionStart = selectionStart;
 					let newSelectionEnd = selectionEnd;
 
-                    // Removing extra whitespace at start.
+					// Removing extra whitespace at start.
 					while (
 						editor.state.doc
 							.textBetween(newSelectionStart, newSelectionEnd)
@@ -69,7 +69,7 @@ const clozeMark = Mark.create({
 						newSelectionEnd--;
 					}
 
-                    // Removing extra whitespace at end.
+					// Removing extra whitespace at end.
 					while (
 						editor.state.doc
 							.textBetween(newSelectionStart, newSelectionEnd)

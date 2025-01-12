@@ -12,105 +12,118 @@ import { fetchFiles } from "../../store/actions/fileSystemActions";
 import { setSelectedFileId } from "../../store/reducers/fileSystemReducers";
 
 interface Props {
-	onClose: () => void;
-	onError: (error: string) => void;
+    onClose: () => void;
+    onError: (error: string) => void;
 }
 
+// TODO: better style for dark theme
 function SettingsPopup({ onClose, onError }: Props) {
-	const [settings, setSettings] = useState<Settings | null>(null);
-	const boxRef = useRef<HTMLDivElement>(null);
-	const dispatch = useAppDispatch();
+    const [settings, setSettings] = useState<Settings | null>(null);
+    const boxRef = useRef<HTMLDivElement>(null);
+    const dispatch = useAppDispatch();
 
-	useOutsideClick(boxRef as React.RefObject<HTMLElement>, onClose);
+    useOutsideClick(boxRef as React.RefObject<HTMLElement>, onClose);
 
-	useEffect(() => {
-		void (async () => {
-			try {
-				const settings = await getSettings();
-				setSettings(settings);
-			} catch (e) {
-				if (e instanceof Error) onError(e.message);
-				else onError(e as string);
-			}
-		})();
-	}, [onError]);
+    useEffect(() => {
+        void (async () => {
+            try {
+                const settings = await getSettings();
+                setSettings(settings);
+            } catch (e) {
+                if (e instanceof Error) onError(e.message);
+                else onError(e as string);
+            }
+        })();
+    }, [onError]);
 
-	const handleChangeDatabaseLocationClick = async () => {
-		let location = await open({
-			defaultPath: settings?.databaseLocation,
-			directory: true,
-		});
-		if (!location) return;
+    const handleChangeDatabaseLocationClick = async () => {
+        let location = await open({
+            defaultPath: settings?.databaseLocation,
+            directory: true,
+        });
+        if (!location) return;
 
-		if (location.includes("/")) location += "/";
-		else location += "\\";
-		location += "brainy.db";
+        if (location.includes("/")) location += "/";
+        else location += "\\";
+        location += "brainy.db";
 
-		setSettings({
-			...settings,
-			databaseLocation: location,
-		});
-	};
+        setSettings({
+            ...settings!,
+            databaseLocation: location,
+        });
+    };
 
-	const handleSave = async () => {
-		try {
-			await updateSettings({
-				databaseLocation: settings!.databaseLocation,
-			});
-			await dispatch(fetchFiles());
-			dispatch(setSelectedFileId(null));
-			onClose();
-		} catch (e) {
-			if (e instanceof Error) onError(e.message);
-			else onError(e as string);
-		}
-	};
+    const handleSave = async () => {
+        try {
+            await updateSettings({
+                databaseLocation: settings!.databaseLocation,
+            });
+            await dispatch(fetchFiles());
+            dispatch(setSelectedFileId(null));
+            onClose();
+        } catch (e) {
+            if (e instanceof Error) onError(e.message);
+            else onError(e as string);
+        }
+    };
 
-	useGlobalKey((e: KeyboardEvent) => {
-		if (e.key === "Escape") {
-			onClose();
-		}
-	});
+    useGlobalKey((e: KeyboardEvent) => {
+        if (e.key === "Escape") {
+            onClose();
+        }
+    });
 
-	return (
-		<div className="overlay">
-			<div className={styles.box} ref={boxRef}>
-				<div className={`row ${styles.header}`}>
-					<Icon path={mdiCog} size={1.2} />
-					<p>Settings</p>
-				</div>
-				<div className={styles.settingsRows}>
-					<div className={styles.settingsRow}>
-						<p>Database Location:</p>
-						<div className="row">
-							<input
-								type="text"
-								value={settings?.databaseLocation}
-								readOnly
-							/>
-							<button
-								className="transparent"
-								onClick={() =>
-									void handleChangeDatabaseLocationClick()
-								}>
-								<Icon path={mdiFolderOpenOutline} size={1} />
-							</button>
-						</div>
-					</div>
-				</div>
-				<div className={styles.buttons}>
-					<button className="transparent" onClick={onClose}>
-						Cancel
-					</button>
-					<button
-						className="primary"
-						onClick={() => void handleSave()}>
-						Save
-					</button>
-				</div>
-			</div>
-		</div>
-	);
+    return (
+        <div className="overlay">
+            <div className={styles.box} ref={boxRef}>
+                <div className={`row ${styles.header}`}>
+                    <Icon path={mdiCog} size={1.2} />
+                    <p>Settings</p>
+                </div>
+                <div className={styles.settingsRows}>
+                    <div className={styles.settingsRow}>
+                        <p>Database Location:</p>
+                        <div className="row">
+                            <input
+                                type="text"
+                                value={settings?.databaseLocation}
+                                readOnly
+                            />
+                            <button
+                                className="transparent"
+                                onClick={() =>
+                                    void handleChangeDatabaseLocationClick()
+                                }>
+                                <Icon path={mdiFolderOpenOutline} size={1} />
+                            </button>
+                        </div>
+                    </div>
+                    <div className={styles.settingsRow}>
+                        <p>Dark Theme:</p>
+                        <div className="row">
+                            <input
+                                type="checkbox"
+                                onChange={e => setSettings({
+                                    ...settings!, darkTheme: e.target.checked
+                                })}
+                                checked={settings?.darkTheme ?? false}
+                            />
+                        </div>
+                    </div>
+                </div>
+                <div className={styles.buttons}>
+                    <button className="transparent" onClick={onClose}>
+                        Cancel
+                    </button>
+                    <button
+                        className="primary"
+                        onClick={() => void handleSave()}>
+                        Save
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
 }
 
 export default SettingsPopup;
