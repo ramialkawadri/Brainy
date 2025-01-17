@@ -15,15 +15,15 @@ name = "brainy_app_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
-tauri-build = { version = "2.0.4", features = [] }
+tauri-build = { version = "2.0.5", features = [] }
 
 [dependencies]
-tauri = { version = "2.2.0", features = ["test"] }
+tauri = { version = "2.2.2", features = ["test"] }
 serde = { version = "1.0.217", features = ["derive"] }
-serde_json = "1.0.134"
+serde_json = "1.0.135"
 tokio = { version = "1.42.0", features = ["full"] }
-sea-orm = { version = "1.1.3", features = [ "sqlx-sqlite", "runtime-tokio-native-tls", "macros" ] }
+sea-orm = { version = "1.1.4", features = [ "sqlx-sqlite", "runtime-tokio-native-tls", "macros" ] }
 chrono = "0.4.39"
 tauri-plugin-dialog = "2.2.0"
-dirs = "5.0.1"
+dirs = "6.0.0"
 regex = "1.11.1"

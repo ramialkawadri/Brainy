@@ -1,39 +1,33 @@
 let
   pkgs = import <nixpkgs> { };
+in
+pkgs.mkShell {
+  nativeBuildInputs = with pkgs; [
+    pkg-config
+    gobject-introspection
+    cargo
+    cargo-tauri
+    nodejs
+    rustc
+  ];
 
-  libraries = with pkgs;[
-    webkitgtk
-    gtk3
+  buildInputs = with pkgs;[
+    at-spi2-atk
+    atkmm
     cairo
     gdk-pixbuf
     glib
-    dbus
-    openssl
-    libsoup_3
-    librsvg
-    webkitgtk_4_1
-  ];
-
-  packages = with pkgs; [
-    pkg-config
-    dbus
-    openssl
-    libsoup_3
-    glib
     gtk3
-    libsoup
-    webkitgtk
-    appimagekit
+    harfbuzz
     librsvg
+    libsoup_3
+    pango
     webkitgtk_4_1
+    openssl
   ];
-in
-pkgs.mkShell {
-  buildInputs = packages;
 
-  shellHook =
-    ''
-      export LD_LIBRARY_PATH=${pkgs.lib.makeLibraryPath libraries}:$LD_LIBRARY_PATH
-      export XDG_DATA_DIRS=${pkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${pkgs.gsettings-desktop-schemas.name}:${pkgs.gtk3}/share/gsettings-schemas/${pkgs.gtk3.name}:$XDG_DATA_DIRS
-    '';
+  shellHook = ''
+    export GIO_MODULE_DIR=${pkgs.glib-networking}/lib/gio/modules/
+    alias start='WEBKIT_DISABLE_DMABUF_RENDERER=1 cargo-tauri dev'
+  '';
 }
