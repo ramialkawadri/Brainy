@@ -6,6 +6,7 @@ pkgs.mkShell {
     pkg-config
     gobject-introspection
     cargo
+    clippy
     cargo-tauri
     nodejs
     rustc
