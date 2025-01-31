@@ -16,7 +16,7 @@ interface Props {
 	onError: (error: string) => void;
 }
 
-// TODO: dark theme
+// TODO: dark theme, follow the setting
 function SettingsPopup({ onClose, onError }: Props) {
 	const [settings, setSettings] = useState<Settings | null>(null);
 	const boxRef = useRef<HTMLDivElement>(null);

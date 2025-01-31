@@ -43,6 +43,14 @@
 	}
 }
 
+
+body:global(.dark) {
+    .side-bar {
+        /* TODO: move */
+        background-color: #292929;
+    }
+}
+
 .error-box {
 	margin: 6px 0;
 }

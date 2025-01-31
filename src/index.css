@@ -1,6 +1,32 @@
 @import url("https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap");
 
-:root {
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+	color: var(--text-color);
+}
+
+html {
+	/* 10px = 1rem */
+	font-size: 62.5%;
+}
+
+@media (max-width: 768px) {
+	html {
+		/* 8px */
+		font-size: 50%;
+	}
+}
+
+body {
+	font-size: 1.6rem;
+	line-height: 1.5;
+	font-family: "Roboto", sans-serif;
+	font-weight: 300;
+	font-style: normal;
+    background-color: var(--default-background-color);
+
 	/* Colors */
 	--primary-color: #4a90e2;
 	--primary-color-shade-10: #4382cb;
@@ -45,31 +71,49 @@
 	--darker-box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.2);
 }
 
-* {
-	margin: 0;
-	padding: 0;
-	box-sizing: border-box;
-	color: var(--text-color);
-}
+body.dark {
+	/* Colors */
+	--primary-color: #4a90e2;
+	--primary-color-shade-10: #4382cb;
+	--primary-color-shade-50: #254871;
+	--secondary-color: #e29c4a;
+	--red-color: #d52726;
 
-html {
-	/* 10px = 1rem */
-	font-size: 62.5%;
-}
+	--text-color: #fff;
+	--border-color: #5b5b5b;
+	--hover-border-color: #757575;
+	--link-color: #387adf;
+	--link-color-shade-10: #27559c;
+	--link-color-shade-20: #2d62b2;
+	--grey-background-color: #424242;
+	--grey-background-color-shade-10: #292929;
+	--grey-background-color-shade-20: #0f0f0f;
 
-@media (max-width: 768px) {
-	html {
-		/* 8px */
-		font-size: 50%;
-	}
-}
+	--default-background-color: #282828;
 
-body {
-	font-size: 1.6rem;
-	line-height: 1.5;
-	font-family: "Roboto", sans-serif;
-	font-weight: 300;
-	font-style: normal;
+	--new-color: var(--primary-color-shade-50);
+	--learning-color: var(--red-color);
+	--review-color: green;
+
+	/* Spaces */
+	--default-border-radius: 4px;
+	--extra-small-padding: 2px;
+	--small-padding: 4px;
+	--default-padding: 6px;
+	--medium-padding: 10px;
+	--large-padding: 12px;
+	--xl-padding: 16px;
+	--xxl-padding: 20px;
+
+	/* Sizes */
+	--default-border-width: 2px;
+
+	/* Other */
+	--default-transition-time: 0.1s;
+	--light-box-shadow: 0px 0px 8px rgba(255, 255, 255, 0.07);
+	--default-box-shadow: 0px 0px 8px rgba(255, 255, 255, 0.1);
+	--dark-box-shadow: 0px 0px 8px rgba(255, 255, 255, 0.15);
+	--darker-box-shadow: 0px 0px 8px rgba(255, 255, 255, 0.2);
 }
 
 .container {
@@ -102,6 +146,12 @@ input {
 	padding: var(--small-padding) var(--default-padding);
 	border: var(--default-border-width) solid var(--border-color);
 	transition: var(--default-transition-time);
+    background-color: var(--default-background-color);
+    color: var(--text-color);
+}
+
+select {
+    color: #000;
 }
 
 input:hover {
@@ -201,6 +251,10 @@ h1 {
 	display: flex;
 	align-items: center;
 	justify-content: center;
+}
+
+body.dark .overlay {
+    background-color: rgba(255, 255, 255, 0.2);
 }
 
 .center {

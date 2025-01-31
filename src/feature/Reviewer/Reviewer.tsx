@@ -23,6 +23,7 @@ interface Props {
 const params = generatorParameters();
 const fsrs = new FSRS(params);
 
+// TODO: colors on dark
 function Reviewer({
 	cells,
 	cellRepetitions,

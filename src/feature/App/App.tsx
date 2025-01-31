@@ -25,6 +25,10 @@ function App() {
 	const cellRepetitions = useRef<Repetition[]>([]);
 	const dispatch = useAppDispatch();
 
+    // TODO: remove
+    document.body.classList.add("dark");
+    // document.body.classList.remove("dark");
+
 	const handleEditorStudyClick = async () => {
 		try {
 			const fetchedCells = await getFileCellsOrderedByIndex(
