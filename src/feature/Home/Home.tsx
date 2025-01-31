@@ -9,8 +9,8 @@ import ParsedFile from "../../type/parsedFile";
 import ParsedFolder from "../../type/parsedFolder";
 import Repetition from "../../type/backend/entity/repetition";
 import Cell from "../../type/backend/entity/cell";
-import { getCellsForFiles } from "../../service/cellService";
-import { getRepetitionsForFiles } from "../../service/repetitionService";
+import { getCellsForFiles } from "../../api/cellApi";
+import { getRepetitionsForFiles } from "../../api/repetitionApi";
 
 interface Props {
 	onStudyClick: (fileCells: Cell[], fileRepetitions: Repetition[]) => void;

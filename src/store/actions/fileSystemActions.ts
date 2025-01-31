@@ -17,7 +17,7 @@ import {
 	createFile as createFileApi,
 	getFiles as getFilesApi,
 	renameFolder as renameFolderApi,
-} from "../../service/fileService";
+} from "../../api/fileApi";
 import {
 	selectFolderById,
 	selectSelectedFileId,

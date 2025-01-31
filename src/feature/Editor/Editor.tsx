@@ -22,8 +22,8 @@ import {
 	getFileCellsOrderedByIndex,
 	moveCell,
 	updateCellContent,
-} from "../../service/cellService";
-import { getStudyRepetitionCounts } from "../../service/repetitionService";
+} from "../../api/cellApi";
+import { getStudyRepetitionCounts } from "../../api/repetitionApi";
 
 const autoSaveDelayInMilliSeconds = 2000;
 

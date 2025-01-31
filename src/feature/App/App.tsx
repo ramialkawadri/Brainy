@@ -9,12 +9,12 @@ import useAppSelector from "../../hooks/useAppSelector";
 import { selectSelectedFileId } from "../../store/selectors/fileSystemSelectors";
 import { fetchFiles } from "../../store/actions/fileSystemActions";
 import SideBar from "../SideBar/SideBar";
-import { getFileCellsOrderedByIndex } from "../../service/cellService";
+import { getFileCellsOrderedByIndex } from "../../api/cellApi";
 import Cell from "../../type/backend/entity/cell";
 import Repetition from "../../type/backend/entity/repetition";
-import { getFileRepetitions } from "../../service/repetitionService";
+import { getFileRepetitions } from "../../api/repetitionApi";
 import { setSelectedFileId } from "../../store/reducers/fileSystemReducers";
-import SettingsPopup from "../SettingsPopup/Settings";
+import SettingsPopup from "../SettingsPopup/SettingsPopup";
 
 function App() {
 	const [isStudying, setIsStudying] = useState(false);

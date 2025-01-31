@@ -1,4 +1,6 @@
+export type Theme = "FollowSystem" | "Light" | "Dark";
+
 export default interface Settings {
 	databaseLocation: string;
-    darkTheme: boolean;
+	theme: Theme;
 }

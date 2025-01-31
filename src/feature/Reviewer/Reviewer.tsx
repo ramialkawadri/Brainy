@@ -10,7 +10,7 @@ import useGlobalKey from "../../hooks/useGlobalKey";
 import Repetition from "../../type/backend/entity/repetition";
 import createRepetitionFromCard from "../../util/createRepetitionFromCard";
 import Cell from "../../type/backend/entity/cell";
-import { updateRepetition } from "../../service/repetitionService";
+import { updateRepetition } from "../../api/repetitionApi";
 
 interface Props {
 	cells: Cell[];

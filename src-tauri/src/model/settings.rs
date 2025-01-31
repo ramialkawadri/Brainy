@@ -4,11 +4,24 @@ use serde::{Deserialize, Serialize};
 #[serde(rename_all = "camelCase")]
 pub struct Settings {
     pub database_location: String,
-    pub dark_theme: bool,
+    pub theme: Theme,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub enum Theme {
+    FollowSystem,
+    Light,
+    Dark,
+}
+
+impl Default for Theme {
+    fn default() -> Self {
+        Theme::FollowSystem
+    }
 }
 
 impl Settings {
-    pub fn new(database_location: String, dark_theme: bool) -> Self {
-        Self { database_location, dark_theme }
+    pub fn new(database_location: String, theme: Theme) -> Self {
+        Self { database_location, theme }
     }
 }

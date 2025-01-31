@@ -7,7 +7,8 @@ use std::{
 use tokio::sync::Mutex;
 
 use crate::{
-    dto::update_settings_dto::UpdateSettingsRequest, model::settings::Settings,
+    dto::update_settings_dto::UpdateSettingsRequest,
+    model::settings::{Settings, Theme},
     util::database_util::load_database,
 };
 
@@ -15,9 +16,16 @@ const SETTINGS_FILE_NAME: &str = "settings.json";
 const DEFAULT_DATABASE_FILE_NAME: &str = "db.db";
 
 pub fn init_settings() {
-    let settings_path = get_settings_dir().join(DEFAULT_DATABASE_FILE_NAME);
-    if !settings_path.exists() {
-        let settings = Settings::new(settings_path.to_str().unwrap().into(), false);
+    let settings_dir = get_settings_dir();
+    if !settings_dir.join(SETTINGS_FILE_NAME).exists() {
+        let settings = Settings::new(
+            settings_dir
+                .join(DEFAULT_DATABASE_FILE_NAME)
+                .to_str()
+                .unwrap()
+                .into(),
+            Theme::FollowSystem,
+        );
         write_settings_to_disk(&settings);
     }
 }
@@ -28,6 +36,9 @@ pub async fn update_settings(new_settings: UpdateSettingsRequest, db_conn: &Mute
         let mut db_conn = db_conn.lock().await;
         *db_conn = load_database(&database_location).await;
         settings.database_location = database_location;
+    }
+    if let Some(theme) = new_settings.theme {
+        settings.theme = theme;
     }
     write_settings_to_disk(&settings);
 }

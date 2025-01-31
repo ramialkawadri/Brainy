@@ -44,5 +44,5 @@ name: brainy
 # attach: false
 
 windows:
-  - editor: nix-shell --run nvim
-  - console: nix-shell
+    - editor: nix-shell --run nvim
+    - console: nix-shell

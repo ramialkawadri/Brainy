@@ -23,7 +23,7 @@
 	padding-top: var(--default-padding);
 	display: flex;
 	flex-direction: column;
-    gap: 0.8rem;
+	gap: 0.8rem;
 
 	& .settings-row {
 		display: grid;
