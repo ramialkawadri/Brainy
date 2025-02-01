@@ -126,6 +126,7 @@ function App() {
 				<SettingsPopup
 					onClose={() => setShowSettings(false)}
 					onError={setErrorMessage}
+                    onUpdate={() => setIsStudying(false)}
 				/>
 			)}
 		</div>

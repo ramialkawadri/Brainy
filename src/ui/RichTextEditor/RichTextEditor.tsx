@@ -32,6 +32,13 @@ interface Props {
 	onUpdate: (html: string) => void;
 }
 
+const handleKeyDown = (e: KeyboardEvent) => {
+    if (e.ctrlKey && e.code === "Enter") {
+        return true;
+    }
+    return false;
+};
+
 function RichTextEditor({
 	content,
 	title,
@@ -49,6 +56,9 @@ function RichTextEditor({
 				if (e.editor.getHTML() !== content)
 					onUpdate(e.editor.getHTML());
 			},
+            editorProps: {
+                handleKeyDown: (_, e) => handleKeyDown(e),
+            }
 		},
 		[editable],
 	);

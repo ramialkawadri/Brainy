@@ -205,6 +205,14 @@ function Editor({ onError, onStudyButtonClick }: Props) {
 		onStudyButtonClick();
 	};
 
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+        if (e.ctrlKey && e.code === "Enter") {
+            e.preventDefault();
+            // TODO: insert next cell not end
+            setShowAddNewCellPopup(true);
+        }
+    };
+
 	return (
 		<div className={styles.container}>
 			{showDeleteDialog && (
@@ -223,6 +231,7 @@ function Editor({ onError, onStudyButtonClick }: Props) {
 
 			<div
 				className={`container ${styles.editorContainer}`}
+                onKeyDown={handleKeyDown}
 				ref={editorRef}>
 				{cells.length === 0 && <p>The file is empty</p>}
 

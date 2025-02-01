@@ -14,10 +14,11 @@ import isSystemUsingDarkTheme from "../../util/isSystemUsingDarkMode";
 
 interface Props {
 	onClose: () => void;
+    onUpdate: () => void;
 	onError: (error: string) => void;
 }
 
-function SettingsPopup({ onClose, onError }: Props) {
+function SettingsPopup({ onClose, onError, onUpdate }: Props) {
 	const [settings, setSettings] = useState<Settings | null>(null);
 	const boxRef = useRef<HTMLDivElement>(null);
 	const dispatch = useAppDispatch();
@@ -67,6 +68,7 @@ function SettingsPopup({ onClose, onError }: Props) {
 			await dispatch(fetchFiles());
 			dispatch(setSelectedFileId(null));
 			onClose();
+            onUpdate();
 		} catch (e) {
 			if (e instanceof Error) onError(e.message);
 			else onError(e as string);
