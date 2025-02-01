@@ -2,7 +2,7 @@
 	display: inline-block;
 	padding: var(--small-padding);
 	border-radius: var(--default-border-radius);
-	border: 1px solid #000;
+	border: 1px solid var(--text-color);
 	margin: 1px 0;
 }
 
@@ -10,7 +10,7 @@
 	content: attr(index);
 	padding-right: var(--extra-small-padding);
 	margin-right: var(--extra-small-padding);
-	border-right: 1px solid #000;
+	border-right: 1px solid var(--text-color);
 	font-weight: normal;
 	font-style: normal;
 }

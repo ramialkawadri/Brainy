@@ -122,7 +122,8 @@ button.link:active {
 	color: var(--link-color-shade-20);
 }
 
-input {
+input,
+select {
 	border-radius: var(--default-border-radius);
 	outline: none;
 	padding: var(--small-padding) var(--default-padding);

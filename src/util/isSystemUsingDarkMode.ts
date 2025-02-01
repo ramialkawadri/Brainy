@@ -1,5 +1,5 @@
-function isSystemUsingDarkMode() {
+function isSystemUsingDarkTheme() {
     return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
 }
 
-export default isSystemUsingDarkMode;
+export default isSystemUsingDarkTheme;

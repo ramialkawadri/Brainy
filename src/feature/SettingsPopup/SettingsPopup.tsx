@@ -10,6 +10,7 @@ import useGlobalKey from "../../hooks/useGlobalKey";
 import useAppDispatch from "../../hooks/useAppDispatch";
 import { fetchFiles } from "../../store/actions/fileSystemActions";
 import { setSelectedFileId } from "../../store/reducers/fileSystemReducers";
+import isSystemUsingDarkTheme from "../../util/isSystemUsingDarkMode";
 
 interface Props {
 	onClose: () => void;
@@ -57,6 +58,12 @@ function SettingsPopup({ onClose, onError }: Props) {
 			await updateSettings({
 				...settings!,
 			});
+            if (settings!.theme === "Dark" ||
+                (settings!.theme === "FollowSystem" && isSystemUsingDarkTheme())) {
+                document.body.classList.add("dark");
+            } else {
+                document.body.classList.remove("dark");
+            }
 			await dispatch(fetchFiles());
 			dispatch(setSelectedFileId(null));
 			onClose();

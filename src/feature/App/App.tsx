@@ -16,7 +16,7 @@ import { getFileRepetitions } from "../../api/repetitionApi";
 import { setSelectedFileId } from "../../store/reducers/fileSystemReducers";
 import SettingsPopup from "../SettingsPopup/SettingsPopup";
 import { getSettings } from "../../api/settingsApi";
-import isSystemUsingDarkMode from "../../util/isSystemUsingDarkMode";
+import isSystemUsingDarkTheme from "../../util/isSystemUsingDarkMode";
 
 function App() {
 	const [isStudying, setIsStudying] = useState(false);
@@ -56,10 +56,9 @@ function App() {
 	useEffect(() => {
 		void dispatch(fetchFiles());
         void (async () => {
-            // TODO: Fix to follow the settings
             const settings = await getSettings();
             if (settings.theme === "Dark" ||
-                (settings.theme === "FollowSystem" && isSystemUsingDarkMode())) {
+                (settings.theme === "FollowSystem" && isSystemUsingDarkTheme())) {
                 document.body.classList.add("dark");
             }
         })();

@@ -4,7 +4,6 @@ use serde::{Deserialize, Serialize};
 #[serde(rename_all = "camelCase")]
 pub struct Settings {
     pub database_location: String,
-    // TODO: change from theme to Mode!
     pub theme: Theme,
 }
 
