@@ -25,7 +25,7 @@ body {
 	font-family: "Roboto", sans-serif;
 	font-weight: 300;
 	font-style: normal;
-    background-color: var(--default-background-color);
+	background-color: var(--grey-background-color);
 
 	/* Colors */
 	--primary-color: #4a90e2;
@@ -33,6 +33,7 @@ body {
 	--primary-color-shade-50: #254871;
 	--secondary-color: #e29c4a;
 	--red-color: #d52726;
+	--red-color-light-10: #e04f4e;
 
 	--text-color: #333333;
 	--border-color: #e0e0e0;
@@ -45,10 +46,12 @@ body {
 	--grey-background-color-shade-20: #c2c2c2;
 
 	--default-background-color: #fff;
+    --side-bar-background-color: #fafafa;
 
 	--new-color: var(--primary-color-shade-50);
 	--learning-color: var(--red-color);
 	--review-color: green;
+
 
 	/* Spaces */
 	--default-border-radius: 4px;
@@ -73,40 +76,19 @@ body {
 
 body.dark {
 	/* Colors */
-	--primary-color: #4a90e2;
-	--primary-color-shade-10: #4382cb;
-	--primary-color-shade-50: #254871;
-	--secondary-color: #e29c4a;
-	--red-color: #d52726;
-
 	--text-color: #fff;
 	--border-color: #5b5b5b;
 	--hover-border-color: #757575;
-	--link-color: #387adf;
-	--link-color-shade-10: #27559c;
-	--link-color-shade-20: #2d62b2;
 	--grey-background-color: #424242;
 	--grey-background-color-shade-10: #292929;
 	--grey-background-color-shade-20: #0f0f0f;
 
 	--default-background-color: #282828;
+    --side-bar-background-color: var(--grey-background-color-shade-10);
 
-	--new-color: var(--primary-color-shade-50);
-	--learning-color: var(--red-color);
-	--review-color: green;
-
-	/* Spaces */
-	--default-border-radius: 4px;
-	--extra-small-padding: 2px;
-	--small-padding: 4px;
-	--default-padding: 6px;
-	--medium-padding: 10px;
-	--large-padding: 12px;
-	--xl-padding: 16px;
-	--xxl-padding: 20px;
-
-	/* Sizes */
-	--default-border-width: 2px;
+	--new-color: var(--primary-color);
+	--learning-color: var(--red-color-light-10);
+	--review-color: #0c0;
 
 	/* Other */
 	--default-transition-time: 0.1s;
@@ -146,12 +128,12 @@ input {
 	padding: var(--small-padding) var(--default-padding);
 	border: var(--default-border-width) solid var(--border-color);
 	transition: var(--default-transition-time);
-    background-color: var(--default-background-color);
-    color: var(--text-color);
+	background-color: var(--default-background-color);
+	color: var(--text-color);
 }
 
 select {
-    color: #000;
+	color: #000;
 }
 
 input:hover {
@@ -224,6 +206,10 @@ button.grey-button:focus {
 	border-color: var(--link-color);
 }
 
+body.dark button.grey-button {
+	background-color: var(--grey-background-color);
+}
+
 button.column-button {
 	display: flex;
 	align-items: center;
@@ -254,7 +240,7 @@ h1 {
 }
 
 body.dark .overlay {
-    background-color: rgba(255, 255, 255, 0.2);
+	background-color: rgba(255, 255, 255, 0.2);
 }
 
 .center {

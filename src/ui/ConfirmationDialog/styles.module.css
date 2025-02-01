@@ -1,6 +1,6 @@
 .box {
 	padding: var(--xl-padding);
-	background: var(--grey-background-color);
+	background: var(--default-background-color);
 	border-radius: var(--default-border-radius);
 	display: flex;
 	flex-direction: column;

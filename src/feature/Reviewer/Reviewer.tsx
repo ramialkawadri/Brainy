@@ -23,7 +23,6 @@ interface Props {
 const params = generatorParameters();
 const fsrs = new FSRS(params);
 
-// TODO: colors on dark
 function Reviewer({
 	cells,
 	cellRepetitions,
@@ -154,7 +153,7 @@ function Reviewer({
 				<div className={styles.editButtonContainer}>
 					<p>&nbsp;</p>
 					<button
-						className="row transparent"
+						className="row transparent grey-button"
 						onClick={() =>
 							onEditButtonClick(dueToday[currentCellIndex].fileId)
 						}>

@@ -15,6 +15,8 @@ import Repetition from "../../type/backend/entity/repetition";
 import { getFileRepetitions } from "../../api/repetitionApi";
 import { setSelectedFileId } from "../../store/reducers/fileSystemReducers";
 import SettingsPopup from "../SettingsPopup/SettingsPopup";
+import { getSettings } from "../../api/settingsApi";
+import isSystemUsingDarkMode from "../../util/isSystemUsingDarkMode";
 
 function App() {
 	const [isStudying, setIsStudying] = useState(false);
@@ -25,9 +27,6 @@ function App() {
 	const cellRepetitions = useRef<Repetition[]>([]);
 	const dispatch = useAppDispatch();
 
-    // TODO: remove
-    document.body.classList.add("dark");
-    // document.body.classList.remove("dark");
 
 	const handleEditorStudyClick = async () => {
 		try {
@@ -56,6 +55,14 @@ function App() {
 
 	useEffect(() => {
 		void dispatch(fetchFiles());
+        void (async () => {
+            // TODO: Fix to follow the settings
+            const settings = await getSettings();
+            if (settings.theme === "Dark" ||
+                (settings.theme === "FollowSystem" && isSystemUsingDarkMode())) {
+                document.body.classList.add("dark");
+            }
+        })();
 	}, [dispatch]);
 
 	useEffect(() => {

@@ -91,9 +91,6 @@
 		display: block;
 
 		& button {
-            /* TODO: move */
-			background-color: #dadada;
-			/* background-color: var(--grey-background-color); */
 			box-shadow: none;
 			gap: 4px;
 		}

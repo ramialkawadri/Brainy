@@ -2,7 +2,7 @@
 	height: 100%;
 	padding: var(--xl-padding);
 	border-right: 1px solid var(--border-color);
-	background-color: #fafafa;
+	background-color: var(--side-bar-background-color);
 	width: 36rem;
 	transition: 0.18s all;
 
@@ -41,14 +41,6 @@
 			}
 		}
 	}
-}
-
-
-body:global(.dark) {
-    .side-bar {
-        /* TODO: move */
-        background-color: #292929;
-    }
 }
 
 .error-box {
