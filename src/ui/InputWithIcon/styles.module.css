@@ -1,0 +1,21 @@
+.container {
+	position: relative;
+	margin-top: 6px;
+
+	& {
+		font-size: 1.6rem;
+	}
+
+	& .icon {
+		display: block;
+		position: absolute;
+		left: 1rem;
+		top: 50%;
+		transform: translateY(-50%);
+	}
+
+	& input {
+		padding-left: 2.6rem;
+        width: 100%;
+	}
+}

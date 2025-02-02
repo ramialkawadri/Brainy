@@ -11,7 +11,7 @@ import clozeMark, { clozeMarkName } from "./clozeMark";
 interface Props {
 	cell: Cell;
 	editable: boolean;
-    autofocus: boolean;
+	autofocus: boolean;
 	onUpdate: (content: string) => void;
 }
 
@@ -53,7 +53,7 @@ function ClozeCell({ cell, editable, autofocus, onUpdate }: Props) {
 			content={cell.content}
 			editable={editable}
 			onUpdate={onUpdate}
-            autofocus={autofocus}
+			autofocus={autofocus}
 		/>
 	);
 }

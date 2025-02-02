@@ -13,6 +13,7 @@ import { useMemo, useState } from "react";
 import searchFolder from "../../util/searchFolder";
 import { mdiArrowCollapseLeft, mdiCog, mdiHome, mdiMagnify } from "@mdi/js";
 import Icon from "@mdi/react";
+import InputWithIcon from "../../ui/InputWithIcon/InputWithIcon";
 
 interface Props {
 	onFileClick: () => void;
@@ -63,19 +64,13 @@ function SideBar({
 				<p>Settings</p>
 			</button>
 
-			<div className={`${styles.searchBar}`}>
-				<Icon
-					path={mdiMagnify}
-					size={1}
-					className={styles.searchIcon}
-				/>
-				<input
-					type="text"
-					placeholder="Search"
-					onChange={e => setSearchText(e.target.value)}
-					value={searchText ?? ""}
-				/>
-			</div>
+			<InputWithIcon
+				iconName={mdiMagnify}
+				value={searchText ?? ""}
+				onChange={e => setSearchText(e.target.value)}
+				placeholder="Search"
+				className={styles.searchInput}
+			/>
 
 			{errorMessage && (
 				<ErrorBox

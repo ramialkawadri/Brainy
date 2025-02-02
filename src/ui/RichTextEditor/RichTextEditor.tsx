@@ -29,7 +29,7 @@ interface Props {
 	editable?: boolean;
 	extraExtensions?: AnyExtension[];
 	commands?: Command[];
-    autofocus: boolean;
+	autofocus: boolean;
 	onUpdate: (html: string) => void;
 }
 
@@ -39,7 +39,7 @@ function RichTextEditor({
 	editable,
 	extraExtensions,
 	commands,
-    autofocus,
+	autofocus,
 	onUpdate,
 }: Props) {
 	const editor = useEditor(
@@ -47,7 +47,7 @@ function RichTextEditor({
 			extensions: [...extensions, ...(extraExtensions ?? [])],
 			content,
 			editable,
-            autofocus: autofocus,
+			autofocus: autofocus,
 			onUpdate: e => {
 				if (e.editor.getHTML() !== content)
 					onUpdate(e.editor.getHTML());

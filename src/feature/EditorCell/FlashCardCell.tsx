@@ -6,7 +6,7 @@ import styles from "./styles.module.css";
 interface Props {
 	cell: Cell;
 	editable: boolean;
-    autofocus: boolean;
+	autofocus: boolean;
 	onUpdate: (content: string) => void;
 }
 
@@ -36,13 +36,13 @@ function FlashCardCell({ cell, editable, autofocus, onUpdate }: Props) {
 				content={flashCard.question}
 				onUpdate={handleQuestionUpdate}
 				editable={editable}
-                autofocus={autofocus}
+				autofocus={autofocus}
 			/>
 			<RichTextEditor
 				title="Answer"
 				content={flashCard.answer}
-                autofocus={false}
-                editable={editable}
+				autofocus={false}
+				editable={editable}
 				onUpdate={handleAnswerUpdate}
 			/>
 		</div>

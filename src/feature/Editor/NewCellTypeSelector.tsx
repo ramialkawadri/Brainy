@@ -3,6 +3,8 @@ import styles from "./styles.module.css";
 import Icon from "@mdi/react";
 import getCellIcon from "../../util/getCellIcon";
 import { allCellTypes, CellType } from "../../type/backend/entity/cell";
+import InputWithIcon from "../../ui/InputWithIcon/InputWithIcon";
+import { mdiMagnify } from "@mdi/js";
 
 interface Props {
 	className?: string;
@@ -16,12 +18,13 @@ const NewCellTypeSelector = forwardRef<HTMLDivElement, Props>(
 		return (
 			<div className={`${className} ${styles.newCellSelector}`} ref={ref}>
 				<label htmlFor="search-type">Insert New Cell</label>
-				<input
+				<InputWithIcon
 					id="search-type"
-					type="text"
 					placeholder="Search"
 					onChange={e => setSearchText(e.target.value)}
 					autoFocus
+                    iconName={mdiMagnify}
+                    value={searchText}
 				/>
 
 				{allCellTypes

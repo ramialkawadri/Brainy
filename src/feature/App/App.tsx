@@ -56,7 +56,7 @@ function App() {
 		void dispatch(fetchFiles());
 		void (async () => {
 			const settings = await getSettings();
-            applySettings(settings);
+			applySettings(settings);
 		})();
 	}, [dispatch]);
 

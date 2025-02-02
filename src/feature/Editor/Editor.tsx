@@ -281,7 +281,7 @@ function Editor({ onError, onStudyStart }: Props) {
 						<EditorCell
 							cell={cell}
 							editable={draggedCellIndex === -1}
-                            autofocus={selectedCellIndex === i}
+							autofocus={selectedCellIndex === i}
 							onUpdate={content => handleUpdate(content, i)}
 						/>
 					</div>
