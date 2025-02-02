@@ -9,6 +9,8 @@ function applySettings(settings: Settings) {
         )
     ) {
         document.body.classList.add("dark");
+    } else {
+        document.body.classList.remove("dark");
     }
     document.body.style.zoom = `${settings?.zoomPercentage}%`;
 }
