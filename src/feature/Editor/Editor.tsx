@@ -69,9 +69,9 @@ function Editor({ onError, onStudyStart }: Props) {
 			setShowAddNewCellPopup(false);
 			setShowInsertNewCell(false);
 		} else if (e.ctrlKey && e.shiftKey && e.code === "Enter") {
-			setShowInsertNewCell(true);
+			setShowInsertNewCell(!showInsertNewCell);
 		} else if (e.ctrlKey && e.code === "Enter") {
-			setShowAddNewCellPopup(true);
+			setShowAddNewCellPopup(!showAddNewCellPopup);
 		} else if (e.code === "F5") {
 			void startStudy();
 		} else if (e.ctrlKey && e.code == "ArrowDown") {
