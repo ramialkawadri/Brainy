@@ -6,16 +6,18 @@ import FlashCardCell from "./FlashCardCell";
 interface Props {
 	cell: Cell;
 	editable: boolean;
+    autofocus: boolean;
 	onUpdate: (content: string) => void;
 }
 
-function EditorCell({ cell, editable, onUpdate }: Props) {
+function EditorCell({ cell, editable, autofocus, onUpdate }: Props) {
 	switch (cell.cellType) {
 		case "FlashCard":
 			return (
 				<FlashCardCell
 					cell={cell}
 					editable={editable}
+                    autofocus={autofocus}
 					onUpdate={onUpdate}
 				/>
 			);
@@ -25,6 +27,7 @@ function EditorCell({ cell, editable, onUpdate }: Props) {
 					content={cell.content}
 					editable={editable}
 					onUpdate={onUpdate}
+                    autofocus={autofocus}
 				/>
 			);
 		case "Cloze":
@@ -32,6 +35,7 @@ function EditorCell({ cell, editable, onUpdate }: Props) {
 				<ClozeCell
 					cell={cell}
 					editable={editable}
+                    autofocus={autofocus}
 					onUpdate={onUpdate}
 				/>
 			);

@@ -6,10 +6,11 @@ import styles from "./styles.module.css";
 interface Props {
 	cell: Cell;
 	editable: boolean;
+    autofocus: boolean;
 	onUpdate: (content: string) => void;
 }
 
-function FlashCardCell({ cell, editable, onUpdate }: Props) {
+function FlashCardCell({ cell, editable, autofocus, onUpdate }: Props) {
 	const flashCard = JSON.parse(cell.content) as FlashCard;
 
 	const handleQuestionUpdate = (html: string) =>
@@ -35,12 +36,14 @@ function FlashCardCell({ cell, editable, onUpdate }: Props) {
 				content={flashCard.question}
 				onUpdate={handleQuestionUpdate}
 				editable={editable}
+                autofocus={autofocus}
 			/>
 			<RichTextEditor
 				title="Answer"
 				content={flashCard.answer}
+                autofocus={false}
+                editable={editable}
 				onUpdate={handleAnswerUpdate}
-				editable={editable}
 			/>
 		</div>
 	);
