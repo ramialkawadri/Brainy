@@ -132,15 +132,13 @@ select {
 	color: var(--text-color);
 }
 
-select {
-	color: #000;
-}
-
-input:hover {
+input:hover,
+select:hover {
 	border-color: var(--hover-border-color);
 }
 
-input:focus {
+input:focus,
+select:focus {
 	border-color: var(--primary-color);
 }
 
