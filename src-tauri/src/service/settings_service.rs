@@ -25,6 +25,7 @@ pub fn init_settings() {
                 .unwrap()
                 .into(),
             Theme::FollowSystem,
+            100f32,
         );
         write_settings_to_disk(&settings);
     }
@@ -39,6 +40,9 @@ pub async fn update_settings(new_settings: UpdateSettingsRequest, db_conn: &Mute
     }
     if let Some(theme) = new_settings.theme {
         settings.theme = theme;
+    }
+    if let Some(zoom_percentage) = new_settings.zoom_percentage {
+        settings.zoom_percentage = zoom_percentage;
     }
     write_settings_to_disk(&settings);
 }

@@ -16,8 +16,8 @@ import { getFileRepetitions } from "../../api/repetitionApi";
 import { setSelectedFileId } from "../../store/reducers/fileSystemReducers";
 import SettingsPopup from "../SettingsPopup/SettingsPopup";
 import { getSettings } from "../../api/settingsApi";
-import isSystemUsingDarkTheme from "../../util/isSystemUsingDarkMode";
 import errorToString from "../../util/errorToString";
+import applySettings from "../../util/applySettings";
 
 function App() {
 	const [isStudying, setIsStudying] = useState(false);
@@ -56,12 +56,7 @@ function App() {
 		void dispatch(fetchFiles());
 		void (async () => {
 			const settings = await getSettings();
-			if (
-				settings.theme === "Dark" ||
-				(settings.theme === "FollowSystem" && isSystemUsingDarkTheme())
-			) {
-				document.body.classList.add("dark");
-			}
+            applySettings(settings);
 		})();
 	}, [dispatch]);
 
