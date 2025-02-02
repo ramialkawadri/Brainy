@@ -14,7 +14,7 @@ function FocusTools({ onInsert, onDelete, onDragStart, onDragEnd }: Props) {
 		<div className={styles.focusTools}>
 			<button
 				className="transparent"
-				title="Insert Cell"
+				title="Insert Cell (Ctrl + Shift + Enter)"
 				onClick={onInsert}>
 				<Icon path={mdiPlus} size={1} />
 			</button>

@@ -32,13 +32,6 @@ interface Props {
 	onUpdate: (html: string) => void;
 }
 
-const handleKeyDown = (e: KeyboardEvent) => {
-    if (e.ctrlKey && e.code === "Enter") {
-        return true;
-    }
-    return false;
-};
-
 function RichTextEditor({
 	content,
 	title,
@@ -57,7 +50,13 @@ function RichTextEditor({
 					onUpdate(e.editor.getHTML());
 			},
             editorProps: {
-                handleKeyDown: (_, e) => handleKeyDown(e),
+                handleKeyDown: (_, e) => {
+                    // Do not insert new lines when clicking Ctrl + Enter.
+                    if (e.ctrlKey && e.code === "Enter") {
+                        return true;
+                    }
+                    return false;
+                },
             }
 		},
 		[editable],

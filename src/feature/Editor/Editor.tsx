@@ -64,9 +64,25 @@ function Editor({ onError, onStudyButtonClick }: Props) {
 		setShowAddNewCellPopup(false),
 	);
 	useGlobalKey(e => {
-		if (e.key === "Escape" && showAddNewCellPopup) {
+		if (e.key === "Escape") {
 			setShowAddNewCellPopup(false);
-		}
+            setShowInsertNewCell(false);
+		} else if (e.ctrlKey && e.shiftKey && e.code === "Enter") {
+            setShowInsertNewCell(true);
+        } else if (e.ctrlKey && e.code === "Enter") {
+            e.preventDefault();
+            setShowAddNewCellPopup(true);
+        } else if (e.code === "F5") {
+            onStudyButtonClick();
+        } else if (e.ctrlKey && e.code == "ArrowDown") {
+            if (selectedCellIndex + 1 < cells.length) {
+                setSelectedCellIndex(selectedCellIndex + 1);
+            }
+        } else if (e.ctrlKey && e.code == "ArrowUp") {
+            if (selectedCellIndex - 1 >= 0) {
+                setSelectedCellIndex(selectedCellIndex - 1);
+            }
+        }
 	});
 
 	const executeRequest = useCallback(
@@ -205,14 +221,6 @@ function Editor({ onError, onStudyButtonClick }: Props) {
 		onStudyButtonClick();
 	};
 
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-        if (e.ctrlKey && e.code === "Enter") {
-            e.preventDefault();
-            // TODO: insert next cell not end
-            setShowAddNewCellPopup(true);
-        }
-    };
-
 	return (
 		<div className={styles.container}>
 			{showDeleteDialog && (
@@ -231,7 +239,6 @@ function Editor({ onError, onStudyButtonClick }: Props) {
 
 			<div
 				className={`container ${styles.editorContainer}`}
-                onKeyDown={handleKeyDown}
 				ref={editorRef}>
 				{cells.length === 0 && <p>The file is empty</p>}
 
@@ -290,7 +297,7 @@ function Editor({ onError, onStudyButtonClick }: Props) {
 						className={`${styles.addButton} grey-button`}
 						onClick={() => setShowAddNewCellPopup(true)}>
 						<Icon path={mdiPlus} size={1} />
-						<span>Add Cell</span>
+						<span title="Ctrl + Enter">Add Cell</span>
 					</button>
 				</div>
 
