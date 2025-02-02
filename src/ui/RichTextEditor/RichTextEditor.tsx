@@ -49,15 +49,15 @@ function RichTextEditor({
 				if (e.editor.getHTML() !== content)
 					onUpdate(e.editor.getHTML());
 			},
-            editorProps: {
-                handleKeyDown: (_, e) => {
-                    // Do not insert new lines when clicking Ctrl + Enter.
-                    if (e.ctrlKey && e.code === "Enter") {
-                        return true;
-                    }
-                    return false;
-                },
-            }
+			editorProps: {
+				handleKeyDown: (_, e) => {
+					// Do not insert new lines when clicking Ctrl + Enter.
+					if (e.ctrlKey && e.code === "Enter") {
+						return true;
+					}
+					return false;
+				},
+			},
 		},
 		[editable],
 	);

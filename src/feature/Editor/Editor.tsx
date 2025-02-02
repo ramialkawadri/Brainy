@@ -24,19 +24,20 @@ import {
 	updateCellContent,
 } from "../../api/cellApi";
 import { getStudyRepetitionCounts } from "../../api/repetitionApi";
+import errorToString from "../../util/errorToString";
 
 const autoSaveDelayInMilliSeconds = 2000;
 
 interface Props {
 	onError: (error: string) => void;
-	onStudyButtonClick: () => void;
+	onStudyStart: () => void;
 }
 
-function Editor({ onError, onStudyButtonClick }: Props) {
+function Editor({ onError, onStudyStart }: Props) {
 	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 	// Used for the focus tools.
 	const [showInsertNewCell, setShowInsertNewCell] = useState(false);
-	// Used for the insert button.
+	// Used for the add button at the end.
 	const [showAddNewCellPopup, setShowAddNewCellPopup] = useState(false);
 	const [selectedCellIndex, setSelectedCellIndex] = useState(0);
 	const [draggedCellIndex, setDraggedCellIndex] = useState(-1);
@@ -66,23 +67,22 @@ function Editor({ onError, onStudyButtonClick }: Props) {
 	useGlobalKey(e => {
 		if (e.key === "Escape") {
 			setShowAddNewCellPopup(false);
-            setShowInsertNewCell(false);
+			setShowInsertNewCell(false);
 		} else if (e.ctrlKey && e.shiftKey && e.code === "Enter") {
-            setShowInsertNewCell(true);
-        } else if (e.ctrlKey && e.code === "Enter") {
-            e.preventDefault();
-            setShowAddNewCellPopup(true);
-        } else if (e.code === "F5") {
-            onStudyButtonClick();
-        } else if (e.ctrlKey && e.code == "ArrowDown") {
-            if (selectedCellIndex + 1 < cells.length) {
-                setSelectedCellIndex(selectedCellIndex + 1);
-            }
-        } else if (e.ctrlKey && e.code == "ArrowUp") {
-            if (selectedCellIndex - 1 >= 0) {
-                setSelectedCellIndex(selectedCellIndex - 1);
-            }
-        }
+			setShowInsertNewCell(true);
+		} else if (e.ctrlKey && e.code === "Enter") {
+			setShowAddNewCellPopup(true);
+		} else if (e.code === "F5") {
+			void startStudy();
+		} else if (e.ctrlKey && e.code == "ArrowDown") {
+			if (selectedCellIndex + 1 < cells.length) {
+				setSelectedCellIndex(selectedCellIndex + 1);
+			}
+		} else if (e.ctrlKey && e.code == "ArrowUp") {
+			if (selectedCellIndex - 1 >= 0) {
+				setSelectedCellIndex(selectedCellIndex - 1);
+			}
+		}
 	});
 
 	const executeRequest = useCallback(
@@ -91,8 +91,7 @@ function Editor({ onError, onStudyButtonClick }: Props) {
 				return await cb();
 			} catch (e) {
 				console.error(e);
-				if (e instanceof Error) onError(e.message);
-				else onError(e as string);
+				onError(errorToString(e));
 			}
 		},
 		[onError],
@@ -128,7 +127,7 @@ function Editor({ onError, onStudyButtonClick }: Props) {
 		changedCellsIndices.current.add(index);
 		const newCells = [...cells];
 		newCells[index] = {
-			...newCells[index],
+			...cells[index],
 			content,
 		};
 		setCells(newCells);
@@ -165,7 +164,7 @@ function Editor({ onError, onStudyButtonClick }: Props) {
 		if (changedCellsIndices.current.size > 0) e.preventDefault();
 	});
 
-	const insertNewCell = async (cellType: CellType, index = -1) => {
+	const insertNewCell = async (cellType: CellType, index: number) => {
 		const cell = createDefaultCell(cellType, selectedFileId, index);
 		await createCell(cell);
 		await retrieveSelectedFileCells();
@@ -216,9 +215,9 @@ function Editor({ onError, onStudyButtonClick }: Props) {
 		setDraggedCellIndex(-1);
 	};
 
-	const handleStudyButtonClick = async () => {
+	const startStudy = async () => {
 		await forceSave();
-		onStudyButtonClick();
+		onStudyStart();
 	};
 
 	return (
@@ -234,7 +233,7 @@ function Editor({ onError, onStudyButtonClick }: Props) {
 
 			<TitleBar
 				repetitionCounts={repetitionCounts}
-				onStudyButtonClick={() => void handleStudyButtonClick()}
+				onStudyButtonClick={() => void startStudy()}
 			/>
 
 			<div

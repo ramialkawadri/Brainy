@@ -11,10 +11,11 @@ import useAppDispatch from "../../hooks/useAppDispatch";
 import { fetchFiles } from "../../store/actions/fileSystemActions";
 import { setSelectedFileId } from "../../store/reducers/fileSystemReducers";
 import isSystemUsingDarkTheme from "../../util/isSystemUsingDarkMode";
+import errorToString from "../../util/errorToString";
 
 interface Props {
 	onClose: () => void;
-    onUpdate: () => void;
+	onUpdate: () => void;
 	onError: (error: string) => void;
 }
 
@@ -31,8 +32,8 @@ function SettingsPopup({ onClose, onError, onUpdate }: Props) {
 				const settings = await getSettings();
 				setSettings(settings);
 			} catch (e) {
-				if (e instanceof Error) onError(e.message);
-				else onError(e as string);
+				console.error(e);
+				onError(errorToString(e));
 			}
 		})();
 	}, [onError]);
@@ -44,8 +45,8 @@ function SettingsPopup({ onClose, onError, onUpdate }: Props) {
 		});
 		if (!location) return;
 
-		if (location.includes("/")) location += "/";
-		else location += "\\";
+        const pathCharacer = location.includes("/") ? "/" : "\\";
+        if (!location.endsWith(pathCharacer)) location += pathCharacer;
 		location += "brainy.db";
 
 		setSettings({
@@ -59,19 +60,21 @@ function SettingsPopup({ onClose, onError, onUpdate }: Props) {
 			await updateSettings({
 				...settings!,
 			});
-            if (settings!.theme === "Dark" ||
-                (settings!.theme === "FollowSystem" && isSystemUsingDarkTheme())) {
-                document.body.classList.add("dark");
-            } else {
-                document.body.classList.remove("dark");
-            }
+			if (
+				settings!.theme === "Dark" ||
+				(settings!.theme === "FollowSystem" && isSystemUsingDarkTheme())
+			) {
+				document.body.classList.add("dark");
+			} else {
+				document.body.classList.remove("dark");
+			}
 			await dispatch(fetchFiles());
 			dispatch(setSelectedFileId(null));
-			onClose();
             onUpdate();
+			onClose();
 		} catch (e) {
-			if (e instanceof Error) onError(e.message);
-			else onError(e as string);
+			console.error(e);
+			onError(errorToString(e));
 		}
 	};
 

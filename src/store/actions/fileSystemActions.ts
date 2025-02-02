@@ -23,6 +23,7 @@ import {
 	selectSelectedFileId,
 } from "../selectors/fileSystemSelectors";
 import { AppDispatch, RootState } from "../store";
+import errorToString from "../../util/errorToString";
 
 export function fetchFiles() {
 	return executeRequest(() => Promise.resolve());
@@ -87,10 +88,7 @@ function executeRequest<T>(
 			dispatch(requestSuccess(rootFolder));
 		} catch (e) {
 			console.error(e);
-			if (e instanceof Error) {
-				console.error(e.stack);
-			}
-			dispatch(requestFailure(e as string));
+			dispatch(requestFailure(errorToString(e)));
 		}
 	};
 }

@@ -11,6 +11,7 @@ import Repetition from "../../type/backend/entity/repetition";
 import Cell from "../../type/backend/entity/cell";
 import { getCellsForFiles } from "../../api/cellApi";
 import { getRepetitionsForFiles } from "../../api/repetitionApi";
+import errorToString from "../../util/errorToString";
 
 interface Props {
 	onStudyClick: (fileCells: Cell[], fileRepetitions: Repetition[]) => void;
@@ -33,8 +34,7 @@ function Home({ onStudyClick, onError }: Props) {
 			onStudyClick(cells, repetitions);
 		} catch (e) {
 			console.error(e);
-			if (e instanceof Error) onError(e.message);
-			else onError(e as string);
+			onError(errorToString(e));
 		}
 	};
 

@@ -46,12 +46,11 @@ body {
 	--grey-background-color-shade-20: #c2c2c2;
 
 	--default-background-color: #fff;
-    --side-bar-background-color: #fafafa;
+	--side-bar-background-color: #fafafa;
 
 	--new-color: var(--primary-color-shade-50);
 	--learning-color: var(--red-color);
 	--review-color: green;
-
 
 	/* Spaces */
 	--default-border-radius: 4px;
@@ -84,7 +83,7 @@ body.dark {
 	--grey-background-color-shade-20: #0f0f0f;
 
 	--default-background-color: #282828;
-    --side-bar-background-color: var(--grey-background-color-shade-10);
+	--side-bar-background-color: var(--grey-background-color-shade-10);
 
 	--new-color: var(--primary-color);
 	--learning-color: var(--red-color-light-10);

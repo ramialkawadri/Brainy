@@ -48,19 +48,19 @@ fn write_settings_to_disk(settings: &Settings) {
         get_settings_dir().join(SETTINGS_FILE_NAME),
         serde_json::to_string(settings).unwrap(),
     )
-    .expect("Cannot write to config file");
+    .expect("Cannot write to settings file");
 }
 
 pub fn get_settings() -> Settings {
     let settings_path = get_settings_dir().join(SETTINGS_FILE_NAME);
-    let file = File::open(settings_path).expect("Cannot read config file");
+    let file = File::open(settings_path).expect("Cannot read settings file");
     serde_json::from_reader(file).expect("Cannot parse settings!")
 }
 
 fn get_settings_dir() -> PathBuf {
     let dir_path = dirs::config_dir()
-        .expect("No config directory is found on your system!")
+        .expect("No settings directory is found on your system!")
         .join("Brainy");
-    fs::create_dir_all(dir_path.clone()).expect("Cannot create config directory!");
+    fs::create_dir_all(dir_path.clone()).expect("Cannot create settings directory!");
     dir_path
 }

@@ -17,6 +17,7 @@ import { setSelectedFileId } from "../../store/reducers/fileSystemReducers";
 import SettingsPopup from "../SettingsPopup/SettingsPopup";
 import { getSettings } from "../../api/settingsApi";
 import isSystemUsingDarkTheme from "../../util/isSystemUsingDarkMode";
+import errorToString from "../../util/errorToString";
 
 function App() {
 	const [isStudying, setIsStudying] = useState(false);
@@ -26,7 +27,6 @@ function App() {
 	const cells = useRef<Cell[]>([]);
 	const cellRepetitions = useRef<Repetition[]>([]);
 	const dispatch = useAppDispatch();
-
 
 	const handleEditorStudyClick = async () => {
 		try {
@@ -39,8 +39,7 @@ function App() {
 			setIsStudying(true);
 		} catch (e) {
 			console.error(e);
-			if (e instanceof Error) setErrorMessage(e.message);
-			else setErrorMessage(e as string);
+			setErrorMessage(errorToString(e));
 		}
 	};
 
@@ -55,13 +54,15 @@ function App() {
 
 	useEffect(() => {
 		void dispatch(fetchFiles());
-        void (async () => {
-            const settings = await getSettings();
-            if (settings.theme === "Dark" ||
-                (settings.theme === "FollowSystem" && isSystemUsingDarkTheme())) {
-                document.body.classList.add("dark");
-            }
-        })();
+		void (async () => {
+			const settings = await getSettings();
+			if (
+				settings.theme === "Dark" ||
+				(settings.theme === "FollowSystem" && isSystemUsingDarkTheme())
+			) {
+				document.body.classList.add("dark");
+			}
+		})();
 	}, [dispatch]);
 
 	useEffect(() => {
@@ -107,7 +108,7 @@ function App() {
 				{!isStudying && selectedFileId && (
 					<Editor
 						onError={setErrorMessage}
-						onStudyButtonClick={() => void handleEditorStudyClick()}
+						onStudyStart={() => void handleEditorStudyClick()}
 					/>
 				)}
 
@@ -126,7 +127,7 @@ function App() {
 				<SettingsPopup
 					onClose={() => setShowSettings(false)}
 					onError={setErrorMessage}
-                    onUpdate={() => setIsStudying(false)}
+					onUpdate={() => setIsStudying(false)}
 				/>
 			)}
 		</div>
