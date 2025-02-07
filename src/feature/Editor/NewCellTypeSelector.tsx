@@ -23,8 +23,8 @@ const NewCellTypeSelector = forwardRef<HTMLDivElement, Props>(
 					placeholder="Search"
 					onChange={e => setSearchText(e.target.value)}
 					autoFocus
-                    iconName={mdiMagnify}
-                    value={searchText}
+					iconName={mdiMagnify}
+					value={searchText}
 				/>
 
 				{allCellTypes

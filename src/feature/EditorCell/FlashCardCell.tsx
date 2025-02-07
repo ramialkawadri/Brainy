@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import Cell from "../../type/backend/entity/cell";
 import FlashCard from "../../type/flashCard";
 import RichTextEditor from "../../ui/RichTextEditor/RichTextEditor";
@@ -12,6 +13,7 @@ interface Props {
 
 function FlashCardCell({ cell, editable, autofocus, onUpdate }: Props) {
 	const flashCard = JSON.parse(cell.content) as FlashCard;
+	const isAnswerEditorFocused = useRef(false);
 
 	const handleQuestionUpdate = (html: string) =>
 		onUpdate(
@@ -36,7 +38,7 @@ function FlashCardCell({ cell, editable, autofocus, onUpdate }: Props) {
 				content={flashCard.question}
 				onUpdate={handleQuestionUpdate}
 				editable={editable}
-				autofocus={autofocus}
+				autofocus={autofocus && !isAnswerEditorFocused.current}
 			/>
 			<RichTextEditor
 				title="Answer"
@@ -44,6 +46,8 @@ function FlashCardCell({ cell, editable, autofocus, onUpdate }: Props) {
 				autofocus={false}
 				editable={editable}
 				onUpdate={handleAnswerUpdate}
+				onFocus={() => (isAnswerEditorFocused.current = true)}
+				onBlur={() => (isAnswerEditorFocused.current = false)}
 			/>
 		</div>
 	);

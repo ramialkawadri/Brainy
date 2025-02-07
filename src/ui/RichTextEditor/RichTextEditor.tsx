@@ -12,6 +12,7 @@ import Superscript from "@tiptap/extension-superscript";
 import ImageResize from "tiptap-extension-resize-image";
 import BubbleMenuCommand, { Command } from "./Command";
 import { defaultCommands } from "./defaultCommands";
+import { useEffect } from "react";
 
 const extensions = [
 	StarterKit,
@@ -31,6 +32,8 @@ interface Props {
 	commands?: Command[];
 	autofocus: boolean;
 	onUpdate: (html: string) => void;
+	onFocus?: () => void;
+	onBlur?: () => void;
 }
 
 function RichTextEditor({
@@ -41,17 +44,20 @@ function RichTextEditor({
 	commands,
 	autofocus,
 	onUpdate,
+	onFocus,
+	onBlur,
 }: Props) {
 	const editor = useEditor(
 		{
 			extensions: [...extensions, ...(extraExtensions ?? [])],
 			content,
 			editable,
-			autofocus: autofocus,
 			onUpdate: e => {
 				if (e.editor.getHTML() !== content)
 					onUpdate(e.editor.getHTML());
 			},
+			onFocus,
+			onBlur,
 			editorProps: {
 				handleKeyDown: (_, e) => {
 					// Do not insert new lines when clicking Ctrl + Enter.
@@ -62,8 +68,11 @@ function RichTextEditor({
 				},
 			},
 		},
-		[editable, autofocus],
+		[editable],
 	);
+	useEffect(() => {
+		if (autofocus && editor) editor.commands.focus();
+	}, [autofocus, editor]);
 
 	return (
 		<>

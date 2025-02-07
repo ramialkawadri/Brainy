@@ -64,6 +64,8 @@ function Editor({ onError, onStudyStart }: Props) {
 	useOutsideClick(addNewCellPopupRef as React.RefObject<HTMLElement>, () =>
 		setShowAddNewCellPopup(false),
 	);
+	// TODO: update documentation
+	// TODO: ctrl + up/down scroll the page
 	useGlobalKey(e => {
 		if (e.key === "Escape") {
 			setShowAddNewCellPopup(false);
@@ -74,6 +76,30 @@ function Editor({ onError, onStudyStart }: Props) {
 			setShowAddNewCellPopup(!showAddNewCellPopup);
 		} else if (e.code === "F5") {
 			void startStudy();
+		} else if (e.ctrlKey && e.altKey && e.code == "ArrowDown") {
+			if (selectedCellIndex + 1 < cells.length) {
+				// TODO: refactor
+				void (async () => {
+					await moveCell(
+						cells[selectedCellIndex].id!,
+						selectedCellIndex + 2,
+					);
+					setSelectedCellIndex(selectedCellIndex + 1);
+					await retrieveSelectedFileCells();
+				})();
+			}
+		} else if (e.ctrlKey && e.altKey && e.code == "ArrowUp") {
+			if (selectedCellIndex - 1 >= 0) {
+				void (async () => {
+					// TODO: refactor
+					await moveCell(
+						cells[selectedCellIndex].id!,
+						selectedCellIndex - 1,
+					);
+					setSelectedCellIndex(selectedCellIndex - 1);
+					await retrieveSelectedFileCells();
+				})();
+			}
 		} else if (e.ctrlKey && e.code == "ArrowDown") {
 			if (selectedCellIndex + 1 < cells.length) {
 				setSelectedCellIndex(selectedCellIndex + 1);

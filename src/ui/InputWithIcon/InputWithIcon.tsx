@@ -6,8 +6,8 @@ interface IProps {
 	value: string;
 	placeholder: string;
 	className?: string;
-    id?: string;
-    autoFocus?: boolean;
+	id?: string;
+	autoFocus?: boolean;
 	onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
@@ -16,8 +16,8 @@ function InputWithIcon({
 	value,
 	placeholder,
 	className,
-    id,
-    autoFocus,
+	id,
+	autoFocus,
 	onChange,
 }: IProps) {
 	return (
@@ -29,8 +29,8 @@ function InputWithIcon({
 				onChange={onChange}
 				value={value}
 				className={className}
-                id={id}
-                autoFocus={autoFocus}
+				id={id}
+				autoFocus={autoFocus}
 			/>
 		</div>
 	);
