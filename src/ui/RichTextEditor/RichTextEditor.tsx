@@ -51,7 +51,6 @@ function RichTextEditor({
 		{
 			extensions: [...extensions, ...(extraExtensions ?? [])],
 			content,
-			editable,
 			onUpdate: e => {
 				if (e.editor.getHTML() !== content)
 					onUpdate(e.editor.getHTML());
@@ -68,11 +67,15 @@ function RichTextEditor({
 				},
 			},
 		},
-		[editable],
+		[],
 	);
 	useEffect(() => {
 		if (autofocus && editor) editor.commands.focus();
 	}, [autofocus, editor]);
+
+	useEffect(() => {
+		if (editor) editor.setEditable(editable ?? true);
+	}, [editable, editor]);
 
 	return (
 		<>

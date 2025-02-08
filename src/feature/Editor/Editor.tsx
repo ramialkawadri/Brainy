@@ -16,7 +16,6 @@ import { mdiPlus } from "@mdi/js";
 import FileRepetitionCounts from "../../type/backend/model/fileRepetitionCounts";
 import useBeforeUnload from "../../hooks/useBeforeUnload";
 import {
-	// TODO: wrap all by execute async
 	createCell,
 	deleteCell,
 	getFileCellsOrderedByIndex,
@@ -83,21 +82,23 @@ function Editor({ onError, onStudyStart }: Props) {
 			void moveCurrentCellByNumber(-1);
 		} else if (e.ctrlKey && e.code == "ArrowDown") {
 			e.preventDefault();
-            const selectedCellIndex = cells.findIndex(c => c.id === selectedCellId);
+			const selectedCellIndex = cells.findIndex(
+				c => c.id === selectedCellId,
+			);
 			setSelectedCellId(
 				cells[Math.min(cells.length - 1, selectedCellIndex + 1)].id!,
 			);
 		} else if (e.ctrlKey && e.code == "ArrowUp") {
 			e.preventDefault();
-            const selectedCellIndex = cells.findIndex(c => c.id === selectedCellId);
-			setSelectedCellId(
-				cells[Math.max(0, selectedCellIndex - 1)].id!,
+			const selectedCellIndex = cells.findIndex(
+				c => c.id === selectedCellId,
 			);
+			setSelectedCellId(cells[Math.max(0, selectedCellIndex - 1)].id!);
 		}
 	};
 
 	const moveCurrentCellByNumber = async (number: number) => {
-        const selectedCellIndex = cells.findIndex(c => c.id === selectedCellId);
+		const selectedCellIndex = cells.findIndex(c => c.id === selectedCellId);
 		if (
 			0 <= selectedCellIndex + number &&
 			selectedCellIndex + number < cells.length
@@ -108,7 +109,7 @@ function Editor({ onError, onStudyStart }: Props) {
 					selectedCellIndex + (number > 0 ? number + 1 : number),
 				);
 			});
-            await retrieveSelectedFileCells();
+			await retrieveSelectedFileCells();
 		}
 	};
 
@@ -133,10 +134,11 @@ function Editor({ onError, onStudyStart }: Props) {
 	}, [executeRequest, selectedFileId]);
 
 	const retrieveSelectedFileCells = useCallback(async () => {
-		await executeRequest(async () => {
+		return await executeRequest(async () => {
 			const fetchedCells =
 				await getFileCellsOrderedByIndex(selectedFileId);
 			setCells(fetchedCells);
+			return fetchedCells;
 		});
 	}, [executeRequest, selectedFileId]);
 
@@ -179,7 +181,8 @@ function Editor({ onError, onStudyStart }: Props) {
 		void (async () => {
 			await forceSave();
 			await retrieveRepetitionCounts();
-			await retrieveSelectedFileCells();
+			const cells = await retrieveSelectedFileCells();
+			if (cells && cells.length > 0) setSelectedCellId(cells[0].id!);
 		})();
 
 		// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -192,7 +195,7 @@ function Editor({ onError, onStudyStart }: Props) {
 
 	const insertNewCell = async (cellType: CellType, index: number) => {
 		const cell = createDefaultCell(cellType, selectedFileId, index);
-		await createCell(cell);
+		await executeRequest(async () => await createCell(cell));
 		await retrieveSelectedFileCells();
 		await retrieveRepetitionCounts();
 		setShowInsertNewCell(false);
@@ -201,7 +204,7 @@ function Editor({ onError, onStudyStart }: Props) {
 
 	const handleCellDeleteConfirm = async () => {
 		setShowDeleteDialog(false);
-		await deleteCell(selectedCellId!);
+		await executeRequest(async () => await deleteCell(selectedCellId!));
 		await retrieveSelectedFileCells();
 		await retrieveRepetitionCounts();
 	};
@@ -230,13 +233,12 @@ function Editor({ onError, onStudyStart }: Props) {
 	};
 
 	const handleDrop = async (index: number) => {
-
 		if (draggedCellId === null) return;
-        const draggedCellIndex = cells.findIndex(c => c.id === draggedCellId);
-        if (index === draggedCellIndex) return;
-		await moveCell(draggedCellId, index);
+		const draggedCellIndex = cells.findIndex(c => c.id === draggedCellId);
+		if (index === draggedCellIndex) return;
+		await executeRequest(async () => await moveCell(draggedCellId, index));
 		await retrieveSelectedFileCells();
-        setDragOverCellId(null);
+		setDragOverCellId(null);
 		setDraggedCellId(null);
 	};
 
