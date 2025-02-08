@@ -130,6 +130,8 @@ select {
 	transition: var(--default-transition-time);
 	background-color: var(--default-background-color);
 	color: var(--text-color);
+    appearance: none;
+    -webkit-appearance: none;
 }
 
 input:hover,
