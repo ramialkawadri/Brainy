@@ -55,7 +55,7 @@ function Editor({ onError, onStudyStart }: Props) {
 	const autoSaveTimeoutId = useRef(-1);
 	// Used to store the ids of the changed cells so that we update them all
 	// together instead of updating one by one.
-	const changedCellsIndices = useRef(new Set<number>());
+	const changedCellsIds = useRef(new Set<number>());
 
 	useOutsideClick(editorRef as React.RefObject<HTMLElement>, () =>
 		setShowInsertNewCell(false),
@@ -94,7 +94,9 @@ function Editor({ onError, onStudyStart }: Props) {
 				c => c.id === selectedCellId,
 			);
 			setSelectedCellId(cells[Math.max(0, selectedCellIndex - 1)].id!);
-		}
+		} else if (e.altKey && e.code === "Delete") {
+            if (selectedCellId !== null) setShowDeleteDialog(true);
+        }
 	};
 
 	const moveCurrentCellByNumber = async (number: number) => {
@@ -144,16 +146,18 @@ function Editor({ onError, onStudyStart }: Props) {
 
 	const saveChanges = async (cells: Cell[]) => {
 		await executeRequest(async () => {
-			for (const index of changedCellsIndices.current) {
-				await updateCellContent(cells[index].id!, cells[index].content);
+			for (const id of changedCellsIds.current) {
+				const cell = cells.find(c => c.id === id);
+                if (!cell) continue;
+				await updateCellContent(id, cell.content);
 			}
-			changedCellsIndices.current.clear();
+			changedCellsIds.current.clear();
 			await retrieveRepetitionCounts();
 		});
 	};
 
-	const handleUpdate = (content: string, index: number) => {
-		changedCellsIndices.current.add(index);
+	const handleUpdate = (content: string, index: number, id: number) => {
+		changedCellsIds.current.add(id);
 		const newCells = [...cells];
 		newCells[index] = {
 			...cells[index],
@@ -190,7 +194,7 @@ function Editor({ onError, onStudyStart }: Props) {
 
 	useBeforeUnload(e => {
 		void forceSave();
-		if (changedCellsIndices.current.size > 0) e.preventDefault();
+		if (changedCellsIds.current.size > 0) e.preventDefault();
 	});
 
 	const insertNewCell = async (cellType: CellType, index: number) => {
@@ -204,9 +208,11 @@ function Editor({ onError, onStudyStart }: Props) {
 
 	const handleCellDeleteConfirm = async () => {
 		setShowDeleteDialog(false);
+        const cellIndex = cells.findIndex(c => c.id === selectedCellId);
 		await executeRequest(async () => await deleteCell(selectedCellId!));
-		await retrieveSelectedFileCells();
 		await retrieveRepetitionCounts();
+        await retrieveSelectedFileCells();
+        setSelectedCellId(cellIndex > 0 ? cells[cellIndex - 1].id! : null);
 	};
 
 	const selectCell = (id: number) => {
@@ -309,7 +315,9 @@ function Editor({ onError, onStudyStart }: Props) {
 							cell={cell}
 							editable={draggedCellId === null}
 							autofocus={selectedCellId === cell.id}
-							onUpdate={content => handleUpdate(content, i)}
+							onUpdate={content =>
+								handleUpdate(content, i, cell.id!)
+							}
 						/>
 					</div>
 				))}

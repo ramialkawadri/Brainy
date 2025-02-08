@@ -21,7 +21,7 @@ function FocusTools({ onInsert, onDelete, onDragStart, onDragEnd }: Props) {
 
 			<button
 				className={`transparent ${styles.delete}`}
-				title="Delete cell"
+				title="Delete cell (Alt + Del)"
 				onClick={onDelete}>
 				<Icon path={mdiDeleteOutline} size={1} />
 			</button>

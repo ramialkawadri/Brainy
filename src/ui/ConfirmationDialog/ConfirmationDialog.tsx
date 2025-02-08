@@ -32,7 +32,7 @@ function ConfirmationDialog({ title, text, onCancel, onConfirm }: Props) {
 					<button className="transparent" onClick={onConfirm}>
 						Yes
 					</button>
-					<button className="primary" onClick={onCancel}>
+					<button className="primary" onClick={onCancel} autoFocus>
 						No
 					</button>
 				</div>
