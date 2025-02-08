@@ -88,7 +88,6 @@
 .cell {
 	padding: var(--medium-padding);
 	border-radius: var(--default-border-radius);
-	transition: var(--default-transition-time);
 	border: 1px solid transparent;
 	position: relative;
 	width: 100%;

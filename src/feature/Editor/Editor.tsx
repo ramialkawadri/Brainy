@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import useGlobalKey from "../../hooks/useGlobalKey";
 import useOutsideClick from "../../hooks/useOutsideClick";
 import createDefaultCell from "../../util/createDefaultCell";
 import TitleBar from "./TitleBar";
@@ -17,6 +16,7 @@ import { mdiPlus } from "@mdi/js";
 import FileRepetitionCounts from "../../type/backend/model/fileRepetitionCounts";
 import useBeforeUnload from "../../hooks/useBeforeUnload";
 import {
+	// TODO: wrap all by execute async
 	createCell,
 	deleteCell,
 	getFileCellsOrderedByIndex,
@@ -39,9 +39,9 @@ function Editor({ onError, onStudyStart }: Props) {
 	const [showInsertNewCell, setShowInsertNewCell] = useState(false);
 	// Used for the add button at the end.
 	const [showAddNewCellPopup, setShowAddNewCellPopup] = useState(false);
-	const [selectedCellIndex, setSelectedCellIndex] = useState(0);
-	const [draggedCellIndex, setDraggedCellIndex] = useState(-1);
-	const [dragOverCellIndex, setDragOverCellIndex] = useState(-1);
+	const [selectedCellId, setSelectedCellId] = useState<number | null>(null);
+	const [draggedCellId, setDraggedCellId] = useState<number | null>(null);
+	const [dragOverCellId, setDragOverCellId] = useState<number | null>(null);
 	const [repetitionCounts, setRepetitionCounts] =
 		useState<FileRepetitionCounts>({
 			new: 0,
@@ -64,9 +64,8 @@ function Editor({ onError, onStudyStart }: Props) {
 	useOutsideClick(addNewCellPopupRef as React.RefObject<HTMLElement>, () =>
 		setShowAddNewCellPopup(false),
 	);
-	// TODO: update documentation
-	// TODO: ctrl + up/down scroll the page
-	useGlobalKey(e => {
+
+	const handleKeyDown = (e: React.KeyboardEvent) => {
 		if (e.key === "Escape") {
 			setShowAddNewCellPopup(false);
 			setShowInsertNewCell(false);
@@ -77,39 +76,41 @@ function Editor({ onError, onStudyStart }: Props) {
 		} else if (e.code === "F5") {
 			void startStudy();
 		} else if (e.ctrlKey && e.altKey && e.code == "ArrowDown") {
-			if (selectedCellIndex + 1 < cells.length) {
-				// TODO: refactor
-				void (async () => {
-					await moveCell(
-						cells[selectedCellIndex].id!,
-						selectedCellIndex + 2,
-					);
-					setSelectedCellIndex(selectedCellIndex + 1);
-					await retrieveSelectedFileCells();
-				})();
-			}
+			e.preventDefault();
+			void moveCurrentCellByNumber(1);
 		} else if (e.ctrlKey && e.altKey && e.code == "ArrowUp") {
-			if (selectedCellIndex - 1 >= 0) {
-				void (async () => {
-					// TODO: refactor
-					await moveCell(
-						cells[selectedCellIndex].id!,
-						selectedCellIndex - 1,
-					);
-					setSelectedCellIndex(selectedCellIndex - 1);
-					await retrieveSelectedFileCells();
-				})();
-			}
+			e.preventDefault();
+			void moveCurrentCellByNumber(-1);
 		} else if (e.ctrlKey && e.code == "ArrowDown") {
-			if (selectedCellIndex + 1 < cells.length) {
-				setSelectedCellIndex(selectedCellIndex + 1);
-			}
+			e.preventDefault();
+            const selectedCellIndex = cells.findIndex(c => c.id === selectedCellId);
+			setSelectedCellId(
+				cells[Math.min(cells.length - 1, selectedCellIndex + 1)].id!,
+			);
 		} else if (e.ctrlKey && e.code == "ArrowUp") {
-			if (selectedCellIndex - 1 >= 0) {
-				setSelectedCellIndex(selectedCellIndex - 1);
-			}
+			e.preventDefault();
+            const selectedCellIndex = cells.findIndex(c => c.id === selectedCellId);
+			setSelectedCellId(
+				cells[Math.max(0, selectedCellIndex - 1)].id!,
+			);
 		}
-	});
+	};
+
+	const moveCurrentCellByNumber = async (number: number) => {
+        const selectedCellIndex = cells.findIndex(c => c.id === selectedCellId);
+		if (
+			0 <= selectedCellIndex + number &&
+			selectedCellIndex + number < cells.length
+		) {
+			await executeRequest(async () => {
+				await moveCell(
+					cells[selectedCellIndex].id!,
+					selectedCellIndex + (number > 0 ? number + 1 : number),
+				);
+			});
+            await retrieveSelectedFileCells();
+		}
+	};
 
 	const executeRequest = useCallback(
 		async <T,>(cb: () => Promise<T>) => {
@@ -179,7 +180,6 @@ function Editor({ onError, onStudyStart }: Props) {
 			await forceSave();
 			await retrieveRepetitionCounts();
 			await retrieveSelectedFileCells();
-			setSelectedCellIndex(0);
 		})();
 
 		// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -201,44 +201,43 @@ function Editor({ onError, onStudyStart }: Props) {
 
 	const handleCellDeleteConfirm = async () => {
 		setShowDeleteDialog(false);
-		await deleteCell(cells[selectedCellIndex].id!);
+		await deleteCell(selectedCellId!);
 		await retrieveSelectedFileCells();
 		await retrieveRepetitionCounts();
 	};
 
-	const selectCell = (index: number) => {
-		if (selectedCellIndex !== index) {
+	const selectCell = (id: number) => {
+		if (selectedCellId !== id) {
 			setShowInsertNewCell(false);
-			setSelectedCellIndex(index);
+			setSelectedCellId(id);
 		}
 	};
 
-	const handleDragStart = (e: React.DragEvent, index: number) => {
+	const handleDragStart = (e: React.DragEvent, id: number) => {
 		e.stopPropagation();
 		// Setting anything in the data transfer so that drag over works,
 		// but the index is stored in the state.
 		e.dataTransfer.setData("tmp", "tmp");
-		setDraggedCellIndex(index);
+		setDraggedCellId(id);
 	};
 
-	const handleDragOver = (e: React.DragEvent, index: number) => {
-		if (draggedCellIndex === -1 || index === draggedCellIndex) {
+	const handleDragOver = (e: React.DragEvent, id: number) => {
+		if (draggedCellId === null || id === draggedCellId) {
 			return;
 		}
 		e.preventDefault();
-		setDragOverCellIndex(index);
+		setDragOverCellId(id);
 	};
 
 	const handleDrop = async (index: number) => {
-		if (draggedCellIndex === -1 || index === draggedCellIndex) return;
-		setDragOverCellIndex(-1);
-		await moveCell(cells[draggedCellIndex].id!, index);
+
+		if (draggedCellId === null) return;
+        const draggedCellIndex = cells.findIndex(c => c.id === draggedCellId);
+        if (index === draggedCellIndex) return;
+		await moveCell(draggedCellId, index);
 		await retrieveSelectedFileCells();
-		const dropIndex = index > draggedCellIndex ? index - 1 : index;
-		if (selectedCellIndex === draggedCellIndex) {
-			setSelectedCellIndex(dropIndex);
-		}
-		setDraggedCellIndex(-1);
+        setDragOverCellId(null);
+		setDraggedCellId(null);
 	};
 
 	const startStudy = async () => {
@@ -247,7 +246,7 @@ function Editor({ onError, onStudyStart }: Props) {
 	};
 
 	return (
-		<div className={styles.container}>
+		<div className={styles.container} onKeyDown={handleKeyDown}>
 			{showDeleteDialog && (
 				<ConfirmationDialog
 					text="Are you sure you want to delete the cell?"
@@ -270,27 +269,27 @@ function Editor({ onError, onStudyStart }: Props) {
 				{cells.map((cell, i) => (
 					<div
 						key={cell.id}
-						onFocus={() => selectCell(i)}
-						onClick={() => selectCell(i)}
-						onDragOver={e => handleDragOver(e, i)}
-						onDragLeave={() => setDragOverCellIndex(-1)}
+						onFocus={() => selectCell(cell.id!)}
+						onClick={() => selectCell(cell.id!)}
+						onDragOver={e => handleDragOver(e, cell.id!)}
+						onDragLeave={() => setDragOverCellId(null)}
 						onDrop={() => void handleDrop(i)}
 						className={`${styles.cell}
-                            ${selectedCellIndex === i ? styles.selectedCell : ""}
-                            ${dragOverCellIndex === i ? styles.dragOver : ""}
-                            ${draggedCellIndex === i ? styles.dragging : ""}`}>
-						{selectedCellIndex === i && (
+                            ${selectedCellId === cell.id ? styles.selectedCell : ""}
+                            ${dragOverCellId === cell.id ? styles.dragOver : ""}
+                            ${draggedCellId === cell.id ? styles.dragging : ""}`}>
+						{selectedCellId === cell.id && (
 							<FocusTools
 								onInsert={() =>
 									setShowInsertNewCell(!showInsertNewCell)
 								}
 								onDelete={() => setShowDeleteDialog(true)}
-								onDragStart={e => handleDragStart(e, i)}
-								onDragEnd={() => setDraggedCellIndex(-1)}
+								onDragStart={e => handleDragStart(e, cell.id!)}
+								onDragEnd={() => setDraggedCellId(null)}
 							/>
 						)}
 
-						{showInsertNewCell && selectedCellIndex === i && (
+						{showInsertNewCell && selectedCellId === cell.id && (
 							<NewCellTypeSelector
 								className={styles.insertCellPopup}
 								onClick={cellType =>
@@ -306,8 +305,8 @@ function Editor({ onError, onStudyStart }: Props) {
 
 						<EditorCell
 							cell={cell}
-							editable={draggedCellIndex === -1}
-							autofocus={selectedCellIndex === i}
+							editable={draggedCellId === null}
+							autofocus={selectedCellId === cell.id}
 							onUpdate={content => handleUpdate(content, i)}
 						/>
 					</div>
@@ -315,10 +314,10 @@ function Editor({ onError, onStudyStart }: Props) {
 
 				<div
 					className={`${styles.addButtonContainer}
-                        ${dragOverCellIndex === cells.length ? styles.dragOver : ""}`}
+                        ${dragOverCellId === cells.length ? styles.dragOver : ""}`}
 					onDragOver={e => handleDragOver(e, cells.length)}
 					onDrop={() => void handleDrop(cells.length)}
-					onDragLeave={() => setDragOverCellIndex(-1)}>
+					onDragLeave={() => setDragOverCellId(null)}>
 					<button
 						className={`${styles.addButton} grey-button`}
 						onClick={() => setShowAddNewCellPopup(true)}>

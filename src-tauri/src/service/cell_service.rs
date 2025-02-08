@@ -69,10 +69,16 @@ pub async fn move_cell(db_conn: &DbConn, cell_id: i32, new_index: i32) -> Result
     } else {
         new_index
     };
-    increase_cells_indices_starting_from(db_conn, cell.file_id, cell.index + 1, -1).await?;
-    increase_cells_indices_starting_from(db_conn, cell.file_id, new_index, 1).await?;
+
+    let txn = match db_conn.begin().await {
+        Ok(txn) => txn,
+        Err(err) => return Err(err.to_string()),
+    };
+
+    increase_cells_indices_starting_from(&txn, cell.file_id, cell.index + 1, -1).await?;
+    increase_cells_indices_starting_from(&txn, cell.file_id, new_index, 1).await?;
     update_cell(
-        db_conn,
+        &txn,
         cell::ActiveModel {
             id: Set(cell_id),
             index: Set(new_index),
@@ -80,11 +86,15 @@ pub async fn move_cell(db_conn: &DbConn, cell_id: i32, new_index: i32) -> Result
         },
     )
     .await?;
-    Ok(())
+    let result = txn.commit().await;
+    match result {
+        Ok(_) => Ok(()),
+        Err(err) => return Err(err.to_string()),
+    }
 }
 
 async fn increase_cells_indices_starting_from(
-    db_conn: &DbConn,
+    db_conn: &impl ConnectionTrait,
     file_id: i32,
     start_index: i32,
     increase_value: i32,
@@ -138,7 +148,10 @@ async fn get_cell_by_id(db_conn: &DbConn, cell_id: i32) -> Result<cell::Model, S
     }
 }
 
-async fn update_cell(db_conn: &DbConn, cell: cell::ActiveModel) -> Result<(), String> {
+async fn update_cell(
+    db_conn: &impl ConnectionTrait,
+    cell: cell::ActiveModel,
+) -> Result<(), String> {
     let result = cell::Entity::update(cell).exec(db_conn).await;
     match result {
         Ok(_) => Ok(()),
