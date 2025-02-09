@@ -23,7 +23,7 @@ pub async fn update_repetitions_for_cell(
 
     match cell_type {
         CellType::Note => (),
-        CellType::FlashCard => {
+        CellType::FlashCard | CellType::TrueFalse => {
             if cell_repetitions.len() == 0 {
                 repetitions_to_insert.push(repetition::ActiveModel {
                     file_id: Set(file_id),

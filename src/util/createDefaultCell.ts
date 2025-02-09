@@ -1,5 +1,6 @@
 import Cell, { CellType } from "../type/backend/entity/cell";
-import FlashCard from "../type/flashCard";
+import FlashCard from "../type/cell/flashCard";
+import TrueFalse from "../type/cell/trueFalse";
 
 function createDefaultCell(cellType: CellType, fileId: number, index: number) {
 	const cell: Cell = {
@@ -15,6 +16,12 @@ function createDefaultCell(cellType: CellType, fileId: number, index: number) {
 				question: "",
 				answer: "",
 			} as FlashCard);
+			break;
+		case "TrueFalse":
+			cell.content = JSON.stringify({
+				question: "",
+				isTrue: true,
+			} as TrueFalse);
 			break;
 		case "Note":
 		case "Cloze":

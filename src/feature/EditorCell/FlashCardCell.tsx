@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import Cell from "../../type/backend/entity/cell";
-import FlashCard from "../../type/flashCard";
+import FlashCard from "../../type/cell/flashCard";
 import RichTextEditor from "../../ui/RichTextEditor/RichTextEditor";
 import styles from "./styles.module.css";
 
@@ -20,7 +20,7 @@ function FlashCardCell({ cell, editable, autofocus, onUpdate }: Props) {
 			JSON.stringify({
 				question: html,
 				answer: flashCard.answer,
-			}),
+			} as FlashCard),
 		);
 
 	const handleAnswerUpdate = (html: string) =>

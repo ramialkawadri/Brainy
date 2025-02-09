@@ -4,3 +4,34 @@
 	display: inline-block;
 	padding: var(--extra-small-padding);
 }
+
+.true-false-row {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	gap: 4px;
+
+	& * {
+		font-size: 1.2rem;
+	}
+
+	& button {
+		border: 2px solid var(--border-color);
+		transition: var(--default-transition-time) all;
+		padding-top: var(--medium-padding);
+		width: 12rem;
+		max-width: 50%;
+
+		&:hover {
+			border-color: var(--hover-border-color);
+		}
+
+		&:focus {
+			box-shadow: var(--darker-box-shadow);
+		}
+
+		&.checked {
+			border-color: var(--primary-color);
+		}
+	}
+}

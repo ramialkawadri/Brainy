@@ -11,6 +11,8 @@ pub enum CellType {
     Note,
     #[sea_orm(string_value = "Cloze")]
     Cloze,
+    #[sea_orm(string_value = "TrueFalse")]
+    TrueFalse,
 }
 
 impl Default for CellType {

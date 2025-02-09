@@ -1,9 +1,15 @@
-export type CellType = "FlashCard" | "Note" | "Cloze";
-export const allCellTypes: CellType[] = ["Cloze", "FlashCard", "Note"];
+export type CellType = "FlashCard" | "Note" | "Cloze" | "TrueFalse";
+export const allCellTypes: CellType[] = [
+	"Cloze",
+	"FlashCard",
+	"Note",
+	"TrueFalse",
+];
 export const cellTypesDisplayNames: Record<CellType, string> = {
 	Note: "Note",
 	Cloze: "Cloze",
 	FlashCard: "Flash Card",
+	TrueFalse: "True/False",
 };
 
 export default interface Cell {

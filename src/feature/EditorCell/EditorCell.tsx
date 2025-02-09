@@ -2,6 +2,7 @@ import Cell from "../../type/backend/entity/cell";
 import RichTextEditor from "../../ui/RichTextEditor/RichTextEditor";
 import ClozeCell from "./Cloze/Cloze";
 import FlashCardCell from "./FlashCardCell";
+import TrueFalseCell from "./TrueFalseCell";
 
 interface Props {
 	cell: Cell;
@@ -33,6 +34,15 @@ function EditorCell({ cell, editable, autofocus, onUpdate }: Props) {
 		case "Cloze":
 			return (
 				<ClozeCell
+					cell={cell}
+					editable={editable}
+					autofocus={autofocus}
+					onUpdate={onUpdate}
+				/>
+			);
+		case "TrueFalse":
+			return (
+				<TrueFalseCell
 					cell={cell}
 					editable={editable}
 					autofocus={autofocus}

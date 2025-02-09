@@ -22,7 +22,7 @@ function BubbleMenuCommand({ command, editor }: Props) {
 			className={`transparent ${editor.isActive(command.name) && styles.activeButton}`}
 			title={command.title}
 			aria-label={command.title}>
-			<Icon path={command.icon} size={1} />
+			<Icon path={command.icon} size={0.8} />
 		</button>
 	);
 }

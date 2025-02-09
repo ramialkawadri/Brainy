@@ -2,6 +2,7 @@ import Cell from "../../type/backend/entity/cell";
 import Repetition from "../../type/backend/entity/repetition";
 import ClozeReviewView from "./Cloze";
 import FlashCardReviewView from "./FlashCardReviewView";
+import TrueFalseReviewView from "./TrueFalseReviewView";
 
 interface Props {
 	cell: Cell;
@@ -21,6 +22,10 @@ function ReviewerCell({ cell, showAnswer, repetition }: Props) {
 					repetition={repetition}
 				/>
 			);
+		case "TrueFalse":
+			return <TrueFalseReviewView cell={cell} showAnswer={showAnswer} />;
+		case "Note":
+			return null;
 	}
 }
 
