@@ -4,9 +4,9 @@
 	flex-direction: column;
 	height: 100%;
 
-    & * {
-        font-size: 1.2rem;
-    }
+	& * {
+		font-size: 1.2rem;
+	}
 }
 
 .title-bar {
@@ -21,30 +21,20 @@
 		display: flex;
 		align-content: center;
 		gap: 4px;
-        overflow-x: auto;
+		overflow-x: auto;
 
 		& .study-button {
 			display: flex;
-			flex-direction: row;
+			flex-direction: column;
 			align-items: center;
 			border: 1px solid var(--border-color);
-			font-size: 1.2rem;
+			font-size: 1rem;
 			margin-right: 4px;
+			padding: var(--small-padding);
 
 			&:not(:disabled):hover {
 				border-color: var(--hover-border-color);
 			}
-		}
-	}
-
-	& .save-button-container {
-		display: flex;
-		justify-content: end;
-
-		& button {
-			display: flex;
-			align-items: center;
-			gap: 4px;
 		}
 	}
 
@@ -103,8 +93,8 @@
 
 	& .focus-tools {
 		position: absolute;
-        align-items: center;
-        justify-content: center;
+		align-items: center;
+		justify-content: center;
 		background-color: var(--default-background-color);
 		z-index: 2;
 		right: 1.2rem;
@@ -114,9 +104,9 @@
 		transform: translateY(-20%);
 		display: flex;
 
-        & button {
-            padding: var(--small-padding);
-        }
+		& button {
+			padding: var(--small-padding);
+		}
 	}
 
 	& .delete * {
@@ -137,7 +127,7 @@
 		top: 24px;
 		right: 1.2rem;
 		z-index: 3;
-        max-width: 20rem;
+		max-width: 20rem;
 	}
 }
 
@@ -193,7 +183,7 @@ body:global(.dark) .focus-tools {
 
 	& label {
 		text-align: center;
-        font-size: 1.4rem;
+		font-size: 1.4rem;
 	}
 
 	& button {

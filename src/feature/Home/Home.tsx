@@ -59,10 +59,10 @@ function Home({ onStudyClick, onError }: Props) {
 		<div className={styles.home}>
 			<div className={styles.box}>
 				<div className={styles.row + " " + styles.header}>
-                <div className={styles.buttons}>
-                <span></span>
-                <p>Files</p>
-                </div>
+					<div className={styles.buttons}>
+						<span></span>
+						<p>Files</p>
+					</div>
 					<div className={styles.columns}>
 						<p>New</p>
 						<p>Learn</p>

@@ -21,9 +21,9 @@
 	align-items: center;
 	gap: 4px;
 
-    & * {
-        font-size: 1.6rem;
-    }
+	& * {
+		font-size: 1.6rem;
+	}
 }
 
 .buttons-row {

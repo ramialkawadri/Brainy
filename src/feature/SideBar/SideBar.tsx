@@ -42,7 +42,11 @@ function SideBar({
 	return (
 		<div className={`${styles.sideBar} ${!isExpanded && styles.closed}`}>
 			<div className={styles.header}>
-				<h2>Brainy</h2>
+				<div className={styles.titleRow}>
+					<img src="/icon.svg" />
+					<h2>Brainy</h2>
+				</div>
+
 				<button
 					className={`transparent center ${styles.toggleButton}`}
 					onClick={() => setIsExpanded(!isExpanded)}>

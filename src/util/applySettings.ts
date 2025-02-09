@@ -12,7 +12,10 @@ function applySettings(settings: Settings) {
 		document.body.classList.remove("dark");
 	}
 
-    document.documentElement.style.setProperty("--zoom-level", (settings.zoomPercentage / 100).toString());
+	document.documentElement.style.setProperty(
+		"--zoom-level",
+		(settings.zoomPercentage / 100).toString(),
+	);
 }
 
 export default applySettings;

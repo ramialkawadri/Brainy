@@ -10,6 +10,16 @@
 		font-size: 1.2rem;
 	}
 
+	& .title-row {
+		display: flex;
+		align-items: center;
+		gap: 4px;
+
+		& img {
+			width: 3.4rem;
+		}
+	}
+
 	&.closed {
 		width: 72px;
 		overflow: hidden;
@@ -21,7 +31,7 @@
 		& .header {
 			display: block;
 
-			& h2 {
+			& .title-row {
 				display: none;
 			}
 

@@ -33,7 +33,7 @@ function TitleBar({ repetitionCounts, onStudyButtonClick }: Props) {
 					className={`transparent ${styles.studyButton}`}
 					onClick={onStudyButtonClick}
 					disabled={isStudyButtonDisabled}>
-					<Icon path={mdiPlayOutline} size={1.2} />
+					<Icon path={mdiPlayOutline} size={1} />
 					<span>Study</span>
 				</button>
 				<div>

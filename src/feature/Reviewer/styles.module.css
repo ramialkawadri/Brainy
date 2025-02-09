@@ -38,9 +38,9 @@
 	grid-template-columns: 1fr 1fr 1fr;
 	border-top: 1px solid var(--border-color);
 
-    & * {
-        font-size: 1.2rem;
-    }
+	& * {
+		font-size: 1.2rem;
+	}
 
 	& button {
 		padding: var(--default-padding) var(--large-padding);
@@ -52,7 +52,7 @@
 		flex-direction: column;
 		align-items: center;
 		justify-content: center;
-        gap: 4px;
+		gap: 4px;
 
 		& .count-row {
 			display: flex;

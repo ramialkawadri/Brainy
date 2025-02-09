@@ -15,9 +15,9 @@
 }
 
 .header {
-    & * {
-        font-size: 1.8rem;
-    }
+	& * {
+		font-size: 1.8rem;
+	}
 	gap: 6px;
 	border-bottom: 1px solid var(--border-color);
 	padding-bottom: var(--default-padding);

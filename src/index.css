@@ -12,59 +12,58 @@ html {
 	font-size: calc(var(--zoom-level) * 62.5%);
 }
 
-
 /* Small tablets (portrait) */
 @media (min-width: 600px) {
-    html {
-        /* Around 1rem = 11px */
-        font-size: calc(var(--zoom-level) * 68.75%);
-    }
-    body {
-        font-size: 1.6rem;
-    }
+	html {
+		/* Around 1rem = 11px */
+		font-size: calc(var(--zoom-level) * 68.75%);
+	}
+	body {
+		font-size: 1.6rem;
+	}
 }
 
 /* Large tablets (landscape) and small desktops */
 @media (min-width: 768px) {
-    html {
-        /* 1rem = 12px */
-        font-size: calc(var(--zoom-level) * 75%);
-    }
-    body {
-        font-size: 1.6rem;
-    }
+	html {
+		/* 1rem = 12px */
+		font-size: calc(var(--zoom-level) * 75%);
+	}
+	body {
+		font-size: 1.6rem;
+	}
 }
 
 /* Standard desktops */
 @media (min-width: 1024px) {
-    html {
-        /* 1rem = 13px */
-        font-size: calc(var(--zoom-level) * 81.25%);
-    }
-    body {
-        font-size: 1.8rem;
-    }
+	html {
+		/* 1rem = 13px */
+		font-size: calc(var(--zoom-level) * 81.25%);
+	}
+	body {
+		font-size: 1.8rem;
+	}
 }
 
 /* Large desktops */
 @media (min-width: 1200px) {
-    html {
-        /* 1rem = 14px */
-        font-size: calc(var(--zoom-level) * 87.5%);
-    }
-    body {
-        font-size: 1.8rem;
-    }
+	html {
+		/* 1rem = 14px */
+		font-size: calc(var(--zoom-level) * 87.5%);
+	}
+	body {
+		font-size: 1.8rem;
+	}
 }
 
 /* Extra large desktops or 4K displays */
 @media (min-width: 1400px) {
-    html {
-        font-size: 100%; /* 1rem = 16px for larger screens */
-    }
-    body {
-        font-size: 2rem;
-    }
+	html {
+		font-size: 100%; /* 1rem = 16px for larger screens */
+	}
+	body {
+		font-size: 2rem;
+	}
 }
 
 body {
@@ -120,7 +119,7 @@ body {
 	--dark-box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.15);
 	--darker-box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.2);
 
-    --zoom-level: 1.0;
+	--zoom-level: 1;
 }
 
 body.dark {
@@ -180,8 +179,8 @@ select {
 	transition: var(--default-transition-time);
 	background-color: var(--default-background-color);
 	color: var(--text-color);
-    appearance: none;
-    -webkit-appearance: none;
+	appearance: none;
+	-webkit-appearance: none;
 }
 
 input:hover,
