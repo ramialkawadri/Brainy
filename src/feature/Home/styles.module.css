@@ -10,9 +10,10 @@
 	border-radius: var(--default-border-radius);
 	box-shadow: var(--dark-box-shadow);
 	padding: var(--default-padding) var(--medium-padding);
+    overflow-x: auto;
 
 	& * {
-		font-size: 1.6rem;
+		font-size: 1.2rem;
 	}
 }
 
@@ -30,7 +31,7 @@
 
 	& .buttons {
 		display: grid;
-		grid-template-columns: 1.6rem 1fr;
+		grid-template-columns: 1.6rem minmax(6rem, 1fr);
 		gap: 4px;
 		width: 100%;
 

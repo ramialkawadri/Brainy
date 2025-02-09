@@ -46,21 +46,21 @@ function SideBar({
 				<button
 					className={`transparent center ${styles.toggleButton}`}
 					onClick={() => setIsExpanded(!isExpanded)}>
-					<Icon path={mdiArrowCollapseLeft} size={1.2} />
+					<Icon path={mdiArrowCollapseLeft} size={1} />
 				</button>
 			</div>
 
 			<button
 				className={`${selectedFileId === null ? "primary" : "transparent"} ${styles.row}`}
 				onClick={onHomeClick}>
-				<Icon path={mdiHome} size={1.2} />
+				<Icon path={mdiHome} size={1} />
 				<p>Home</p>
 			</button>
 
 			<button
 				className={`transparent ${styles.row}`}
 				onClick={onSettingsClick}>
-				<Icon path={mdiCog} size={1.2} />
+				<Icon path={mdiCog} size={1} />
 				<p>Settings</p>
 			</button>
 

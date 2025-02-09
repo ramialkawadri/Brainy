@@ -38,6 +38,10 @@
 	grid-template-columns: 1fr 1fr 1fr;
 	border-top: 1px solid var(--border-color);
 
+    & * {
+        font-size: 1.2rem;
+    }
+
 	& button {
 		padding: var(--default-padding) var(--large-padding);
 		box-shadow: var(--light-box-shadow);
@@ -48,6 +52,7 @@
 		flex-direction: column;
 		align-items: center;
 		justify-content: center;
+        gap: 4px;
 
 		& .count-row {
 			display: flex;
@@ -73,10 +78,6 @@
 		& .easy-button {
 			background-color: var(--link-color);
 			color: #fff;
-		}
-
-		& p {
-			font-size: 1.4rem;
 		}
 	}
 

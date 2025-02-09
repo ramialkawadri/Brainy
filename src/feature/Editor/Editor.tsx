@@ -95,8 +95,8 @@ function Editor({ onError, onStudyStart }: Props) {
 			);
 			setSelectedCellId(cells[Math.max(0, selectedCellIndex - 1)].id!);
 		} else if (e.altKey && e.code === "Delete") {
-            if (selectedCellId !== null) setShowDeleteDialog(true);
-        }
+			if (selectedCellId !== null) setShowDeleteDialog(true);
+		}
 	};
 
 	const moveCurrentCellByNumber = async (number: number) => {
@@ -148,7 +148,7 @@ function Editor({ onError, onStudyStart }: Props) {
 		await executeRequest(async () => {
 			for (const id of changedCellsIds.current) {
 				const cell = cells.find(c => c.id === id);
-                if (!cell) continue;
+				if (!cell) continue;
 				await updateCellContent(id, cell.content);
 			}
 			changedCellsIds.current.clear();
@@ -208,11 +208,11 @@ function Editor({ onError, onStudyStart }: Props) {
 
 	const handleCellDeleteConfirm = async () => {
 		setShowDeleteDialog(false);
-        const cellIndex = cells.findIndex(c => c.id === selectedCellId);
+		const cellIndex = cells.findIndex(c => c.id === selectedCellId);
 		await executeRequest(async () => await deleteCell(selectedCellId!));
 		await retrieveRepetitionCounts();
-        await retrieveSelectedFileCells();
-        setSelectedCellId(cellIndex > 0 ? cells[cellIndex - 1].id! : null);
+		await retrieveSelectedFileCells();
+		setSelectedCellId(cellIndex > 0 ? cells[cellIndex - 1].id! : null);
 	};
 
 	const selectCell = (id: number) => {

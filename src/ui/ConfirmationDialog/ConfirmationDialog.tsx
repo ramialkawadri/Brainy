@@ -23,7 +23,7 @@ function ConfirmationDialog({ title, text, onCancel, onConfirm }: Props) {
 		<div className="overlay" onClick={onCancel}>
 			<div className={`${styles.box}`} onClick={e => e.stopPropagation()}>
 				<div className={`${styles.titleBar}`}>
-					<Icon path={mdiExclamationThick} size={1.6} />
+					<Icon path={mdiExclamationThick} size={1.4} />
 					<p>{title}</p>
 				</div>
 				<hr />

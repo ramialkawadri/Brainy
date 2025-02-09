@@ -11,7 +11,8 @@ function applySettings(settings: Settings) {
 	} else {
 		document.body.classList.remove("dark");
 	}
-	document.body.style.zoom = `${settings?.zoomPercentage}%`;
+
+    document.documentElement.style.setProperty("--zoom-level", (settings.zoomPercentage / 100).toString());
 }
 
 export default applySettings;

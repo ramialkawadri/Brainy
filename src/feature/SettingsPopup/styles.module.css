@@ -6,12 +6,18 @@
 	border-radius: var(--default-border-radius);
 	background: var(--default-background-color);
 	width: 80%;
-	max-width: 56rem;
-	height: 40rem;
+	max-width: 45rem;
+	height: 30rem;
+
+	& * {
+		font-size: 1.2rem;
+	}
 }
 
 .header {
-	font-size: 2.4rem;
+    & * {
+        font-size: 1.8rem;
+    }
 	gap: 6px;
 	border-bottom: 1px solid var(--border-color);
 	padding-bottom: var(--default-padding);
@@ -27,7 +33,7 @@
 
 	& .settings-row {
 		display: grid;
-		grid-template-columns: 16rem 1fr;
+		grid-template-columns: 12rem 1fr;
 		justify-content: center;
 		align-items: center;
 
@@ -43,10 +49,6 @@
 	display: flex;
 	gap: 4px;
 	justify-content: flex-end;
-
-	& * {
-		font-size: 1.6rem;
-	}
 
 	& button {
 		padding: var(--default-padding) var(--large-padding);

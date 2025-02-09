@@ -3,11 +3,11 @@
 	padding: var(--xl-padding);
 	border-right: 1px solid var(--border-color);
 	background-color: var(--side-bar-background-color);
-	width: 36rem;
+	width: 28rem;
 	transition: 0.18s all;
 
 	& * {
-		font-size: 1.6rem;
+		font-size: 1.2rem;
 	}
 
 	&.closed {
@@ -55,14 +55,14 @@
 	padding: var(--default-padding) 0;
 
 	& h2 {
-		font-size: 2.4rem;
+		font-size: 1.8rem;
 		font-weight: 400;
 	}
 
 	& .toggle-button {
 		transition: 0s tansform;
 		transition: 0s width;
-		padding: var(--medium-padding);
+		padding: var(--default-padding) var(--medium-padding);
 	}
 }
 
@@ -73,6 +73,7 @@
 	width: 100%;
 	padding: var(--medium-padding);
 	margin-bottom: 4px;
+	align-items: center;
 }
 
 .search-input {

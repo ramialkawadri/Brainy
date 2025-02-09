@@ -3,6 +3,10 @@
 	display: flex;
 	flex-direction: column;
 	height: 100%;
+
+    & * {
+        font-size: 1.2rem;
+    }
 }
 
 .title-bar {
@@ -17,15 +21,15 @@
 		display: flex;
 		align-content: center;
 		gap: 4px;
+        overflow-x: auto;
 
 		& .study-button {
 			display: flex;
-			flex-direction: column;
+			flex-direction: row;
 			align-items: center;
 			border: 1px solid var(--border-color);
-			font-size: 1rem;
+			font-size: 1.2rem;
 			margin-right: 4px;
-			font-weight: 500;
 
 			&:not(:disabled):hover {
 				border-color: var(--hover-border-color);
@@ -47,7 +51,7 @@
 	& .repetition-counts {
 		width: fit-content;
 		display: flex;
-		font-size: 1.4rem;
+		font-size: 1.2rem;
 		justify-content: space-between;
 		gap: 4px;
 	}
@@ -81,7 +85,7 @@
 
 	.overlay-cell-selector {
 		width: 50%;
-		max-width: 50rem;
+		max-width: 42rem;
 	}
 }
 
@@ -99,17 +103,20 @@
 
 	& .focus-tools {
 		position: absolute;
-		align-self: center;
-		justify-items: center;
+        align-items: center;
+        justify-content: center;
 		background-color: var(--default-background-color);
 		z-index: 2;
 		right: 1.2rem;
 		top: 0;
 		border-radius: var(--default-border-radius);
 		box-shadow: var(--dark-box-shadow);
-		transform: translateY(-50%);
+		transform: translateY(-20%);
 		display: flex;
-		height: 32px;
+
+        & button {
+            padding: var(--small-padding);
+        }
 	}
 
 	& .delete * {
@@ -130,6 +137,7 @@
 		top: 24px;
 		right: 1.2rem;
 		z-index: 3;
+        max-width: 20rem;
 	}
 }
 
@@ -179,12 +187,13 @@ body:global(.dark) .focus-tools {
 	flex-direction: column;
 	border-radius: var(--default-border-radius);
 	box-shadow: var(--darker-box-shadow);
-	padding: var(--large-padding) var(--default-padding);
+	padding: var(--large-padding) var(--medium-padding);
 	background: var(--default-background-color);
 	gap: 4px;
 
 	& label {
 		text-align: center;
+        font-size: 1.4rem;
 	}
 
 	& button {
