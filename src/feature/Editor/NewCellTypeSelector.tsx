@@ -2,7 +2,11 @@ import { forwardRef, useState } from "react";
 import styles from "./styles.module.css";
 import Icon from "@mdi/react";
 import getCellIcon from "../../util/getCellIcon";
-import { allCellTypes, CellType } from "../../type/backend/entity/cell";
+import {
+	allCellTypes,
+	CellType,
+	cellTypesDisplayNames,
+} from "../../type/backend/entity/cell";
 import InputWithIcon from "../../ui/InputWithIcon/InputWithIcon";
 import { mdiMagnify } from "@mdi/js";
 
@@ -29,7 +33,9 @@ const NewCellTypeSelector = forwardRef<HTMLDivElement, Props>(
 
 				{allCellTypes
 					.filter(key =>
-						key.toLowerCase().includes(searchText.toLowerCase()),
+						cellTypesDisplayNames[key]
+							.toLowerCase()
+							.includes(searchText.toLowerCase()),
 					)
 					.map(cellType => (
 						<button
@@ -37,7 +43,7 @@ const NewCellTypeSelector = forwardRef<HTMLDivElement, Props>(
 							className="transparent"
 							onClick={() => onClick(cellType)}>
 							<Icon path={getCellIcon(cellType)} size={1} />
-							<span>{cellType}</span>
+							<span>{cellTypesDisplayNames[cellType]}</span>
 						</button>
 					))}
 			</div>

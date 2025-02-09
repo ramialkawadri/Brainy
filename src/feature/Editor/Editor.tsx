@@ -6,7 +6,10 @@ import styles from "./styles.module.css";
 import ConfirmationDialog from "../../ui/ConfirmationDialog/ConfirmationDialog";
 import useAppSelector from "../../hooks/useAppSelector";
 import { selectSelectedFileId } from "../../store/selectors/fileSystemSelectors";
-import Cell, { CellType } from "../../type/backend/entity/cell";
+import Cell, {
+	CellType,
+	cellTypesDisplayNames,
+} from "../../type/backend/entity/cell";
 import FocusTools from "./FocusTools";
 import NewCellTypeSelector from "./NewCellTypeSelector";
 import Icon from "@mdi/react";
@@ -308,7 +311,7 @@ function Editor({ onError, onStudyStart }: Props) {
 
 						<div className={styles.cellTitle}>
 							<Icon path={getCellIcon(cell.cellType)} size={1} />
-							<span>{cell.cellType}</span>
+							<span>{cellTypesDisplayNames[cell.cellType]}</span>
 						</div>
 
 						<EditorCell
