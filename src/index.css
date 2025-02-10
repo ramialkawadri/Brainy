@@ -59,7 +59,8 @@ html {
 /* Extra large desktops or 4K displays */
 @media (min-width: 1400px) {
 	html {
-		font-size: 100%; /* 1rem = 16px for larger screens */
+		/* 1rem = 16px for larger screens */
+		font-size: calc(var(--zoom-level) * 100%);
 	}
 	body {
 		font-size: 2rem;
