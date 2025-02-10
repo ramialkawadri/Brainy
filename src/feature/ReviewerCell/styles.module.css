@@ -33,5 +33,13 @@
 		&.checked {
 			border-color: var(--primary-color);
 		}
+
+		&.correct:not(disabled) {
+            border-color: var(--review-color);
+
+            &:focus {
+                border-color: var(--review-color);
+            }
+		}
 	}
 }

@@ -11,7 +11,6 @@ interface Props {
 export function TrueFalseReviewView({ cell, showAnswer }: Props) {
 	const trueFalse = JSON.parse(cell.content) as TrueFalse;
 	const [chosenAnswer, setChosenAnswer] = useState<boolean | null>(null);
-    // TODO: fix showAnswer
 
 	return (
 		<>
@@ -19,12 +18,18 @@ export function TrueFalseReviewView({ cell, showAnswer }: Props) {
 			<hr />
 			<div className={styles.trueFalseRow}>
 				<button
-					className={`transparent ${chosenAnswer === true && styles.checked}`}
+					className={`transparent
+                        ${chosenAnswer === true && !showAnswer && styles.checked}
+                        ${showAnswer && trueFalse.isTrue && styles.correct}`}
+                    disabled={showAnswer && !trueFalse.isTrue}
 					onClick={() => setChosenAnswer(true)}>
 					True
 				</button>
 				<button
-					className={`transparent ${chosenAnswer === false && styles.checked}`}
+					className={`transparent
+                        ${chosenAnswer === false && !showAnswer && styles.checked}
+                        ${showAnswer && !trueFalse.isTrue && styles.correct}`}
+                    disabled={showAnswer && trueFalse.isTrue}
 					onClick={() => setChosenAnswer(false)}>
 					False
 				</button>
