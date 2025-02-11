@@ -1,7 +1,7 @@
 import {
 	mdiCardMultipleOutline,
+	mdiCheckCircleOutline,
 	mdiDotsHorizontal,
-	mdiHelp,
 	mdiNoteOutline,
 } from "@mdi/js";
 import getCellIcon from "../../util/getCellIcon";
@@ -15,7 +15,7 @@ describe(getCellIcon, () => {
 			["FlashCard", mdiCardMultipleOutline],
 			["Note", mdiNoteOutline],
 			["Cloze", mdiDotsHorizontal],
-			["other", mdiHelp],
+			["TrueFalse", mdiCheckCircleOutline],
 		];
 
 		// Act & Assert

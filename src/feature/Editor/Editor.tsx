@@ -27,6 +27,7 @@ import {
 } from "../../api/cellApi";
 import { getStudyRepetitionCounts } from "../../api/repetitionApi";
 import errorToString from "../../util/errorToString";
+import { Editor as TipTapEditor } from "@tiptap/react";
 
 const autoSaveDelayInMilliSeconds = 2000;
 
@@ -35,6 +36,7 @@ interface Props {
 	onStudyStart: () => void;
 }
 
+// TODO: pass editor from child to parent using a function and then when hiding one of the dialogs we refocus on the edtiro including: delete cell, add new cell and insert new cell
 function Editor({ onError, onStudyStart }: Props) {
 	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 	// Used for the focus tools.
@@ -52,6 +54,7 @@ function Editor({ onError, onStudyStart }: Props) {
 			review: 0,
 		});
 	const [cells, setCells] = useState<Cell[]>([]);
+    const tipTapEditorRef = useRef<TipTapEditor | null>(null);
 	const selectedFileId = useAppSelector(selectSelectedFileId)!;
 	const addNewCellPopupRef = useRef<HTMLDivElement>(null);
 	const editorRef = useRef<HTMLDivElement>(null);

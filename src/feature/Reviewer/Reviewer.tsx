@@ -146,6 +146,7 @@ function Reviewer({
 					}
 					repetition={dueToday[currentCellIndex]}
 					showAnswer={showAnswer}
+                    key={currentCellIndex}
 				/>
 			</div>
 
