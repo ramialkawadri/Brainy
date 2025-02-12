@@ -156,7 +156,7 @@ function Reviewer({
 					<button
 						className="row transparent grey-button"
 						onClick={() =>
-							onEditButtonClick(dueToday[currentCellIndex].fileId)
+							onEditButtonClick(dueToday[currentCellIndex].fileId, dueToday[currentCellIndex].cellId)
 						}>
 						<Icon path={mdiPencilOutline} size={1} />
 						<span>Edit</span>
