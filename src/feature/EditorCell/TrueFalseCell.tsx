@@ -1,3 +1,4 @@
+import { Editor } from "@tiptap/react";
 import Cell from "../../type/backend/entity/cell";
 import TrueFalse from "../../type/cell/trueFalse";
 import RichTextEditor from "../../ui/RichTextEditor/RichTextEditor";
@@ -8,9 +9,16 @@ interface Props {
 	editable: boolean;
 	autofocus: boolean;
 	onUpdate: (content: string) => void;
+	onFocus: (editor: Editor) => void;
 }
 
-export function TrueFalseCell({ cell, editable, autofocus, onUpdate }: Props) {
+export function TrueFalseCell({
+	cell,
+	editable,
+	autofocus,
+	onUpdate,
+	onFocus,
+}: Props) {
 	const trueFalse = JSON.parse(cell.content) as TrueFalse;
 
 	const handleQuestionUpdate = (html: string) =>
@@ -37,6 +45,7 @@ export function TrueFalseCell({ cell, editable, autofocus, onUpdate }: Props) {
 				onUpdate={handleQuestionUpdate}
 				editable={editable}
 				autofocus={autofocus}
+				onFocus={onFocus}
 			/>
 			<div className={styles.buttonsRow}>
 				<button

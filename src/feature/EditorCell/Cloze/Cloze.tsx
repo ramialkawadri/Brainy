@@ -1,4 +1,4 @@
-import { ChainedCommands } from "@tiptap/core";
+import { ChainedCommands, Editor } from "@tiptap/core";
 import RichTextEditor from "../../../ui/RichTextEditor/RichTextEditor";
 import {
 	mdiDotsHorizontal,
@@ -13,11 +13,12 @@ interface Props {
 	editable: boolean;
 	autofocus: boolean;
 	onUpdate: (content: string) => void;
+	onFocus: (editor: Editor) => void;
 }
 
 const regexp = /<cloze[^>]*index="(\d+)"[^>]*>/g;
 
-function ClozeCell({ cell, editable, autofocus, onUpdate }: Props) {
+function ClozeCell({ cell, editable, autofocus, onUpdate, onFocus }: Props) {
 	const handleToggleCloze = (commands: ChainedCommands) => {
 		const matches = cell.content.matchAll(regexp);
 		let newClozeIndex = 1;
@@ -52,8 +53,9 @@ function ClozeCell({ cell, editable, autofocus, onUpdate }: Props) {
 			]}
 			content={cell.content}
 			editable={editable}
-			onUpdate={onUpdate}
 			autofocus={autofocus}
+			onUpdate={onUpdate}
+			onFocus={onFocus}
 		/>
 	);
 }

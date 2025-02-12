@@ -20,7 +20,10 @@ const NewCellTypeSelector = forwardRef<HTMLDivElement, Props>(
 		const [searchText, setSearchText] = useState("");
 
 		return (
-			<div className={`${className} ${styles.newCellSelector}`} ref={ref}>
+			<div
+				className={`${className} ${styles.newCellSelector}`}
+				ref={ref}
+				onClick={e => e.stopPropagation()}>
 				<label htmlFor="search-type">Insert New Cell</label>
 				<InputWithIcon
 					id="search-type"

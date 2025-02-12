@@ -1,7 +1,7 @@
 export type CellType = "FlashCard" | "Note" | "Cloze" | "TrueFalse";
 export const allCellTypes: CellType[] = [
-	"Cloze",
-	"FlashCard",
+    "Cloze",
+    "FlashCard",
 	"Note",
 	"TrueFalse",
 ];

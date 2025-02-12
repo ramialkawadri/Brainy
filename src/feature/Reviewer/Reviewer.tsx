@@ -15,7 +15,7 @@ import { updateRepetition } from "../../api/repetitionApi";
 interface Props {
 	cells: Cell[];
 	cellRepetitions: Repetition[];
-	onEditButtonClick: (fileId: number) => void;
+	onEditButtonClick: (fileId: number, cellId: number) => void;
 	onReviewEnd: () => void;
 	onError: (message: string) => void;
 }
@@ -89,7 +89,7 @@ function Reviewer({
 		if (e.key === " ") {
 			setShowAnswer(true);
 		} else if (e.key.toLowerCase() === "e") {
-			onEditButtonClick(dueToday[currentCellIndex].fileId);
+			onEditButtonClick(dueToday[currentCellIndex].fileId, dueToday[currentCellIndex].cellId);
 		}
 
 		if (!showAnswer) {
@@ -146,7 +146,7 @@ function Reviewer({
 					}
 					repetition={dueToday[currentCellIndex]}
 					showAnswer={showAnswer}
-                    key={currentCellIndex}
+					key={currentCellIndex}
 				/>
 			</div>
 

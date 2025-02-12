@@ -1,3 +1,4 @@
+import { Editor } from "@tiptap/react";
 import Cell from "../../type/backend/entity/cell";
 import RichTextEditor from "../../ui/RichTextEditor/RichTextEditor";
 import ClozeCell from "./Cloze/Cloze";
@@ -9,9 +10,10 @@ interface Props {
 	editable: boolean;
 	autofocus: boolean;
 	onUpdate: (content: string) => void;
+	onFocus: (editor: Editor) => void;
 }
 
-function EditorCell({ cell, editable, autofocus, onUpdate }: Props) {
+function EditorCell({ cell, editable, autofocus, onUpdate, onFocus }: Props) {
 	switch (cell.cellType) {
 		case "FlashCard":
 			return (
@@ -20,6 +22,7 @@ function EditorCell({ cell, editable, autofocus, onUpdate }: Props) {
 					editable={editable}
 					autofocus={autofocus}
 					onUpdate={onUpdate}
+					onFocus={onFocus}
 				/>
 			);
 		case "Note":
@@ -29,6 +32,7 @@ function EditorCell({ cell, editable, autofocus, onUpdate }: Props) {
 					editable={editable}
 					onUpdate={onUpdate}
 					autofocus={autofocus}
+					onFocus={onFocus}
 				/>
 			);
 		case "Cloze":
@@ -38,6 +42,7 @@ function EditorCell({ cell, editable, autofocus, onUpdate }: Props) {
 					editable={editable}
 					autofocus={autofocus}
 					onUpdate={onUpdate}
+					onFocus={onFocus}
 				/>
 			);
 		case "TrueFalse":
@@ -47,6 +52,7 @@ function EditorCell({ cell, editable, autofocus, onUpdate }: Props) {
 					editable={editable}
 					autofocus={autofocus}
 					onUpdate={onUpdate}
+					onFocus={onFocus}
 				/>
 			);
 	}

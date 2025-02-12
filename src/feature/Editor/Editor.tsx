@@ -32,12 +32,12 @@ import { Editor as TipTapEditor } from "@tiptap/react";
 const autoSaveDelayInMilliSeconds = 2000;
 
 interface Props {
+    editCellId: number | null;
 	onError: (error: string) => void;
 	onStudyStart: () => void;
 }
 
-// TODO: pass editor from child to parent using a function and then when hiding one of the dialogs we refocus on the edtiro including: delete cell, add new cell and insert new cell
-function Editor({ onError, onStudyStart }: Props) {
+function Editor({ editCellId, onError, onStudyStart }: Props) {
 	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 	// Used for the focus tools.
 	const [showInsertNewCell, setShowInsertNewCell] = useState(false);
@@ -54,7 +54,7 @@ function Editor({ onError, onStudyStart }: Props) {
 			review: 0,
 		});
 	const [cells, setCells] = useState<Cell[]>([]);
-    const tipTapEditorRef = useRef<TipTapEditor | null>(null);
+	const tipTapEditorRef = useRef<TipTapEditor | null>(null);
 	const selectedFileId = useAppSelector(selectSelectedFileId)!;
 	const addNewCellPopupRef = useRef<HTMLDivElement>(null);
 	const editorRef = useRef<HTMLDivElement>(null);
@@ -70,6 +70,36 @@ function Editor({ onError, onStudyStart }: Props) {
 		setShowAddNewCellPopup(false),
 	);
 
+	useEffect(() => {
+		if (
+			tipTapEditorRef.current &&
+			!showInsertNewCell &&
+			!showAddNewCellPopup &&
+			!showDeleteDialog
+		) {
+			tipTapEditorRef.current.commands.focus();
+		}
+	}, [showInsertNewCell, showAddNewCellPopup, showDeleteDialog]);
+
+	useEffect(() => {
+		void (async () => {
+			await forceSave();
+			await retrieveRepetitionCounts();
+			const cells = await retrieveSelectedFileCells();
+			if (cells && cells.length > 0) {
+                if (editCellId !== null) setSelectedCellId(editCellId)
+                else setSelectedCellId(cells[0].id!);
+            }
+		})();
+
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [selectedFileId]);
+
+	useBeforeUnload(e => {
+		void forceSave();
+		if (changedCellsIds.current.size > 0) e.preventDefault();
+	});
+
 	const handleKeyDown = (e: React.KeyboardEvent) => {
 		if (e.key === "Escape") {
 			setShowAddNewCellPopup(false);
@@ -79,6 +109,7 @@ function Editor({ onError, onStudyStart }: Props) {
 		} else if (e.ctrlKey && e.code === "Enter") {
 			setShowAddNewCellPopup(!showAddNewCellPopup);
 		} else if (e.code === "F5") {
+			e.preventDefault();
 			void startStudy();
 		} else if (e.ctrlKey && e.altKey && e.code == "ArrowDown") {
 			e.preventDefault();
@@ -187,22 +218,6 @@ function Editor({ onError, onStudyStart }: Props) {
 		await saveChanges(cells);
 	};
 
-	useEffect(() => {
-		void (async () => {
-			await forceSave();
-			await retrieveRepetitionCounts();
-			const cells = await retrieveSelectedFileCells();
-			if (cells && cells.length > 0) setSelectedCellId(cells[0].id!);
-		})();
-
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [selectedFileId]);
-
-	useBeforeUnload(e => {
-		void forceSave();
-		if (changedCellsIds.current.size > 0) e.preventDefault();
-	});
-
 	const insertNewCell = async (cellType: CellType, index: number) => {
 		const cell = createDefaultCell(cellType, selectedFileId, index);
 		await executeRequest(async () => await createCell(cell));
@@ -218,7 +233,14 @@ function Editor({ onError, onStudyStart }: Props) {
 		await executeRequest(async () => await deleteCell(selectedCellId!));
 		await retrieveRepetitionCounts();
 		await retrieveSelectedFileCells();
-		setSelectedCellId(cellIndex > 0 ? cells[cellIndex - 1].id! : null);
+		tipTapEditorRef.current = null;
+		if (cellIndex > 0) {
+			setSelectedCellId(cellIndex > 0 ? cells[cellIndex - 1].id! : null);
+		} else if (cellIndex === 0 && cells.length > 1) {
+			setSelectedCellId(cells[1].id!);
+		} else {
+			setSelectedCellId(null);
+		}
 	};
 
 	const selectCell = (id: number) => {
@@ -259,6 +281,14 @@ function Editor({ onError, onStudyStart }: Props) {
 		onStudyStart();
 	};
 
+	const handleCellClick = (cellId: number) => {
+		if (cellId === selectedCellId && tipTapEditorRef.current) {
+			tipTapEditorRef.current.commands.focus();
+		} else {
+			setSelectedCellId(cellId);
+		}
+	};
+
 	return (
 		<div className={styles.container} onKeyDown={handleKeyDown}>
 			{showDeleteDialog && (
@@ -284,7 +314,7 @@ function Editor({ onError, onStudyStart }: Props) {
 					<div
 						key={cell.id}
 						onFocus={() => selectCell(cell.id!)}
-						onClick={() => selectCell(cell.id!)}
+						onClick={() => handleCellClick(cell.id!)}
 						onDragOver={e => handleDragOver(e, cell.id!)}
 						onDragLeave={() => setDragOverCellId(null)}
 						onDrop={() => void handleDrop(i)}
@@ -307,7 +337,7 @@ function Editor({ onError, onStudyStart }: Props) {
 							<NewCellTypeSelector
 								className={styles.insertCellPopup}
 								onClick={cellType =>
-									void insertNewCell(cellType, i)
+									void insertNewCell(cellType, i + 1)
 								}
 							/>
 						)}
@@ -323,6 +353,9 @@ function Editor({ onError, onStudyStart }: Props) {
 							autofocus={selectedCellId === cell.id}
 							onUpdate={content =>
 								handleUpdate(content, i, cell.id!)
+							}
+							onFocus={editor =>
+								(tipTapEditorRef.current = editor)
 							}
 						/>
 					</div>

@@ -26,6 +26,7 @@ function App() {
 	const selectedFileId = useAppSelector(selectSelectedFileId);
 	const cells = useRef<Cell[]>([]);
 	const cellRepetitions = useRef<Repetition[]>([]);
+    const editCellId = useRef<number | null>(null);
 	const dispatch = useAppDispatch();
 
 	const handleEditorStudyClick = async () => {
@@ -64,7 +65,8 @@ function App() {
 		setIsStudying(false);
 	}, [dispatch, selectedFileId]);
 
-	const handleEditButtonClick = (fileId: number) => {
+	const handleEditButtonClick = (fileId: number, cellId: number) => {
+        editCellId.current = cellId;
 		setIsStudying(false);
 		dispatch(setSelectedFileId(fileId));
 	};
@@ -102,6 +104,7 @@ function App() {
 
 				{!isStudying && selectedFileId && (
 					<Editor
+                        editCellId={editCellId.current}
 						onError={setErrorMessage}
 						onStudyStart={() => void handleEditorStudyClick()}
 					/>

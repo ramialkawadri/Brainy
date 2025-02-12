@@ -8,17 +8,16 @@ interface Props {
 	showAnswer: boolean;
 }
 
-// TODO: better style for selected
 export function TrueFalseReviewView({ cell, showAnswer }: Props) {
 	const trueFalse = JSON.parse(cell.content) as TrueFalse;
 	const [chosenAnswer, setChosenAnswer] = useState<boolean | null>(null);
 
-    const handleKeyUp = (e: React.KeyboardEvent) => {
-        if (e.code === "Space") {
-            console.log("stopped");
-            e.stopPropagation();
-        }
-    }
+	const handleKeyUp = (e: React.KeyboardEvent) => {
+		if (e.code === "Space") {
+			console.log("stopped");
+			e.stopPropagation();
+		}
+	};
 
 	return (
 		<>
@@ -29,8 +28,8 @@ export function TrueFalseReviewView({ cell, showAnswer }: Props) {
 					className={`transparent
                         ${chosenAnswer === true && !showAnswer && styles.checked}
                         ${showAnswer && trueFalse.isTrue && styles.correct}`}
-                    disabled={showAnswer && !trueFalse.isTrue}
-                    onKeyUp={handleKeyUp}
+					disabled={showAnswer && !trueFalse.isTrue}
+					onKeyUp={handleKeyUp}
 					onClick={() => setChosenAnswer(true)}>
 					True
 				</button>
@@ -38,8 +37,8 @@ export function TrueFalseReviewView({ cell, showAnswer }: Props) {
 					className={`transparent
                         ${chosenAnswer === false && !showAnswer && styles.checked}
                         ${showAnswer && !trueFalse.isTrue && styles.correct}`}
-                    disabled={showAnswer && trueFalse.isTrue}
-                    onKeyUp={handleKeyUp}
+					disabled={showAnswer && trueFalse.isTrue}
+					onKeyUp={handleKeyUp}
 					onClick={() => setChosenAnswer(false)}>
 					False
 				</button>

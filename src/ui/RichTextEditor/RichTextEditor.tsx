@@ -3,6 +3,7 @@ import {
 	useEditor,
 	EditorContent,
 	AnyExtension,
+	Editor,
 } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import styles from "./styles.module.css";
@@ -32,7 +33,7 @@ interface Props {
 	commands?: Command[];
 	autofocus: boolean;
 	onUpdate: (html: string) => void;
-	onFocus?: () => void;
+	onFocus?: (editor: Editor) => void;
 	onBlur?: () => void;
 }
 
@@ -55,7 +56,7 @@ function RichTextEditor({
 				if (e.editor.getHTML() !== content)
 					onUpdate(e.editor.getHTML());
 			},
-			onFocus,
+			onFocus: onFocus ? e => onFocus(e.editor) : undefined,
 			onBlur,
 			editorProps: {
 				handleKeyDown: (_, e) => {
