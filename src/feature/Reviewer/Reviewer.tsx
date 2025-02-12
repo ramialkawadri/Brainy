@@ -89,7 +89,10 @@ function Reviewer({
 		if (e.key === " ") {
 			setShowAnswer(true);
 		} else if (e.key.toLowerCase() === "e") {
-			onEditButtonClick(dueToday[currentCellIndex].fileId, dueToday[currentCellIndex].cellId);
+			onEditButtonClick(
+				dueToday[currentCellIndex].fileId,
+				dueToday[currentCellIndex].cellId,
+			);
 		}
 
 		if (!showAnswer) {
@@ -156,7 +159,10 @@ function Reviewer({
 					<button
 						className="row transparent grey-button"
 						onClick={() =>
-							onEditButtonClick(dueToday[currentCellIndex].fileId, dueToday[currentCellIndex].cellId)
+							onEditButtonClick(
+								dueToday[currentCellIndex].fileId,
+								dueToday[currentCellIndex].cellId,
+							)
 						}>
 						<Icon path={mdiPencilOutline} size={1} />
 						<span>Edit</span>

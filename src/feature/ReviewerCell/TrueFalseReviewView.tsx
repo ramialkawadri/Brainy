@@ -14,7 +14,6 @@ export function TrueFalseReviewView({ cell, showAnswer }: Props) {
 
 	const handleKeyUp = (e: React.KeyboardEvent) => {
 		if (e.code === "Space") {
-			console.log("stopped");
 			e.stopPropagation();
 		}
 	};

@@ -11,7 +11,7 @@ interface Props {
 
 function FocusTools({ onInsert, onDelete, onDragStart, onDragEnd }: Props) {
 	return (
-		<div className={styles.focusTools}>
+		<div className={styles.focusTools} onClick={e => e.stopPropagation()}>
 			<button
 				className="transparent"
 				title="Insert Cell (Ctrl + Shift + Enter)"

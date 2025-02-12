@@ -32,7 +32,7 @@ import { Editor as TipTapEditor } from "@tiptap/react";
 const autoSaveDelayInMilliSeconds = 2000;
 
 interface Props {
-    editCellId: number | null;
+	editCellId: number | null;
 	onError: (error: string) => void;
 	onStudyStart: () => void;
 }
@@ -87,14 +87,19 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 			await retrieveRepetitionCounts();
 			const cells = await retrieveSelectedFileCells();
 			if (cells && cells.length > 0) {
-                console.log(editCellId);
-                if (editCellId !== null) setSelectedCellId(editCellId)
-                else setSelectedCellId(cells[0].id!);
-            }
+				console.log(editCellId);
+				if (editCellId !== null) setSelectedCellId(editCellId);
+				else setSelectedCellId(cells[0].id!);
+			}
 		})();
 
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [selectedFileId]);
+
+	useEffect(() => {
+		if (tipTapEditorRef.current)
+			tipTapEditorRef.current.commands.scrollIntoView();
+	}, [selectedCellId]);
 
 	useBeforeUnload(e => {
 		void forceSave();
@@ -222,7 +227,8 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 	const insertNewCell = async (cellType: CellType, index: number) => {
 		const cell = createDefaultCell(cellType, selectedFileId, index);
 		await executeRequest(async () => await createCell(cell));
-		await retrieveSelectedFileCells();
+		const cells = await retrieveSelectedFileCells();
+		if (cells) setSelectedCellId(cells[index].id!);
 		await retrieveRepetitionCounts();
 		setShowInsertNewCell(false);
 		setShowAddNewCellPopup(false);

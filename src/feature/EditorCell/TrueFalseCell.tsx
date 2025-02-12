@@ -50,12 +50,18 @@ export function TrueFalseCell({
 			<div className={styles.buttonsRow}>
 				<button
 					className={`transparent ${trueFalse.isTrue && styles.checked}`}
-					onClick={() => handleTrueFalseUpdate(true)}>
+					onClick={e => {
+						e.stopPropagation();
+						handleTrueFalseUpdate(true);
+					}}>
 					True
 				</button>
 				<button
 					className={`transparent ${!trueFalse.isTrue && styles.checked}`}
-					onClick={() => handleTrueFalseUpdate(false)}>
+					onClick={e => {
+						e.stopPropagation();
+						handleTrueFalseUpdate(false);
+					}}>
 					False
 				</button>
 			</div>
