@@ -30,6 +30,7 @@ import errorToString from "../../util/errorToString";
 import { Editor as TipTapEditor } from "@tiptap/react";
 
 const autoSaveDelayInMilliSeconds = 2000;
+const oneMinuteInMilliSeconds = 60 * 1000;
 
 interface Props {
 	editCellId: number | null;
@@ -198,6 +199,14 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 			await retrieveRepetitionCounts();
 		});
 	};
+
+	useEffect(() => {
+		const intervalId = setInterval(
+			retrieveRepetitionCounts,
+			oneMinuteInMilliSeconds,
+		);
+		return () => clearInterval(intervalId);
+	}, [retrieveRepetitionCounts]);
 
 	const handleUpdate = (content: string, index: number, id: number) => {
 		changedCellsIds.current.add(id);
