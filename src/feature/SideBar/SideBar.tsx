@@ -43,7 +43,6 @@ function SideBar({
 		<div className={`${styles.sideBar} ${!isExpanded && styles.closed}`}>
 			<div className={styles.header}>
 				<div className={styles.titleRow}>
-					<img src="/icon.svg" />
 					<h2>Brainy</h2>
 				</div>
 
@@ -56,6 +55,7 @@ function SideBar({
 
 			<button
 				className={`${selectedFileId === null ? "primary" : "transparent"} ${styles.row}`}
+				title="Home (Ctrl + h)"
 				onClick={onHomeClick}>
 				<Icon path={mdiHome} size={1} />
 				<p>Home</p>
@@ -63,6 +63,7 @@ function SideBar({
 
 			<button
 				className={`transparent ${styles.row}`}
+				title="Settings (Ctrl + p)"
 				onClick={onSettingsClick}>
 				<Icon path={mdiCog} size={1} />
 				<p>Settings</p>

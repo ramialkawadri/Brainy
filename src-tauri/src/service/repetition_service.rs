@@ -1,6 +1,8 @@
 use std::collections::HashSet;
 
 use chrono::Utc;
+use rand::{seq::SliceRandom, SeedableRng};
+use rand_chacha::ChaCha8Rng;
 use regex::Regex;
 use sea_orm::{DbConn, Set};
 
@@ -9,6 +11,8 @@ use crate::entity::repetition::{self, State};
 use crate::model::file_repetitions_count::FileRepetitionCounts;
 
 use sea_orm::{entity::*, query::*};
+
+const SEED: [u8; 32] = [42u8; 32];
 
 pub async fn update_repetitions_for_cell(
     db_conn: &DbConn,
@@ -169,7 +173,11 @@ pub async fn get_file_repetitions(
         .await;
 
     match result {
-        Ok(result) => Ok(result),
+        Ok(mut result) => {
+            let mut rng = ChaCha8Rng::from_seed(SEED);
+            result.shuffle(&mut rng);
+            Ok(result)
+        },
         Err(err) => Err(err.to_string()),
     }
 }

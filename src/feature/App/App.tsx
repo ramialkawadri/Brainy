@@ -18,6 +18,7 @@ import SettingsPopup from "../SettingsPopup/SettingsPopup";
 import { getSettings } from "../../api/settingsApi";
 import errorToString from "../../util/errorToString";
 import applySettings from "../../util/applySettings";
+import useGlobalKey from "../../hooks/useGlobalKey";
 
 function App() {
 	const [isStudying, setIsStudying] = useState(false);
@@ -64,6 +65,15 @@ function App() {
 	useEffect(() => {
 		setIsStudying(false);
 	}, [dispatch, selectedFileId]);
+
+	useGlobalKey(e => {
+		if (e.ctrlKey && e.key.toLowerCase() === "p") {
+			setShowSettings(true);
+		} else if (e.ctrlKey && e.key.toLowerCase() === "h") {
+			setIsStudying(false);
+			dispatch(setSelectedFileId(null));
+		}
+	});
 
 	const handleEditButtonClick = (fileId: number, cellId: number) => {
 		editCellId.current = cellId;
