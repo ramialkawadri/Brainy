@@ -68,12 +68,14 @@ function App() {
 
 	useGlobalKey(e => {
 		if (e.ctrlKey && e.key.toLowerCase() === "p") {
+            e.preventDefault();
 			setShowSettings(true);
 		} else if (e.ctrlKey && e.key.toLowerCase() === "h") {
+            e.preventDefault();
 			setIsStudying(false);
 			dispatch(setSelectedFileId(null));
 		}
-	});
+	}, "keydown");
 
 	const handleEditButtonClick = (fileId: number, cellId: number) => {
 		editCellId.current = cellId;
