@@ -88,7 +88,6 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 			await retrieveRepetitionCounts();
 			const cells = await retrieveSelectedFileCells();
 			if (cells && cells.length > 0) {
-				console.log(editCellId);
 				if (editCellId !== null) setSelectedCellId(editCellId);
 				else setSelectedCellId(cells[0].id!);
 			}
