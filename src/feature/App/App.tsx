@@ -68,12 +68,14 @@ function App() {
 
 	useGlobalKey(e => {
 		if (e.ctrlKey && e.key.toLowerCase() === "p") {
-            e.preventDefault();
+			e.preventDefault();
 			setShowSettings(true);
 		} else if (e.ctrlKey && e.key.toLowerCase() === "h") {
-            e.preventDefault();
+			e.preventDefault();
 			setIsStudying(false);
 			dispatch(setSelectedFileId(null));
+		} else if (e.code === "F5") {
+			e.preventDefault();
 		}
 	}, "keydown");
 

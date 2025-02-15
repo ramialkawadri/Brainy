@@ -28,6 +28,7 @@ import {
 import { getStudyRepetitionCounts } from "../../api/repetitionApi";
 import errorToString from "../../util/errorToString";
 import { Editor as TipTapEditor } from "@tiptap/react";
+import { TauriEvent } from "@tauri-apps/api/event";
 
 const autoSaveDelayInMilliSeconds = 2000;
 const oneMinuteInMilliSeconds = 60 * 1000;
@@ -55,11 +56,14 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 			review: 0,
 		});
 	const [cells, setCells] = useState<Cell[]>([]);
+	// This ref is only used for keeping a copy of the cells and is used only
+	// before the component is unmounted.
+	const cellsRef = useRef(cells);
 	const tipTapEditorRef = useRef<TipTapEditor | null>(null);
 	const selectedFileId = useAppSelector(selectSelectedFileId)!;
 	const addNewCellPopupRef = useRef<HTMLDivElement>(null);
 	const editorRef = useRef<HTMLDivElement>(null);
-	const autoSaveTimeoutId = useRef(-1);
+	const autoSaveTimeoutId = useRef<number>(null);
 	// Used to store the ids of the changed cells so that we update them all
 	// together instead of updating one by one.
 	const changedCellsIds = useRef(new Set<number>());
@@ -100,6 +104,19 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 		if (tipTapEditorRef.current)
 			tipTapEditorRef.current.commands.scrollIntoView();
 	}, [selectedCellId]);
+
+	useEffect(() => {
+		const unlisten = window.__TAURI__.window
+			.getCurrentWindow()
+			.listen(TauriEvent.WINDOW_CLOSE_REQUESTED, () => {
+                void (async () =>{
+                    await forceSave();
+                    await window.__TAURI__.window.getCurrentWindow().close();
+                })();
+			});
+
+		return () => void unlisten.then(f => f());
+	});
 
 	useBeforeUnload(e => {
 		void forceSave();
@@ -187,17 +204,18 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 		});
 	}, [executeRequest, selectedFileId]);
 
-	const saveChanges = async (cells: Cell[]) => {
+	const saveChanges = useCallback(async () => {
 		await executeRequest(async () => {
 			for (const id of changedCellsIds.current) {
-				const cell = cells.find(c => c.id === id);
+				const cell = cellsRef.current.find(c => c.id === id);
+				console.log("Id", id, "cell:", cell);
 				if (!cell) continue;
 				await updateCellContent(id, cell.content);
 			}
 			changedCellsIds.current.clear();
 			await retrieveRepetitionCounts();
 		});
-	};
+	}, [executeRequest, retrieveRepetitionCounts]);
 
 	useEffect(() => {
 		const intervalId = setInterval(
@@ -216,21 +234,31 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 		};
 		setCells(newCells);
 
-		if (autoSaveTimeoutId.current !== -1) {
+		if (autoSaveTimeoutId.current !== null) {
 			clearTimeout(autoSaveTimeoutId.current);
+			autoSaveTimeoutId.current = null;
 		}
 		autoSaveTimeoutId.current = setTimeout(() => {
-			void saveChanges(newCells);
-			autoSaveTimeoutId.current = -1;
+			void saveChanges();
+			autoSaveTimeoutId.current = null;
 		}, autoSaveDelayInMilliSeconds);
 	};
 
-	const forceSave = async () => {
-		if (autoSaveTimeoutId.current !== -1) {
+	const forceSave = useCallback(async () => {
+		if (autoSaveTimeoutId.current !== null) {
 			clearTimeout(autoSaveTimeoutId.current);
+			autoSaveTimeoutId.current = null;
 		}
-		await saveChanges(cells);
-	};
+		await saveChanges();
+	}, [saveChanges]);
+
+	useEffect(() => {
+		cellsRef.current = cells;
+	}, [cells]);
+
+	useEffect(() => {
+		return () => void forceSave();
+	}, [forceSave]);
 
 	const insertNewCell = async (cellType: CellType, index: number) => {
 		const cell = createDefaultCell(cellType, selectedFileId, index);
