@@ -56,6 +56,7 @@
 	padding: var(--large-padding);
 	padding-top: var(--xl-padding);
 	width: 100%;
+    overflow-y: auto;
 
 	& .add-button-container {
 		padding: var(--default-padding);
