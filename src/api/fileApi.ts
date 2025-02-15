@@ -1,5 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
-import FileWithRepetitionCounts from "../type/backend/dto/fileWithRepetitionCountsDto";
+import FileWithRepetitionCounts from "../type/backend/dto/fileWithRepetitionCounts";
 
 export function createFolder(path: string) {
 	return invoke("create_folder", { path });

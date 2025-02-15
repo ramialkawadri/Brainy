@@ -1,6 +1,4 @@
-use crate::{
-    dto::file_with_repetitions_count::FileWithRepetitionsCount, service::file_service,
-};
+use crate::{dto::file_with_repetitions_count::FileWithRepetitionsCount, service::file_service};
 use sea_orm::DbConn;
 use tauri::State;
 use tokio::sync::Mutex;

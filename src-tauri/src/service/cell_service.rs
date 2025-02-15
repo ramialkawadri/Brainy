@@ -1,4 +1,7 @@
-use crate::{dto::update_cell_request::UpdateCellRequest, entity::cell::{self, CellType}};
+use crate::{
+    dto::update_cell_request::UpdateCellRequest,
+    entity::cell::{self, CellType},
+};
 
 use prelude::Expr;
 use sea_orm::{entity::*, query::*, DbConn};
@@ -27,8 +30,12 @@ pub async fn create_cell(
     cell_type: CellType,
     index: i32,
 ) -> Result<i32, String> {
-    // TODO: update to a transaction
-    increase_cells_indices_starting_from(db_conn, file_id, index, 1).await?;
+    let txn = match db_conn.begin().await {
+        Ok(txn) => txn,
+        Err(err) => return Err(err.to_string()),
+    };
+
+    increase_cells_indices_starting_from(&txn, file_id, index, 1).await?;
 
     let active_model = cell::ActiveModel {
         file_id: Set(file_id),
@@ -37,15 +44,20 @@ pub async fn create_cell(
         index: Set(index),
         ..Default::default()
     };
-    let result = cell::Entity::insert(active_model).exec(db_conn).await;
+    let result = cell::Entity::insert(active_model).exec(&txn).await;
     let cell_id = match result {
         Ok(insert_result) => insert_result.last_insert_id,
         Err(err) => return Err(err.to_string()),
     };
 
-    repetition_service::update_repetitions_for_cell(db_conn, file_id, cell_id, cell_type, &content)
+    repetition_service::update_repetitions_for_cell(&txn, file_id, cell_id, cell_type, &content)
         .await?;
-    Ok(cell_id)
+
+    let result = txn.commit().await;
+    match result {
+        Ok(_) => Ok(cell_id),
+        Err(err) => Err(err.to_string()),
+    }
 }
 
 pub async fn delete_cell(db_conn: &DbConn, cell_id: i32) -> Result<(), String> {
@@ -115,12 +127,10 @@ async fn increase_cells_indices_starting_from(
     }
 }
 
-// TODO: update unit tests
 pub async fn update_cells_contents(
     db_conn: &DbConn,
     requests: Vec<UpdateCellRequest>,
 ) -> Result<(), String> {
-
     let txn = match db_conn.begin().await {
         Ok(txn) => txn,
         Err(err) => return Err(err.to_string()),
@@ -155,7 +165,10 @@ pub async fn update_cells_contents(
     }
 }
 
-async fn get_cell_by_id(db_conn: &impl ConnectionTrait, cell_id: i32) -> Result<cell::Model, String> {
+async fn get_cell_by_id(
+    db_conn: &impl ConnectionTrait,
+    cell_id: i32,
+) -> Result<cell::Model, String> {
     let result = cell::Entity::find_by_id(cell_id).one(db_conn).await;
     match result {
         Ok(cell) => Ok(cell.unwrap()),
@@ -195,6 +208,8 @@ pub async fn get_cells_for_files(
 
 #[cfg(test)]
 mod tests {
+    use repetition_service::get_file_repetitions;
+
     use crate::service::{file_service, tests::get_db};
 
     use super::*;
@@ -228,7 +243,7 @@ mod tests {
 
         // Act
 
-        create_cell(
+        let actual_id = create_cell(
             &db_conn,
             file_id,
             "New cell content".into(),
@@ -244,6 +259,7 @@ mod tests {
             .await
             .unwrap();
         assert_eq!(actual[1].content, String::from("New cell content"));
+        assert_eq!(actual[1].id, actual_id);
     }
 
     #[tokio::test]
@@ -366,21 +382,18 @@ mod tests {
 
         let requests = vec![
             UpdateCellRequest {
-                cell_id: cell1_id, 
+                cell_id: cell1_id,
                 content: "New content 1".into(),
             },
-
             UpdateCellRequest {
-                cell_id: cell1_id, 
+                cell_id: cell2_id,
                 content: "New content 2".into(),
             },
         ];
 
         // Act
 
-        update_cells_contents(&db_conn, requests)
-            .await
-            .unwrap();
+        update_cells_contents(&db_conn, requests).await.unwrap();
 
         // Assert
 
@@ -390,7 +403,8 @@ mod tests {
         let actual_cell2 = get_cell_by_id(&db_conn, cell2_id).await.unwrap();
         assert_eq!(actual_cell2.content, "New content 2".to_string());
 
-        // TODO: check repetitions
+        let repetition_count = get_file_repetitions(&db_conn, file_id).await;
+        assert_eq!(repetition_count.unwrap().len(), 2);
     }
 
     #[tokio::test]

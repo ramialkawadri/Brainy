@@ -1,6 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 import Settings from "../type/backend/model/settings";
-import UpdateSettingsRequest from "../type/backend/dto/updateSettingsRequestDto";
+import UpdateSettingsRequest from "../type/backend/dto/updateSettingsRequest";
 
 export function getSettings(): Promise<Settings> {
 	return invoke("get_settings");

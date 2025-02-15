@@ -168,7 +168,7 @@ pub async fn get_file_repetitions(
             let mut rng = ChaCha8Rng::from_seed(SEED);
             result.shuffle(&mut rng);
             Ok(result)
-        },
+        }
         Err(err) => Err(err.to_string()),
     }
 }

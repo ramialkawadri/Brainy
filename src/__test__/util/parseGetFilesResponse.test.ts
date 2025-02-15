@@ -1,4 +1,4 @@
-import FileWithRepetitionCounts from "../../type/backend/dto/fileWithRepetitionCountsDto";
+import FileWithRepetitionCounts from "../../type/backend/dto/fileWithRepetitionCounts";
 import ParsedFolder from "../../type/parsedFolder";
 import parseGetFilesResponse from "../../util/parseGetFilesResponse";
 

@@ -1,9 +1,11 @@
+import FileWithRepetitionCounts from "../type/backend/dto/fileWithRepetitionCounts";
 import FileRepetitionCounts from "../type/backend/model/fileRepetitionCounts";
-import FileWithRepetitionCounts from "../type/backend/dto/fileWithRepetitionCountsDto";
 import ParsedFolder from "../type/parsedFolder";
 
-function parseGetFilesResponse(dtos: FileWithRepetitionCounts[]): ParsedFolder {
-	return parseGetFilesResponseHelper(dtos, "", 0);
+function parseGetFilesResponse(
+	files: FileWithRepetitionCounts[],
+): ParsedFolder {
+	return parseGetFilesResponseHelper(files, "", 0);
 }
 
 function parseGetFilesResponseHelper(

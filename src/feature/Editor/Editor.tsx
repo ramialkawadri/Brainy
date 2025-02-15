@@ -23,18 +23,19 @@ import {
 	deleteCell,
 	getFileCellsOrderedByIndex,
 	moveCell,
-	updateCellContent,
+	updateCellsContents,
 } from "../../api/cellApi";
 import { getStudyRepetitionCounts } from "../../api/repetitionApi";
 import errorToString from "../../util/errorToString";
 import { Editor as TipTapEditor } from "@tiptap/react";
 import { TauriEvent, UnlistenFn } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
+import UpdateCellRequest from "../../type/backend/dto/updateCellRequest";
 
 const autoSaveDelayInMilliSeconds = 2000;
 const oneMinuteInMilliSeconds = 60 * 1000;
 
-// TODO: add WINDOW_FOCUS event to focus on editor
+// TODO: refactor, file is too big now!
 interface Props {
 	editCellId: number | null;
 	onError: (error: string) => void;
@@ -110,24 +111,25 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 	useEffect(() => {
 		let unlisten: UnlistenFn;
 
-        void (async () => {
-            
-            unlisten = await getCurrentWindow()
-                .listen(TauriEvent.WINDOW_CLOSE_REQUESTED, () => {
-                    if (changedCellsIds.current.size > 0) {
-                        void (async () =>{
-                            await forceSave();
-                            await getCurrentWindow().destroy();
-                        })();
-                    } else {
-                        void getCurrentWindow().destroy();
-                    }
-                });
-        })();
+		void (async () => {
+			unlisten = await getCurrentWindow().listen(
+				TauriEvent.WINDOW_CLOSE_REQUESTED,
+				() => {
+					if (changedCellsIds.current.size > 0) {
+						void (async () => {
+							await forceSave();
+							await getCurrentWindow().destroy();
+						})();
+					} else {
+						void getCurrentWindow().destroy();
+					}
+				},
+			);
+		})();
 
 		return () => {
-            if (unlisten) void unlisten();
-        }
+			if (unlisten) void unlisten();
+		};
 	});
 
 	useBeforeUnload(e => {
@@ -216,14 +218,21 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 		});
 	}, [executeRequest, selectedFileId]);
 
-    // TODO: make it into a batch update since it is faster
 	const saveChanges = useCallback(async () => {
 		await executeRequest(async () => {
+			const requests: UpdateCellRequest[] = [];
+
 			for (const id of changedCellsIds.current) {
 				const cell = cellsRef.current.find(c => c.id === id);
 				if (!cell) continue;
-				await updateCellContent(id, cell.content);
+				requests.push({
+					cellId: id,
+					content: cell.content,
+				});
 			}
+
+			await updateCellsContents(requests);
+
 			changedCellsIds.current.clear();
 			await retrieveRepetitionCounts();
 		});

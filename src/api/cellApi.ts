@@ -1,5 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 import Cell from "../type/backend/entity/cell";
+import UpdateCellRequest from "../type/backend/dto/updateCellRequest";
 
 export function getFileCellsOrderedByIndex(fileId: number): Promise<Cell[]> {
 	return invoke("get_file_cells_ordered_by_index", {
@@ -7,12 +8,8 @@ export function getFileCellsOrderedByIndex(fileId: number): Promise<Cell[]> {
 	});
 }
 
-// TODO: update to take rust changes into here
-export function updateCellContent(cellId: number, content: string) {
-	return invoke("update_cell_content", {
-		cellId,
-		content,
-	});
+export function updateCellsContents(requests: UpdateCellRequest[]) {
+	return invoke("update_cells_contents", { requests });
 }
 
 export function createCell(cell: Cell) {
