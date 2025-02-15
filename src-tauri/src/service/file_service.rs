@@ -1,7 +1,7 @@
 use prelude::Expr;
 use sea_orm::{entity::*, query::*, DbConn};
 
-use crate::{dto::file_with_repetitions_count_dto::FileWithRepetitionsCount, entity::file};
+use crate::{dto::file_with_repetitions_count::FileWithRepetitionsCount, entity::file};
 
 use super::repetition_service;
 

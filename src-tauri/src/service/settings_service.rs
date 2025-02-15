@@ -7,7 +7,7 @@ use std::{
 use tokio::sync::Mutex;
 
 use crate::{
-    dto::update_settings_dto::UpdateSettingsRequest,
+    dto::update_settings_request::UpdateSettingsRequest,
     model::settings::{Settings, Theme},
     util::database_util::load_database,
 };

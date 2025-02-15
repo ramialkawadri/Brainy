@@ -15,7 +15,7 @@ use sea_orm::{entity::*, query::*};
 const SEED: [u8; 32] = [42u8; 32];
 
 pub async fn update_repetitions_for_cell(
-    db_conn: &DbConn,
+    db_conn: &impl ConnectionTrait,
     file_id: i32,
     cell_id: i32,
     cell_type: CellType,
@@ -48,34 +48,25 @@ pub async fn update_repetitions_for_cell(
         }
     }
 
-    let txn = match db_conn.begin().await {
-        Ok(txn) => txn,
-        Err(err) => return Err(err.to_string()),
-    };
-
     for active_model in repetitions_to_insert {
-        let result = repetition::Entity::insert(active_model).exec(&txn).await;
+        let result = repetition::Entity::insert(active_model).exec(db_conn).await;
         if let Err(err) = result {
             return Err(err.to_string());
         }
     }
 
     for id in repetitions_to_remove {
-        let result = repetition::Entity::delete_by_id(id).exec(&txn).await;
+        let result = repetition::Entity::delete_by_id(id).exec(db_conn).await;
         if let Err(err) = result {
             return Err(err.to_string());
         }
     }
 
-    let result = txn.commit().await;
-    match result {
-        Ok(_) => Ok(()),
-        Err(err) => Err(err.to_string()),
-    }
+    Ok(())
 }
 
 async fn get_repetitions_by_cell_id(
-    db_conn: &DbConn,
+    db_conn: &impl ConnectionTrait,
     cell_id: i32,
 ) -> Result<Vec<repetition::Model>, String> {
     let result = repetition::Entity::find()

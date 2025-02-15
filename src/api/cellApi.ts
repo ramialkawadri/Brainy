@@ -7,6 +7,7 @@ export function getFileCellsOrderedByIndex(fileId: number): Promise<Cell[]> {
 	});
 }
 
+// TODO: update to take rust changes into here
 export function updateCellContent(cellId: number, content: string) {
 	return invoke("update_cell_content", {
 		cellId,

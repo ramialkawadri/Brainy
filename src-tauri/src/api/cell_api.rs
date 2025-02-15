@@ -1,4 +1,5 @@
 use crate::{
+    dto::update_cell_request::UpdateCellRequest,
     entity::cell::{self, CellType},
     service::cell_service,
 };
@@ -44,13 +45,12 @@ pub async fn move_cell(
 }
 
 #[tauri::command]
-pub async fn update_cell_content(
+pub async fn update_cells_contents(
     db_conn: State<'_, Mutex<DbConn>>,
-    cell_id: i32,
-    content: String,
+    requests: Vec<UpdateCellRequest>,
 ) -> Result<(), String> {
     let db_conn = db_conn.lock().await;
-    cell_service::update_cell_content(&db_conn, cell_id, content).await
+    cell_service::update_cells_contents(&db_conn, requests).await
 }
 
 #[tauri::command]

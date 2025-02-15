@@ -1,4 +1,4 @@
-use crate::entity::cell::{self, CellType};
+use crate::{dto::update_cell_request::UpdateCellRequest, entity::cell::{self, CellType}};
 
 use prelude::Expr;
 use sea_orm::{entity::*, query::*, DbConn};
@@ -27,6 +27,7 @@ pub async fn create_cell(
     cell_type: CellType,
     index: i32,
 ) -> Result<i32, String> {
+    // TODO: update to a transaction
     increase_cells_indices_starting_from(db_conn, file_id, index, 1).await?;
 
     let active_model = cell::ActiveModel {
@@ -114,33 +115,47 @@ async fn increase_cells_indices_starting_from(
     }
 }
 
-pub async fn update_cell_content(
+// TODO: update unit tests
+pub async fn update_cells_contents(
     db_conn: &DbConn,
-    cell_id: i32,
-    content: String,
+    requests: Vec<UpdateCellRequest>,
 ) -> Result<(), String> {
-    let cell = get_cell_by_id(db_conn, cell_id).await?;
-    update_cell(
-        db_conn,
-        cell::ActiveModel {
-            id: Set(cell_id),
-            content: Set(content.clone()),
-            ..Default::default()
-        },
-    )
-    .await?;
 
-    repetition_service::update_repetitions_for_cell(
-        db_conn,
-        cell.file_id,
-        cell_id,
-        cell.cell_type,
-        &content,
-    )
-    .await
+    let txn = match db_conn.begin().await {
+        Ok(txn) => txn,
+        Err(err) => return Err(err.to_string()),
+    };
+
+    for request in requests {
+        let cell = get_cell_by_id(&txn, request.cell_id).await?;
+        update_cell(
+            &txn,
+            cell::ActiveModel {
+                id: Set(request.cell_id),
+                content: Set(request.content.clone()),
+                ..Default::default()
+            },
+        )
+        .await?;
+
+        repetition_service::update_repetitions_for_cell(
+            &txn,
+            cell.file_id,
+            request.cell_id,
+            cell.cell_type,
+            &request.content,
+        )
+        .await?;
+    }
+
+    let result = txn.commit().await;
+    match result {
+        Ok(_) => Ok(()),
+        Err(err) => Err(err.to_string()),
+    }
 }
 
-async fn get_cell_by_id(db_conn: &DbConn, cell_id: i32) -> Result<cell::Model, String> {
+async fn get_cell_by_id(db_conn: &impl ConnectionTrait, cell_id: i32) -> Result<cell::Model, String> {
     let result = cell::Entity::find_by_id(cell_id).one(db_conn).await;
     match result {
         Ok(cell) => Ok(cell.unwrap()),
@@ -324,31 +339,58 @@ mod tests {
     }
 
     #[tokio::test]
-    pub async fn update_cell_content_valid_input_content_updated() {
+    pub async fn update_cells_contents_valid_input_content_updated() {
         // Arrange
 
         let db_conn = get_db().await;
         let file_id = create_file(&db_conn, "file 1").await;
-        let cell_id = create_cell(
+        let cell1_id = create_cell(
             &db_conn,
             file_id,
-            "Old content".into(),
+            "Old content 1".into(),
             CellType::FlashCard,
             2,
         )
         .await
         .unwrap();
 
+        let cell2_id = create_cell(
+            &db_conn,
+            file_id,
+            "Old content 2".into(),
+            CellType::FlashCard,
+            2,
+        )
+        .await
+        .unwrap();
+
+        let requests = vec![
+            UpdateCellRequest {
+                cell_id: cell1_id, 
+                content: "New content 1".into(),
+            },
+
+            UpdateCellRequest {
+                cell_id: cell1_id, 
+                content: "New content 2".into(),
+            },
+        ];
+
         // Act
 
-        update_cell_content(&db_conn, cell_id, "New content".into())
+        update_cells_contents(&db_conn, requests)
             .await
             .unwrap();
 
         // Assert
 
-        let actual = get_cell_by_id(&db_conn, cell_id).await.unwrap();
-        assert_eq!(actual.content, "New content".to_string());
+        let actual_cell1 = get_cell_by_id(&db_conn, cell1_id).await.unwrap();
+        assert_eq!(actual_cell1.content, "New content 1".to_string());
+
+        let actual_cell2 = get_cell_by_id(&db_conn, cell2_id).await.unwrap();
+        assert_eq!(actual_cell2.content, "New content 2".to_string());
+
+        // TODO: check repetitions
     }
 
     #[tokio::test]

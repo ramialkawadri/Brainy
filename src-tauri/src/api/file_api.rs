@@ -1,5 +1,5 @@
 use crate::{
-    dto::file_with_repetitions_count_dto::FileWithRepetitionsCount, service::file_service,
+    dto::file_with_repetitions_count::FileWithRepetitionsCount, service::file_service,
 };
 use sea_orm::DbConn;
 use tauri::State;
