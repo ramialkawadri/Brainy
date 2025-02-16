@@ -13,7 +13,6 @@ import Superscript from "@tiptap/extension-superscript";
 import ImageResize from "tiptap-extension-resize-image";
 import BubbleMenuCommand, { Command } from "./Command";
 import { defaultCommands } from "./defaultCommands";
-import Image from "@tiptap/extension-image";
 import { useEffect } from "react";
 
 const extensions = [
@@ -24,9 +23,6 @@ const extensions = [
 	Underline,
 	Subscript,
 	Superscript,
-	Image.configure({
-		allowBase64: true,
-	}),
 ];
 
 interface Props {
