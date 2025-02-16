@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import styles from "./styles.module.css";
 import ReviewerCell from "../ReviewerCell/ReviewerCell";
 import Icon from "@mdi/react";
-import { mdiClockOutline, mdiPencilOutline } from "@mdi/js";
+import { mdiPencilOutline } from "@mdi/js";
 import { FSRS, generatorParameters, Grade, Rating, RecordLog } from "ts-fsrs";
 import createCardFromCellRepetition from "../../util/createCardFromRepetition";
 import durationToString from "../../util/durationToString";
@@ -11,8 +11,8 @@ import Repetition from "../../type/backend/entity/repetition";
 import createRepetitionFromCard from "../../util/createRepetitionFromCard";
 import Cell from "../../type/backend/entity/cell";
 import { updateRepetition } from "../../api/repetitionApi";
+import Timer from "./Timer";
 
-// TODO: move tiemr to its own component
 interface Props {
 	cells: Cell[];
 	cellRepetitions: Repetition[];
@@ -34,13 +34,8 @@ function Reviewer({
 	const [showAnswer, setShowAnswer] = useState(false);
 	const [currentCellIndex, setCurrentCellIndex] = useState(0);
 	const [isSendingRequest, setIsSendingRequest] = useState(false);
-	const [timerTime, setTimerTime] = useState(0);
 	const startTime = useRef(new Date());
 
-	useEffect(() => {
-		const intervalId = setInterval(() => setTimerTime(timerTime + 1), 1000);
-		return () => clearInterval(intervalId);
-	}, [timerTime]);
 
 	const dueToday = cellRepetitions.filter(
 		c => new Date(c.due) <= startTime.current,
@@ -268,31 +263,7 @@ function Reviewer({
 					</div>
 				)}
 
-				<div className={styles.timerContainer}>
-					<div className="row">
-						<Icon path={mdiClockOutline} size={1} />
-						<p>
-							{timerTime >= 60 * 60 &&
-								Math.floor(
-									timerTime / (60 * 60),
-								).toLocaleString("en-US", {
-									minimumIntegerDigits: 2,
-									useGrouping: false,
-								}) + ":"}
-							{Math.floor(
-								(timerTime % (60 * 60)) / 60,
-							).toLocaleString("en-US", {
-								minimumIntegerDigits: 2,
-								useGrouping: false,
-							})}
-							:
-							{(timerTime % 60).toLocaleString("en-US", {
-								minimumIntegerDigits: 2,
-								useGrouping: false,
-							})}
-						</p>
-					</div>
-				</div>
+                <Timer />
 			</div>
 		</div>
 	);

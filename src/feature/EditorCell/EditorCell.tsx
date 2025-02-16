@@ -28,7 +28,7 @@ function EditorCell({ cell, editable, autofocus, onUpdate, onFocus }: Props) {
 		case "Note":
 			return (
 				<RichTextEditor
-					content={cell.content}
+					initialContent={cell.content}
 					editable={editable}
 					onUpdate={onUpdate}
 					autofocus={autofocus}

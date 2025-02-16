@@ -26,7 +26,7 @@ const extensions = [
 ];
 
 interface Props {
-	content: string;
+	initialContent: string;
 	title?: string;
 	editable?: boolean;
 	extraExtensions?: AnyExtension[];
@@ -38,7 +38,7 @@ interface Props {
 }
 
 function RichTextEditor({
-	content,
+	initialContent,
 	title,
 	editable,
 	extraExtensions,
@@ -51,9 +51,9 @@ function RichTextEditor({
 	const editor = useEditor(
 		{
 			extensions: [...extensions, ...(extraExtensions ?? [])],
-			content,
+			content: initialContent,
 			onUpdate: e => {
-				if (e.editor.getHTML() !== content)
+				if (e.editor.getHTML() !== initialContent)
 					onUpdate(e.editor.getHTML());
 			},
 			onFocus: onFocus ? e => onFocus(e.editor) : undefined,

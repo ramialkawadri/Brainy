@@ -13,7 +13,7 @@ interface Props {
 	onDragLeave: () => void;
 	onDrop: () => void;
 	onAddNewCell: (cellType: CellType) => void;
-    onPopupHide: () => void;
+	onPopupHide: () => void;
 }
 
 function AddCellContainer({
@@ -22,17 +22,20 @@ function AddCellContainer({
 	onDrop,
 	onDragLeave,
 	onAddNewCell,
-    onPopupHide,
+	onPopupHide,
 }: Props) {
 	const [showAddNewCellPopup, setShowAddNewCellPopup] = useState(false);
 	const addNewCellPopupRef = useRef<HTMLDivElement>(null);
 
-    const hidePopup = () => {
-        onPopupHide();
-        setShowAddNewCellPopup(false);
-    };
+	const hidePopup = () => {
+		onPopupHide();
+		setShowAddNewCellPopup(false);
+	};
 
-	useOutsideClick(addNewCellPopupRef as React.RefObject<HTMLElement>, hidePopup);
+	useOutsideClick(
+		addNewCellPopupRef as React.RefObject<HTMLElement>,
+		hidePopup,
+	);
 
 	useGlobalKey(e => {
 		if (e.key === "Escape") {

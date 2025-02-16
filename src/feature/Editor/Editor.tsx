@@ -56,9 +56,8 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 			review: 0,
 		});
 	const [cells, setCells] = useState<Cell[]>([]);
-	// This ref is only used for keeping a copy of the cells and is used only
-	// before the component is unmounted.
-	const cellsRef = useRef(cells);
+	// This ref is only used for keeping updated cells that are not yet saved.
+	const updatedCells = useRef(cells);
 	const tipTapEditorRef = useRef<TipTapEditor | null>(null);
 	const selectedFileId = useAppSelector(selectSelectedFileId)!;
 	const editorRef = useRef<HTMLDivElement>(null);
@@ -203,6 +202,7 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 			const fetchedCells =
 				await getFileCellsOrderedByIndex(selectedFileId);
 			setCells(fetchedCells);
+			updatedCells.current = fetchedCells;
 			return fetchedCells;
 		});
 	}, [executeRequest, selectedFileId]);
@@ -212,7 +212,7 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 			const requests: UpdateCellRequest[] = [];
 
 			for (const id of changedCellsIds.current) {
-				const cell = cellsRef.current.find(c => c.id === id);
+				const cell = updatedCells.current.find(c => c.id === id);
 				if (!cell) continue;
 				requests.push({
 					cellId: id,
@@ -221,9 +221,9 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 			}
 
 			await updateCellsContents(requests);
-
 			changedCellsIds.current.clear();
 			await retrieveRepetitionCounts();
+			setCells(updatedCells.current);
 		});
 	}, [executeRequest, retrieveRepetitionCounts]);
 
@@ -237,12 +237,12 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 
 	const handleUpdate = (content: string, index: number, id: number) => {
 		changedCellsIds.current.add(id);
-		const newCells = [...cells];
+		const newCells = [...updatedCells.current];
 		newCells[index] = {
-			...cells[index],
+			...updatedCells.current[index],
 			content,
 		};
-		setCells(newCells);
+		updatedCells.current = newCells;
 
 		if (autoSaveTimeoutId.current !== null) {
 			clearTimeout(autoSaveTimeoutId.current);
@@ -263,10 +263,6 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 	}, [saveChanges]);
 
 	useEffect(() => {
-		cellsRef.current = cells;
-	}, [cells]);
-
-	useEffect(() => {
 		return () => void forceSave();
 	}, [forceSave]);
 
@@ -280,6 +276,7 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 	};
 
 	const handleCellDeleteConfirm = async () => {
+        await forceSave();
 		setShowDeleteDialog(false);
 		const cellIndex = cells.findIndex(c => c.id === selectedCellId);
 		await executeRequest(async () => await deleteCell(selectedCellId!));
@@ -421,7 +418,9 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 					onAddNewCell={cellType =>
 						void insertNewCell(cellType, cells.length)
 					}
-                    onPopupHide={() => tipTapEditorRef.current?.commands.focus()}
+					onPopupHide={() =>
+						tipTapEditorRef.current?.commands.focus()
+					}
 				/>
 			</div>
 		</div>

@@ -3,6 +3,7 @@ import Cell from "../../type/backend/entity/cell";
 import TrueFalse from "../../type/cell/trueFalse";
 import RichTextEditor from "../../ui/RichTextEditor/RichTextEditor";
 import styles from "./styles.module.css";
+import { useState } from "react";
 
 interface Props {
 	cell: Cell;
@@ -21,27 +22,34 @@ export function TrueFalseCell({
 }: Props) {
 	const trueFalse = JSON.parse(cell.content) as TrueFalse;
 
-	const handleQuestionUpdate = (html: string) =>
+	const [question, setQuestion] = useState(trueFalse.question);
+	const [isTrue, setIsTrue] = useState(trueFalse.isTrue);
+
+	const handleQuestionUpdate = (html: string) => {
+		setQuestion(html);
 		onUpdate(
 			JSON.stringify({
 				question: html,
-				isTrue: trueFalse.isTrue,
+				isTrue: isTrue,
 			} as TrueFalse),
 		);
+	};
 
-	const handleTrueFalseUpdate = (isTrue: boolean) =>
+	const handleTrueFalseUpdate = (isTrue: boolean) => {
+		setIsTrue(isTrue);
 		onUpdate(
 			JSON.stringify({
-				question: trueFalse.question,
+				question: question,
 				isTrue,
 			} as TrueFalse),
 		);
+	};
 
 	return (
 		<div className={styles.trueFalse}>
 			<RichTextEditor
 				title="Question"
-				content={trueFalse.question}
+				initialContent={question}
 				onUpdate={handleQuestionUpdate}
 				editable={editable}
 				autofocus={autofocus}
@@ -49,7 +57,7 @@ export function TrueFalseCell({
 			/>
 			<div className={styles.buttonsRow}>
 				<button
-					className={`transparent ${trueFalse.isTrue && styles.checked}`}
+					className={`transparent ${isTrue && styles.checked}`}
 					onClick={e => {
 						e.stopPropagation();
 						handleTrueFalseUpdate(true);
@@ -57,7 +65,7 @@ export function TrueFalseCell({
 					True
 				</button>
 				<button
-					className={`transparent ${!trueFalse.isTrue && styles.checked}`}
+					className={`transparent ${!isTrue && styles.checked}`}
 					onClick={e => {
 						e.stopPropagation();
 						handleTrueFalseUpdate(false);
