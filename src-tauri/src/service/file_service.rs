@@ -197,7 +197,7 @@ pub async fn rename_file(db_conn: &DbConn, file_id: i32, new_name: String) -> Re
 
     let new_path = apply_new_name(&file.path, &new_name);
     if file.path == new_path {
-        return Ok(())
+        return Ok(());
     }
 
     if file_exists(db_conn, new_path.clone()).await? {
