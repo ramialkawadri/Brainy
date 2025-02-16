@@ -40,7 +40,7 @@ function AddCellContainer({
 	useGlobalKey(e => {
 		if (e.key === "Escape") {
 			hidePopup();
-		} else if (e.ctrlKey && e.code === "Enter") {
+		} else if (e.ctrlKey && !e.shiftKey && e.code === "Enter") {
 			setShowAddNewCellPopup(true);
 		}
 	}, "keydown");

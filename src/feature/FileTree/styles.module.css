@@ -109,7 +109,7 @@
 	width: 100%;
 	text-align: left;
 	display: grid;
-	grid-template-columns: 1fr 7fr 3.6rem;
+	grid-template-columns: 1fr 7fr 4.6rem;
 	gap: var(--small-padding);
 	align-items: center;
 }
