@@ -12,6 +12,7 @@ import createRepetitionFromCard from "../../util/createRepetitionFromCard";
 import Cell from "../../type/backend/entity/cell";
 import { updateRepetition } from "../../api/repetitionApi";
 
+// TODO: move tiemr to its own component
 interface Props {
 	cells: Cell[];
 	cellRepetitions: Repetition[];

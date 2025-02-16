@@ -15,7 +15,6 @@ import NewCellTypeSelector from "./NewCellTypeSelector";
 import Icon from "@mdi/react";
 import getCellIcon from "../../util/getCellIcon";
 import EditorCell from "../EditorCell/EditorCell";
-import { mdiPlus } from "@mdi/js";
 import FileRepetitionCounts from "../../type/backend/model/fileRepetitionCounts";
 import useBeforeUnload from "../../hooks/useBeforeUnload";
 import {
@@ -31,11 +30,11 @@ import { Editor as TipTapEditor } from "@tiptap/react";
 import { TauriEvent, UnlistenFn } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import UpdateCellRequest from "../../type/backend/dto/updateCellRequest";
+import AddCellContainer from "./AddCellContainer";
 
 const autoSaveDelayInMilliSeconds = 2000;
 const oneMinuteInMilliSeconds = 60 * 1000;
 
-// TODO: refactor, file is too big now!
 interface Props {
 	editCellId: number | null;
 	onError: (error: string) => void;
@@ -46,8 +45,6 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 	// Used for the focus tools.
 	const [showInsertNewCell, setShowInsertNewCell] = useState(false);
-	// Used for the add button at the end.
-	const [showAddNewCellPopup, setShowAddNewCellPopup] = useState(false);
 	const [selectedCellId, setSelectedCellId] = useState<number | null>(null);
 	const [draggedCellId, setDraggedCellId] = useState<number | null>(null);
 	const [dragOverCellId, setDragOverCellId] = useState<number | null>(null);
@@ -64,7 +61,6 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 	const cellsRef = useRef(cells);
 	const tipTapEditorRef = useRef<TipTapEditor | null>(null);
 	const selectedFileId = useAppSelector(selectSelectedFileId)!;
-	const addNewCellPopupRef = useRef<HTMLDivElement>(null);
 	const editorRef = useRef<HTMLDivElement>(null);
 	const autoSaveTimeoutId = useRef<number>(null);
 	// Used to store the ids of the changed cells so that we update them all
@@ -74,20 +70,16 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 	useOutsideClick(editorRef as React.RefObject<HTMLElement>, () =>
 		setShowInsertNewCell(false),
 	);
-	useOutsideClick(addNewCellPopupRef as React.RefObject<HTMLElement>, () =>
-		setShowAddNewCellPopup(false),
-	);
 
 	useEffect(() => {
 		if (
 			tipTapEditorRef.current &&
 			!showInsertNewCell &&
-			!showAddNewCellPopup &&
 			!showDeleteDialog
 		) {
 			tipTapEditorRef.current.commands.focus();
 		}
-	}, [showInsertNewCell, showAddNewCellPopup, showDeleteDialog]);
+	}, [showInsertNewCell, showDeleteDialog]);
 
 	useEffect(() => {
 		void (async () => {
@@ -139,12 +131,9 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 
 	const handleKeyDown = (e: React.KeyboardEvent) => {
 		if (e.key === "Escape") {
-			setShowAddNewCellPopup(false);
 			setShowInsertNewCell(false);
 		} else if (e.ctrlKey && e.shiftKey && e.code === "Enter") {
 			setShowInsertNewCell(!showInsertNewCell);
-		} else if (e.ctrlKey && e.code === "Enter") {
-			setShowAddNewCellPopup(!showAddNewCellPopup);
 		} else if (e.code === "F5") {
 			e.preventDefault();
 			void startStudy();
@@ -288,7 +277,6 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 		if (cells) setSelectedCellId(cells[index].id!);
 		await retrieveRepetitionCounts();
 		setShowInsertNewCell(false);
-		setShowAddNewCellPopup(false);
 	};
 
 	const handleCellDeleteConfirm = async () => {
@@ -425,31 +413,16 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 					</div>
 				))}
 
-				<div
-					className={`${styles.addButtonContainer}
-                        ${dragOverCellId === cells.length ? styles.dragOver : ""}`}
+				<AddCellContainer
+					isDragOver={dragOverCellId === cells.length}
 					onDragOver={e => handleDragOver(e, cells.length)}
 					onDrop={() => void handleDrop(cells.length)}
-					onDragLeave={() => setDragOverCellId(null)}>
-					<button
-						className={`${styles.addButton} grey-button`}
-						onClick={() => setShowAddNewCellPopup(true)}>
-						<Icon path={mdiPlus} size={1} />
-						<span title="Ctrl + Enter">Add Cell</span>
-					</button>
-				</div>
-
-				{showAddNewCellPopup && (
-					<div className="overlay">
-						<NewCellTypeSelector
-							className={styles.overlayCellSelector}
-							onClick={cellType =>
-								void insertNewCell(cellType, cells.length)
-							}
-							ref={addNewCellPopupRef}
-						/>
-					</div>
-				)}
+					onDragLeave={() => setDragOverCellId(null)}
+					onAddNewCell={cellType =>
+						void insertNewCell(cellType, cells.length)
+					}
+                    onPopupHide={() => tipTapEditorRef.current?.commands.focus()}
+				/>
 			</div>
 		</div>
 	);
