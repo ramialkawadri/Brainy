@@ -97,7 +97,7 @@ function SettingsPopup({ onClose, onError, onUpdate }: Props) {
 								type="text"
 								value={settings?.databaseLocation ?? ""}
 								readOnly
-                                autoFocus
+								autoFocus
 							/>
 							<button
 								className="transparent"

@@ -5,7 +5,6 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
 // @ts-expect-error process is a nodejs global
-// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 const host = process.env.TAURI_DEV_HOST as string | null;
 
 // https://vitejs.dev/config/
