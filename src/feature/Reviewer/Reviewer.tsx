@@ -36,7 +36,6 @@ function Reviewer({
 	const [isSendingRequest, setIsSendingRequest] = useState(false);
 	const startTime = useRef(new Date());
 
-
 	const dueToday = cellRepetitions.filter(
 		c => new Date(c.due) <= startTime.current,
 	);
@@ -263,7 +262,7 @@ function Reviewer({
 					</div>
 				)}
 
-                <Timer />
+				<Timer />
 			</div>
 		</div>
 	);

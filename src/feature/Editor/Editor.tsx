@@ -276,7 +276,7 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 	};
 
 	const handleCellDeleteConfirm = async () => {
-        await forceSave();
+		await forceSave();
 		setShowDeleteDialog(false);
 		const cellIndex = cells.findIndex(c => c.id === selectedCellId);
 		await executeRequest(async () => await deleteCell(selectedCellId!));
