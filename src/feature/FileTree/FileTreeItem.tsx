@@ -1,3 +1,4 @@
+import { save as openSaveDialog } from '@tauri-apps/plugin-dialog';
 import Icon from "@mdi/react";
 import styles from "./styles.module.css";
 import {
@@ -29,6 +30,7 @@ import {
 import getFileName from "../../util/getFileName";
 import { setSelectedFileId } from "../../store/reducers/fileSystemReducers";
 import UiFolder from "../../type/ui/uiFolder";
+import { exportItem } from "../../api/exportImportApi";
 
 const dragFormatForFolder = "brainy/folderpath";
 const dragFormatForFile = "brainy/filepath";
@@ -116,17 +118,28 @@ function FileTreeItem({
 		);
 	}
 
-    // TODO: ask user for path
     actions.push(
     {
         iconName: mdiExport,
         text: "Export", 
         onClick: () =>
         {
-            console.log("Clicked export");
+            void (async () => {
+                setShowActions(false);
+                const path = await openSaveDialog({
+                    filters: [{
+                        name: "JSON file",
+                        extensions: ["json"],
+                    }],
+                });
+                if (!path) return;
+                await exportItem(id, path);
+                console.log("Clicked export");
+            })();
         },
     },
     {
+        // TODO:
         iconName: mdiImport,
         text: "Import", 
         onClick: () =>

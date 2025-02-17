@@ -257,7 +257,7 @@ pub async fn rename_folder(
     Ok(())
 }
 
-async fn get_folder_sub_files(db_conn: &DbConn, id: i32) -> Result<Vec<file::Model>, String> {
+pub async fn get_folder_sub_files(db_conn: &DbConn, id: i32) -> Result<Vec<file::Model>, String> {
     let folder = get_by_id(db_conn, id).await?;
     let result = file::Entity::find()
         .filter(file::Column::Path.starts_with(folder.path + "/"))
@@ -281,7 +281,7 @@ async fn update_path(db_conn: &DbConn, id: i32, new_path: String) -> Result<(), 
     }
 }
 
-async fn get_by_id(db_conn: &DbConn, id: i32) -> Result<file::Model, String> {
+pub async fn get_by_id(db_conn: &DbConn, id: i32) -> Result<file::Model, String> {
     let result = file::Entity::find_by_id(id).one(db_conn).await;
     match result {
         Ok(result) => Ok(result.unwrap()),
