@@ -354,74 +354,84 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 				onStudyButtonClick={() => void startStudy()}
 			/>
 
-			<div
-				className={`container ${styles.editorContainer}`}
-				ref={editorRef}>
-				{cells.length === 0 && <p>The file is empty</p>}
+			<div className={styles.outerEditorContainer}>
+				<div
+					className={`container ${styles.editorContainer}`}
+					ref={editorRef}>
+					{cells.length === 0 && <p>The file is empty</p>}
 
-				{cells.map((cell, i) => (
-					<div
-						key={cell.id}
-						onFocus={() => selectCell(cell.id!)}
-						onClick={() => handleCellClick(cell.id!)}
-						onDragOver={e => handleDragOver(e, cell.id!)}
-						onDragLeave={() => setDragOverCellId(null)}
-						onDrop={() => void handleDrop(i)}
-						className={`${styles.cell}
+					{cells.map((cell, i) => (
+						<div
+							key={cell.id}
+							onFocus={() => selectCell(cell.id!)}
+							onClick={() => handleCellClick(cell.id!)}
+							onDragOver={e => handleDragOver(e, cell.id!)}
+							onDragLeave={() => setDragOverCellId(null)}
+							onDrop={() => void handleDrop(i)}
+							className={`${styles.cell}
                             ${selectedCellId === cell.id ? styles.selectedCell : ""}
                             ${dragOverCellId === cell.id ? styles.dragOver : ""}
                             ${draggedCellId === cell.id ? styles.dragging : ""}`}>
-						{selectedCellId === cell.id && (
-							<FocusTools
-								onInsert={() =>
-									setShowInsertNewCell(!showInsertNewCell)
-								}
-								onDelete={() => setShowDeleteDialog(true)}
-								onDragStart={e => handleDragStart(e, cell.id!)}
-								onDragEnd={() => setDraggedCellId(null)}
-							/>
-						)}
+							{selectedCellId === cell.id && (
+								<FocusTools
+									onInsert={() =>
+										setShowInsertNewCell(!showInsertNewCell)
+									}
+									onDelete={() => setShowDeleteDialog(true)}
+									onDragStart={e =>
+										handleDragStart(e, cell.id!)
+									}
+									onDragEnd={() => setDraggedCellId(null)}
+								/>
+							)}
 
-						{showInsertNewCell && selectedCellId === cell.id && (
-							<NewCellTypeSelector
-								className={styles.insertCellPopup}
-								onClick={cellType =>
-									void insertNewCell(cellType, i + 1)
+							{showInsertNewCell &&
+								selectedCellId === cell.id && (
+									<NewCellTypeSelector
+										className={styles.insertCellPopup}
+										onClick={cellType =>
+											void insertNewCell(cellType, i + 1)
+										}
+									/>
+								)}
+
+							<div className={styles.cellTitle}>
+								<Icon
+									path={getCellIcon(cell.cellType)}
+									size={1}
+								/>
+								<span>
+									{cellTypesDisplayNames[cell.cellType]}
+								</span>
+							</div>
+
+							<EditorCell
+								cell={cell}
+								editable={draggedCellId === null}
+								autofocus={selectedCellId === cell.id}
+								onUpdate={content =>
+									handleUpdate(content, i, cell.id!)
+								}
+								onFocus={editor =>
+									(tipTapEditorRef.current = editor)
 								}
 							/>
-						)}
-
-						<div className={styles.cellTitle}>
-							<Icon path={getCellIcon(cell.cellType)} size={1} />
-							<span>{cellTypesDisplayNames[cell.cellType]}</span>
 						</div>
+					))}
 
-						<EditorCell
-							cell={cell}
-							editable={draggedCellId === null}
-							autofocus={selectedCellId === cell.id}
-							onUpdate={content =>
-								handleUpdate(content, i, cell.id!)
-							}
-							onFocus={editor =>
-								(tipTapEditorRef.current = editor)
-							}
-						/>
-					</div>
-				))}
-
-				<AddCellContainer
-					isDragOver={dragOverCellId === cells.length}
-					onDragOver={e => handleDragOver(e, cells.length)}
-					onDrop={() => void handleDrop(cells.length)}
-					onDragLeave={() => setDragOverCellId(null)}
-					onAddNewCell={cellType =>
-						void insertNewCell(cellType, cells.length)
-					}
-					onPopupHide={() =>
-						tipTapEditorRef.current?.commands.focus()
-					}
-				/>
+					<AddCellContainer
+						isDragOver={dragOverCellId === cells.length}
+						onDragOver={e => handleDragOver(e, cells.length)}
+						onDrop={() => void handleDrop(cells.length)}
+						onDragLeave={() => setDragOverCellId(null)}
+						onAddNewCell={cellType =>
+							void insertNewCell(cellType, cells.length)
+						}
+						onPopupHide={() =>
+							tipTapEditorRef.current?.commands.focus()
+						}
+					/>
+				</div>
 			</div>
 		</div>
 	);

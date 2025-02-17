@@ -1,4 +1,4 @@
-import { save as openSaveDialog } from '@tauri-apps/plugin-dialog';
+import { save as openSaveDialog } from "@tauri-apps/plugin-dialog";
 import Icon from "@mdi/react";
 import styles from "./styles.module.css";
 import {
@@ -73,12 +73,12 @@ function FileTreeItem({
 
 	const actions: Action[] = [];
 
-    const showCreateNewFileInput = () => {
-        setCreatingNewFolder(false);
-        setCreatingNewFile(true);
-        setIsOpen(true);
-        setShowActions(false);
-    };
+	const showCreateNewFileInput = () => {
+		setCreatingNewFolder(false);
+		setCreatingNewFile(true);
+		setIsOpen(true);
+		setShowActions(false);
+	};
 
 	if (folder) {
 		actions.push(
@@ -96,7 +96,7 @@ function FileTreeItem({
 				iconName: mdiFileDocumentPlusOutline,
 				text: "New File",
 				onClick: showCreateNewFileInput,
-                shortcut: "Ctrl + N",
+				shortcut: "Ctrl + N",
 			},
 		);
 	}
@@ -118,35 +118,36 @@ function FileTreeItem({
 		);
 	}
 
-    actions.push(
-    {
-        iconName: mdiExport,
-        text: "Export", 
-        onClick: () =>
-        {
-            void (async () => {
-                setShowActions(false);
-                const path = await openSaveDialog({
-                    filters: [{
-                        name: "JSON file",
-                        extensions: ["json"],
-                    }],
-                });
-                if (!path) return;
-                await exportItem(id, path);
-                console.log("Clicked export");
-            })();
-        },
-    },
-    {
-        // TODO:
-        iconName: mdiImport,
-        text: "Import", 
-        onClick: () =>
-        {
-            console.log("Clicked import");
-        },
-    });
+	actions.push(
+		{
+			iconName: mdiExport,
+			text: "Export",
+			onClick: () => {
+				void (async () => {
+					setShowActions(false);
+					const path = await openSaveDialog({
+						filters: [
+							{
+								name: "JSON file",
+								extensions: ["json"],
+							},
+						],
+					});
+					if (!path) return;
+					await exportItem(id, path);
+					console.log("Clicked export");
+				})();
+			},
+		},
+		{
+			// TODO:
+			iconName: mdiImport,
+			text: "Import",
+			onClick: () => {
+				console.log("Clicked import");
+			},
+		},
+	);
 
 	function enableRenaming() {
 		if (isRoot) return;
@@ -192,19 +193,19 @@ function FileTreeItem({
 	};
 
 	const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-        e.stopPropagation();
+		e.stopPropagation();
 
 		if (e.key === "F2") {
 			enableRenaming();
 		} else if (e.key === "Delete" && !renaming) {
 			markForDeletion();
 		} else if (e.ctrlKey && e.key.toLowerCase() === "n") {
-            showCreateNewFileInput();
-        } else if (e.key === "Escape") {
-            setShowActions(false);
-            setCreatingNewFile(false);
-            setCreatingNewFolder(false);
-        }
+			showCreateNewFileInput();
+		} else if (e.key === "Escape") {
+			setShowActions(false);
+			setCreatingNewFile(false);
+			setCreatingNewFolder(false);
+		}
 	};
 
 	const handleCreateNewItemSubmit = async (
@@ -225,7 +226,7 @@ function FileTreeItem({
 	const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
 		e.stopPropagation();
 		if (renaming) return;
-        setShowActions(false);
+		setShowActions(false);
 		const format = folder ? dragFormatForFolder : dragFormatForFile;
 		e.dataTransfer.setData(format, id.toString());
 	};
@@ -267,7 +268,8 @@ function FileTreeItem({
 				className={`${styles.outerContainer} ${isDragOver ? styles.dragOver : ""}`}
 				onDragOver={handleDragOver}
 				onDragLeave={handleDragLeave}
-				onDrop={e => void handleDrop(e)} onKeyDown={handleKeyDown}>
+				onDrop={e => void handleDrop(e)}
+				onKeyDown={handleKeyDown}>
 				<div
 					className={`${styles.fileTreeItem}`}
 					draggable={!isRoot && !renaming}
@@ -275,8 +277,7 @@ function FileTreeItem({
 					<button
 						className={`${styles.fileTreeButton}
                 ${isSelected && !folder && !renaming ? "primary" : "transparent"}`}
-						onClick={e => void handleClick(e)}
-						>
+						onClick={e => void handleClick(e)}>
 						<Icon
 							path={
 								isRoot
