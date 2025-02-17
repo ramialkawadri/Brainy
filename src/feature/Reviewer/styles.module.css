@@ -5,6 +5,7 @@
 	justify-content: space-between;
 	flex-direction: column;
 	position: relative;
+	background-color: var(--default-background-color);
 }
 
 .container {
@@ -16,7 +17,6 @@
 	display: flex;
 	gap: 1rem;
 	flex-direction: column;
-	background-color: var(--default-background-color);
 	height: 100%;
 
 	& ol,
