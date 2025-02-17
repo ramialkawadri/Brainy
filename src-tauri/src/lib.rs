@@ -10,6 +10,7 @@ use service::settings_service;
 use tauri::Manager;
 
 use api::*;
+use tauri_plugin_window_state::StateFlags;
 use tokio::sync::Mutex;
 use util::database_util::load_database;
 
@@ -18,7 +19,25 @@ pub async fn run() -> Result<(), String> {
     settings_service::init_settings();
     let db_conn = load_database(&settings_service::get_settings().database_location).await;
 
-    tauri::Builder::default()
+    let mut tauri_builder = tauri::Builder::default();
+
+    #[cfg(desktop)]
+    {
+        tauri_builder =
+            tauri_builder.plugin(tauri_plugin_single_instance::init(|app, _, _| {
+                let _ = app
+                    .get_webview_window("main")
+                    .expect("no main window")
+                    .set_focus();
+            }));
+    }
+
+    tauri_builder
+        .plugin(
+            tauri_plugin_window_state::Builder::new()
+                .with_state_flags(StateFlags::SIZE | StateFlags::POSITION)
+                .build(),
+        )
         .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
             app.manage(Mutex::new(db_conn));

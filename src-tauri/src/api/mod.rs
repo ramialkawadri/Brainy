@@ -1,8 +1,8 @@
 mod cell_api;
+mod export_import_api;
 mod file_api;
 mod repetition_api;
 mod settings_api;
-mod export_import_api;
 
 pub use repetition_api::{
     get_file_repetitions, get_repetitions_for_files, get_study_repetition_counts, update_repetition,

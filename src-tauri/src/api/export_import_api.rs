@@ -7,7 +7,7 @@ use tokio::sync::Mutex;
 pub async fn export_item(
     db_conn: State<'_, Mutex<DbConn>>,
     item_id: i32,
-    export_path: String
+    export_path: String,
 ) -> Result<(), String> {
     let db_conn = db_conn.lock().await;
     export_import_service::export_item(&db_conn, item_id, export_path).await
