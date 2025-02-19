@@ -124,6 +124,7 @@ function FileTreeItem({
 			text: "Export",
 			onClick: () => {
 				void (async () => {
+                    // TODO: initial name is the same as current folder/file name
 					setShowActions(false);
 					const path = await openSaveDialog({
 						filters: [

@@ -234,6 +234,11 @@ pub async fn rename_folder(
 
     let folder = get_by_id(db_conn, folder_id).await?;
     let new_path = apply_new_name(&folder.path, &new_name);
+
+    if new_path == folder.path {
+        return Ok(());
+    }
+
     if folder_exists(db_conn, new_path.clone()).await? {
         return Err("Another folder with the same name already exists!".into());
     }
@@ -267,6 +272,20 @@ pub async fn get_folder_sub_files(db_conn: &DbConn, id: i32) -> Result<Vec<file:
         Ok(rows) => Ok(rows),
         Err(err) => return Err(err.to_string()),
     }
+}
+
+// TODO: test
+pub async fn get_folder_direct_sub_files(
+    db_conn: &DbConn,
+    id: i32,
+) -> Result<Vec<file::Model>, String> {
+    let folder = get_by_id(db_conn, id).await?;
+    let sub_files = get_folder_sub_files(db_conn, id).await?;
+    let slashes_count = folder.path.chars().filter(|c| *c == '/').count();
+    Ok(sub_files
+        .into_iter()
+        .filter(|sub_file| sub_file.path.chars().filter(|c| *c == '/').count() == slashes_count + 1)
+        .collect())
 }
 
 async fn update_path(db_conn: &DbConn, id: i32, new_path: String) -> Result<(), String> {
