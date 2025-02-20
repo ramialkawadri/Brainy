@@ -169,19 +169,19 @@ pub async fn move_folder(
         return Err("Another folder with the same name exists!".into());
     }
 
-    let sub_files = get_folder_sub_files(db_conn, folder_id).await?;
+    let folder_children = list_folder_children_recursively(db_conn, folder_id).await?;
 
     update_path(db_conn, folder_id, new_path.clone()).await?;
 
-    for row in sub_files {
+    for child in folder_children {
         let new_row_path = new_path.clone()
-            + row
+            + child
                 .path
                 .chars()
                 .skip(folder.path.len())
                 .collect::<String>()
                 .as_str();
-        update_path(db_conn, row.id, new_row_path).await?;
+        update_path(db_conn, child.id, new_row_path).await?;
     }
 
     Ok(())
@@ -243,26 +243,26 @@ pub async fn rename_folder(
         return Err("Another folder with the same name already exists!".into());
     }
 
-    let sub_files = get_folder_sub_files(db_conn, folder_id).await?;
+    let folder_children = list_folder_children_recursively(db_conn, folder_id).await?;
 
     update_path(db_conn, folder_id, new_path.clone()).await?;
     create_folder_recursively(db_conn, &get_folder_path(&new_path)).await?;
 
-    for row in sub_files {
+    for child in folder_children {
         let new_row_path = new_path.clone()
-            + row
+            + child
                 .path
                 .chars()
                 .skip(folder.path.len())
                 .collect::<String>()
                 .as_str();
-        update_path(db_conn, row.id, new_row_path).await?;
+        update_path(db_conn, child.id, new_row_path).await?;
     }
 
     Ok(())
 }
 
-pub async fn get_folder_sub_files(db_conn: &DbConn, id: i32) -> Result<Vec<file::Model>, String> {
+pub async fn list_folder_children_recursively(db_conn: &DbConn, id: i32) -> Result<Vec<file::Model>, String> {
     let folder = get_by_id(db_conn, id).await?;
     let result = file::Entity::find()
         .filter(file::Column::Path.starts_with(folder.path + "/"))
@@ -274,15 +274,14 @@ pub async fn get_folder_sub_files(db_conn: &DbConn, id: i32) -> Result<Vec<file:
     }
 }
 
-// TODO: test
-pub async fn get_folder_direct_sub_files(
+pub async fn list_folder_children(
     db_conn: &DbConn,
     id: i32,
 ) -> Result<Vec<file::Model>, String> {
     let folder = get_by_id(db_conn, id).await?;
-    let sub_files = get_folder_sub_files(db_conn, id).await?;
+    let folder_children = list_folder_children_recursively(db_conn, id).await?;
     let slashes_count = folder.path.chars().filter(|c| *c == '/').count();
-    Ok(sub_files
+    Ok(folder_children
         .into_iter()
         .filter(|sub_file| sub_file.path.chars().filter(|c| *c == '/').count() == slashes_count + 1)
         .collect())
@@ -832,5 +831,47 @@ pub mod tests {
             actual,
             Err("Another folder with the same name already exists!".into())
         );
+    }
+
+    #[tokio::test]
+    async fn list_folder_children_valid_input_returned_correct_files() {
+        // Arrange
+
+        let db_conn = get_db().await;
+        let folder_id = create_folder(&db_conn, "folder 1".into()).await.unwrap();
+        create_folder(&db_conn, "folder 1/folder 2/ folder 3".into())
+            .await
+            .unwrap();
+        create_folder(&db_conn, "folder 1/folder 4".into())
+            .await
+            .unwrap();
+        create_file(&db_conn, "folder 1/file 1".into())
+            .await
+            .unwrap();
+        create_file(&db_conn, "folder 1/folder 2/file 2".into())
+            .await
+            .unwrap();
+
+        // Act
+
+        let actual = list_folder_children(&db_conn, folder_id)
+            .await
+            .unwrap();
+
+        // Assert
+
+        assert_eq!(actual.len(), 3);
+
+        assert!(actual
+            .iter()
+            .any(|f| f.path == "folder 1/folder 2".to_string()));
+
+        assert!(actual
+            .iter()
+            .any(|f| f.path == "folder 1/folder 4".to_string()));
+
+        assert!(actual
+            .iter()
+            .any(|f| f.path == "folder 1/file 1".to_string()));
     }
 }

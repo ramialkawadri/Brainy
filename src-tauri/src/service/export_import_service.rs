@@ -49,11 +49,11 @@ async fn get_exported_item(
     let mut children: Option<Vec<ExportedItem>> = None;
 
     if item.is_folder {
-        let sub_files = file_service::get_folder_direct_sub_files(db_conn, item_id).await?;
-        let mut children_vec = Vec::with_capacity(sub_files.len());
-        for sub_file in sub_files {
+        let folder_children = file_service::list_folder_children(db_conn, item_id).await?;
+        let mut children_vec = Vec::with_capacity(folder_children.len());
+        for folder_child in folder_children {
             children_vec
-                .push(Box::pin(get_exported_item(db_conn, sub_file.id, skip_prefix_length)).await?);
+                .push(Box::pin(get_exported_item(db_conn, folder_child.id, skip_prefix_length)).await?);
         }
         children = Some(children_vec);
     }
