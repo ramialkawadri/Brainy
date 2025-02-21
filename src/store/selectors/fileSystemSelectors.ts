@@ -2,7 +2,7 @@ import { createSelector } from "@reduxjs/toolkit";
 import ParsedFile from "../../type/parsedFile";
 import ParsedFolder from "../../type/parsedFolder";
 import { RootState } from "../store";
-import getFileOrFolderById from "../../util/getFilOrFolderById";
+import getFolderChildById from "../../util/getFolderChildById";
 
 export const selectError = (state: RootState) => state.fileSystem.error;
 
@@ -14,10 +14,10 @@ export const selectSelectedFileId = (state: RootState) =>
 
 export const selectFileById = createSelector(
 	[selectRootFolder, (_, id: number) => id],
-	(rootFolder, id) => getFileOrFolderById(rootFolder, id) as ParsedFile,
+	(rootFolder, id) => getFolderChildById(rootFolder, id) as ParsedFile,
 );
 
 export const selectFolderById = createSelector(
 	[selectRootFolder, (_, id: number) => id],
-	(rootFolder, id) => getFileOrFolderById(rootFolder, id) as ParsedFolder,
+	(rootFolder, id) => getFolderChildById(rootFolder, id) as ParsedFolder,
 );

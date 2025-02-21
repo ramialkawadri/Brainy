@@ -1,8 +1,8 @@
 import ParsedFile from "../../type/parsedFile";
 import ParsedFolder from "../../type/parsedFolder";
-import getFileOrFolderById from "../../util/getFilOrFolderById";
+import getFolderChildById from "../../util/getFolderChildById";
 
-describe(getFileOrFolderById, () => {
+describe(getFolderChildById, () => {
 	it("Returns existing file", () => {
 		// Arrange
 
@@ -31,7 +31,7 @@ describe(getFileOrFolderById, () => {
 
 		// Act
 
-		const actual = getFileOrFolderById(folder, expectedFile.id);
+		const actual = getFolderChildById(folder, expectedFile.id);
 
 		// Assert
 
@@ -68,7 +68,7 @@ describe(getFileOrFolderById, () => {
 
 		// Act
 
-		const actual = getFileOrFolderById(folder, expectedFolder.id);
+		const actual = getFolderChildById(folder, expectedFolder.id);
 
 		// Assert
 
@@ -93,7 +93,7 @@ describe(getFileOrFolderById, () => {
 
 		// Act
 
-		const actual = getFileOrFolderById(folder, 4);
+		const actual = getFolderChildById(folder, 4);
 
 		// Assert
 

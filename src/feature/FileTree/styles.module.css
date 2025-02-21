@@ -1,4 +1,4 @@
-.outer-container {
+.file-item-outer-container {
 	padding: 1px;
 	border: 2px solid transparent;
 	border-radius: var(--default-border-radius);
@@ -8,7 +8,7 @@
 	}
 }
 
-.file-tree-item {
+.file-tree-row {
 	width: 100%;
 	font-size: 1.2rem;
 	transition: var(--default-transition-time);

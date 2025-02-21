@@ -7,6 +7,7 @@ use crate::dto::exported_item::{ExportedCell, ExportedItem, ExportedItemType};
 use super::{cell_service, file_service};
 
 // TODO: unit test
+// TODO: FIX: exporting just a file also include its parent folder! 
 pub async fn export_item(
     db_conn: &DbConn,
     item_id: i32,

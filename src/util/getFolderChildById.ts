@@ -1,7 +1,7 @@
 import ParsedFile from "../type/parsedFile";
 import ParsedFolder from "../type/parsedFolder";
 
-function getFileOrFolderById(
+function getFolderChildById(
 	folder: ParsedFolder,
 	id: number,
 ): ParsedFile | ParsedFolder | null {
@@ -20,4 +20,4 @@ function getFileOrFolderById(
 	return null;
 }
 
-export default getFileOrFolderById;
+export default getFolderChildById;

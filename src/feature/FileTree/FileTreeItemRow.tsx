@@ -56,7 +56,7 @@ function FileTreeItemRow({
 
 	return (
 		<div
-			className={`${styles.fileTreeItem}`}
+			className={`${styles.fileTreeRow}`}
 			draggable={!isRoot && !isRenaming}
 			onDragStart={onDragStart}>
 			<button

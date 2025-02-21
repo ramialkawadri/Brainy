@@ -1,4 +1,4 @@
-import getFileOrFolderById from "../../util/getFilOrFolderById";
+import getFolderChildById from "../../util/getFolderChildById";
 import parseGetFilesResponse from "../../util/parseGetFilesResponse";
 import {
 	requestFailure,
@@ -52,7 +52,7 @@ export function deleteFolder(folderId: number) {
 		const selectedFileId = selectSelectedFileId(state);
 		const folder = selectFolderById(state, folderId);
 		const isSelectedFileInFolder =
-			selectedFileId && getFileOrFolderById(folder, selectedFileId);
+			selectedFileId && getFolderChildById(folder, selectedFileId);
 
 		await deleteFolderApi(folderId);
 		if (isSelectedFileInFolder) {

@@ -42,7 +42,6 @@ interface Props {
 	onRootClick: () => void;
 }
 
-// TODO: refactor
 /**
  * Displays a folder or a file based on whether the folder parameter is given
  * or not.
@@ -275,7 +274,7 @@ function FileTreeItem({
 	return (
 		(!folder || isRoot || folder.isVisible) && (
 			<div
-				className={`${styles.outerContainer} ${isDragOver ? styles.dragOver : ""}`}
+				className={`${styles.fileItemOuterContainer} ${isDragOver ? styles.dragOver : ""}`}
 				onDragOver={handleDragOver}
 				onDragLeave={handleDragLeave}
 				onDrop={e => void handleDrop(e)}
