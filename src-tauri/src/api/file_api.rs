@@ -14,13 +14,13 @@ pub async fn get_files(
 #[tauri::command]
 pub async fn create_folder(db_conn: State<'_, Mutex<DbConn>>, path: String) -> Result<i32, String> {
     let db_conn = db_conn.lock().await;
-    file_service::create_folder(&db_conn, path).await
+    file_service::create_folder(&*db_conn, path).await
 }
 
 #[tauri::command]
 pub async fn create_file(db_conn: State<'_, Mutex<DbConn>>, path: String) -> Result<i32, String> {
     let db_conn = db_conn.lock().await;
-    file_service::create_file(&db_conn, path).await
+    file_service::create_file(&*db_conn, path).await
 }
 
 #[tauri::command]

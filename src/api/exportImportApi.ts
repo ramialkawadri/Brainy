@@ -6,3 +6,10 @@ export function exportItem(itemId: number, exportPath: string) {
 		exportPath,
 	});
 }
+
+export function importFile(importItemPath: string, importIntoPath: string) {
+	return invoke("import_file", {
+		importItemPath,
+		importIntoPath,
+	});
+}

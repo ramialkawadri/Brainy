@@ -70,6 +70,7 @@ pub async fn run() -> Result<(), String> {
             update_settings,
             // Export/Import
             export_item,
+            import_file,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

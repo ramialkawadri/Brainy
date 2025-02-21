@@ -3,7 +3,7 @@ name = "Brainy"
 version = "0.1.0"
 description = "Brainy"
 authors = ["Rami Alkawadri"]
-edition = "2021"
+edition = "2024"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

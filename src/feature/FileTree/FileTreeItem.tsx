@@ -1,27 +1,24 @@
-import { save as openSaveDialog } from "@tauri-apps/plugin-dialog";
+import {
+	save as openSaveDialog,
+	open as openOpenDialog,
+} from "@tauri-apps/plugin-dialog";
 import Icon from "@mdi/react";
 import styles from "./styles.module.css";
 import {
 	mdiDeleteOutline,
-	mdiDotsHorizontal,
 	mdiExport,
-	mdiFileDocumentOutline,
 	mdiFileDocumentPlusOutline,
-	mdiFileTreeOutline,
-	mdiFolderOpenOutline,
-	mdiFolderOutline,
 	mdiFolderPlusOutline,
 	mdiImport,
 	mdiPencilOutline,
 } from "@mdi/js";
 import React, { useState } from "react";
-import ActionsMenu, { Action } from "./ActionsMenu";
+import { Action } from "./ActionsMenu";
 import useAppDispatch from "../../hooks/useAppDispatch";
-import useAppSelector from "../../hooks/useAppSelector";
-import { selectSelectedFileId } from "../../store/selectors/fileSystemSelectors";
 import {
 	createFile,
 	createFolder,
+	importFile,
 	moveFile,
 	moveFolder,
 	renameFile,
@@ -31,13 +28,14 @@ import getFileName from "../../util/getFileName";
 import { setSelectedFileId } from "../../store/reducers/fileSystemReducers";
 import UiFolder from "../../type/ui/uiFolder";
 import { exportItem } from "../../api/exportImportApi";
+import FileTreeItemRow from "./FileTreeItemRow";
 
 const dragFormatForFolder = "brainy/folderpath";
 const dragFormatForFile = "brainy/filepath";
 
 interface Props {
 	folder: UiFolder | null;
-	path: string;
+	fullPath: string;
 	id: number;
 	onMarkForDeletion: (id: number, isFolder: boolean) => void;
 	onFileClick: () => void;
@@ -51,16 +49,15 @@ interface Props {
  */
 function FileTreeItem({
 	folder,
-	path,
+	fullPath,
 	id,
 	onMarkForDeletion,
 	onFileClick,
 	onRootClick,
 }: Props) {
-	const isRoot = path === "";
-	const selectedFileId = useAppSelector(selectSelectedFileId);
+	const isRoot = fullPath === "";
 	const [showActions, setShowActions] = useState(false);
-	const [renaming, setRenaming] = useState(false);
+	const [isRenaming, setIsRenaming] = useState(false);
 	const [newName, setNewName] = useState("");
 	const [creatingNewFolder, setCreatingNewFolder] = useState(false);
 	const [creatingNewFile, setCreatingNewFile] = useState(false);
@@ -70,7 +67,6 @@ function FileTreeItem({
 	const [isOpen, setIsOpen] = useState(false);
 	const dispatch = useAppDispatch();
 	const isExpanded = isRoot || isOpen;
-	const isSelected = selectedFileId === id && !isRoot;
 
 	const actions: Action[] = [];
 
@@ -119,15 +115,36 @@ function FileTreeItem({
 		);
 	}
 
-	actions.push(
-		{
-			iconName: mdiExport,
-			text: "Export",
+	actions.push({
+		iconName: mdiExport,
+		text: "Export",
+		onClick: () => {
+			void (async () => {
+				setShowActions(false);
+				const savePath = await openSaveDialog({
+					filters: [
+						{
+							name: "JSON file",
+							extensions: ["json"],
+						},
+					],
+					defaultPath: getFileName(fullPath),
+				});
+				if (!savePath) return;
+				// TODO: error handling
+				await exportItem(id, savePath);
+			})();
+		},
+	});
+
+	if (folder) {
+		actions.push({
+			iconName: mdiImport,
+			text: "Import",
 			onClick: () => {
 				void (async () => {
-                    // TODO: initial name is the same as current folder/file name
 					setShowActions(false);
-					const path = await openSaveDialog({
+					const openPath = await openOpenDialog({
 						filters: [
 							{
 								name: "JSON file",
@@ -135,28 +152,18 @@ function FileTreeItem({
 							},
 						],
 					});
-					if (!path) return;
-					await exportItem(id, path);
-					console.log("Clicked export");
+					if (!openPath) return;
+					await dispatch(importFile(openPath, fullPath));
 				})();
 			},
-		},
-		{
-			// TODO:
-            // TODO: only on folders
-			iconName: mdiImport,
-			text: "Import",
-			onClick: () => {
-				console.log("Clicked import");
-			},
-		},
-	);
+		});
+	}
 
 	function enableRenaming() {
 		if (isRoot) return;
 		setShowActions(false);
-		setRenaming(true);
-		setNewName(getFileName(path));
+		setIsRenaming(true);
+		setNewName(getFileName(fullPath));
 	}
 
 	function markForDeletion() {
@@ -167,7 +174,7 @@ function FileTreeItem({
 
 	const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
 		e.stopPropagation();
-		if (renaming) return;
+		if (isRenaming) return;
 
 		if (folder) {
 			if (isRoot) {
@@ -189,7 +196,7 @@ function FileTreeItem({
 
 	const handleRenaming = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
-		setRenaming(false);
+		setIsRenaming(false);
 
 		if (folder) await dispatch(renameFolder(id, newName));
 		else await dispatch(renameFile(id, newName));
@@ -200,7 +207,7 @@ function FileTreeItem({
 
 		if (e.key === "F2") {
 			enableRenaming();
-		} else if (e.key === "Delete" && !renaming) {
+		} else if (e.key === "Delete" && !isRenaming) {
 			markForDeletion();
 		} else if (e.ctrlKey && e.key.toLowerCase() === "n") {
 			showCreateNewFileInput();
@@ -215,7 +222,7 @@ function FileTreeItem({
 		e: React.FormEvent<HTMLFormElement>,
 	) => {
 		e.preventDefault();
-		const newItemPath = isRoot ? newItemName : path + "/" + newItemName;
+		const newItemPath = isRoot ? newItemName : fullPath + "/" + newItemName;
 		if (creatingNewFolder) {
 			await dispatch(createFolder(newItemPath));
 		} else if (creatingNewFile) {
@@ -228,7 +235,7 @@ function FileTreeItem({
 
 	const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
 		e.stopPropagation();
-		if (renaming) return;
+		if (isRenaming) return;
 		setShowActions(false);
 		const format = folder ? dragFormatForFolder : dragFormatForFile;
 		e.dataTransfer.setData(format, id.toString());
@@ -273,61 +280,24 @@ function FileTreeItem({
 				onDragLeave={handleDragLeave}
 				onDrop={e => void handleDrop(e)}
 				onKeyDown={handleKeyDown}>
-				<div
-					className={`${styles.fileTreeItem}`}
-					draggable={!isRoot && !renaming}
-					onDragStart={handleDragStart}>
-					<button
-						className={`${styles.fileTreeButton}
-                ${isSelected && !folder && !renaming ? "primary" : "transparent"}`}
-						onClick={e => void handleClick(e)}>
-						<Icon
-							path={
-								isRoot
-									? mdiFileTreeOutline
-									: folder
-										? isExpanded
-											? mdiFolderOpenOutline
-											: mdiFolderOutline
-										: mdiFileDocumentOutline
-							}
-							size={1}
-						/>
-						{renaming && (
-							<form onSubmit={e => void handleRenaming(e)}>
-								<input
-									type="text"
-									value={newName}
-									onChange={e => setNewName(e.target.value)}
-									onFocus={e => e.target.select()}
-									autoFocus
-									className={`${styles.fileTreeRenameInput}`}
-									onBlur={() => setRenaming(false)}
-								/>
-							</form>
-						)}
-						{!renaming && (
-							<p>{isRoot ? "Files" : getFileName(path)}</p>
-						)}
-					</button>
-
-					{!renaming && (
-						<button
-							title="Actions"
-							onClick={handleShowActions}
-							className={`${styles.fileTreeDots}
-                        ${isSelected ? styles.fileTreeDotsSelected : ""}`}>
-							<Icon path={mdiDotsHorizontal} size={1} />
-						</button>
-					)}
-
-					{showActions && (
-						<ActionsMenu
-							onOutsideClick={() => setShowActions(false)}
-							actions={actions}
-						/>
-					)}
-				</div>
+				<FileTreeItemRow
+					isRoot={isRoot}
+					id={id}
+					isFolder={folder !== null}
+					isRenaming={isRenaming}
+					showActions={showActions}
+					isExpanded={isExpanded}
+					actions={actions}
+                    newName={newName}
+                    onDragStart={handleDragStart}
+					onRenameSubmit={e => void handleRenaming(e)}
+					fullPath={fullPath}
+					onShowActionsClick={handleShowActions}
+					onClick={handleClick}
+					onHideActions={() => setShowActions(false)}
+                    onNewNameUpdate={setNewName}
+                    onStopRenaming={() => setIsRenaming(false)}
+				/>
 
 				{folder && isExpanded && (
 					<div className={`${styles.fileTreeChildren}`}>
@@ -379,9 +349,9 @@ function FileTreeItem({
 								key={subFolder.id}
 								folder={subFolder}
 								onMarkForDeletion={onMarkForDeletion}
-								path={
-									path
-										? path + "/" + subFolder.name
+								fullPath={
+									fullPath
+										? fullPath + "/" + subFolder.name
 										: subFolder.name
 								}
 								id={subFolder.id}
@@ -397,9 +367,9 @@ function FileTreeItem({
 										key={file.id}
 										folder={null}
 										onMarkForDeletion={onMarkForDeletion}
-										path={
-											path
-												? path + "/" + file.name
+										fullPath={
+											fullPath
+												? fullPath + "/" + file.name
 												: file.name
 										}
 										id={file.id}

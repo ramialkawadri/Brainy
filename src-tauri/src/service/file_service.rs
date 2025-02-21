@@ -1,5 +1,5 @@
 use prelude::Expr;
-use sea_orm::{entity::*, query::*, DbConn};
+use sea_orm::{DbConn, entity::*, query::*};
 
 use crate::{dto::file_with_repetitions_count::FileWithRepetitionsCount, entity::file};
 
@@ -31,7 +31,7 @@ pub async fn get_files(db_conn: &DbConn) -> Result<Vec<FileWithRepetitionsCount>
     Ok(files_with_repetitions_counts)
 }
 
-pub async fn create_file(db_conn: &DbConn, path: String) -> Result<i32, String> {
+pub async fn create_file(db_conn: &impl ConnectionTrait, path: String) -> Result<i32, String> {
     let path = path.trim_matches('/').to_string();
     if path.trim().is_empty() {
         return Err("Name cannot be empty!".into());
@@ -56,7 +56,7 @@ pub async fn create_file(db_conn: &DbConn, path: String) -> Result<i32, String> 
     }
 }
 
-pub async fn create_folder(db_conn: &DbConn, path: String) -> Result<i32, String> {
+pub async fn create_folder(db_conn: &impl ConnectionTrait, path: String) -> Result<i32, String> {
     let path = path.trim_matches('/').to_string();
     if path.trim().is_empty() {
         return Err("Name cannot be empty!".into());
@@ -209,7 +209,7 @@ pub async fn rename_file(db_conn: &DbConn, file_id: i32, new_name: String) -> Re
     update_path(db_conn, file_id, new_path).await
 }
 
-async fn file_exists(db_conn: &DbConn, path: String) -> Result<bool, String> {
+async fn file_exists(db_conn: &impl ConnectionTrait, path: String) -> Result<bool, String> {
     let result = file::Entity::find()
         .filter(file::Column::Path.eq(path))
         .filter(file::Column::IsFolder.eq(false))
@@ -262,7 +262,10 @@ pub async fn rename_folder(
     Ok(())
 }
 
-pub async fn list_folder_children_recursively(db_conn: &DbConn, id: i32) -> Result<Vec<file::Model>, String> {
+pub async fn list_folder_children_recursively(
+    db_conn: &DbConn,
+    id: i32,
+) -> Result<Vec<file::Model>, String> {
     let folder = get_by_id(db_conn, id).await?;
     let result = file::Entity::find()
         .filter(file::Column::Path.starts_with(folder.path + "/"))
@@ -274,10 +277,7 @@ pub async fn list_folder_children_recursively(db_conn: &DbConn, id: i32) -> Resu
     }
 }
 
-pub async fn list_folder_children(
-    db_conn: &DbConn,
-    id: i32,
-) -> Result<Vec<file::Model>, String> {
+pub async fn list_folder_children(db_conn: &DbConn, id: i32) -> Result<Vec<file::Model>, String> {
     let folder = get_by_id(db_conn, id).await?;
     let folder_children = list_folder_children_recursively(db_conn, id).await?;
     let slashes_count = folder.path.chars().filter(|c| *c == '/').count();
@@ -307,7 +307,10 @@ pub async fn get_by_id(db_conn: &DbConn, id: i32) -> Result<file::Model, String>
     }
 }
 
-async fn create_folder_recursively(db_conn: &DbConn, path: &String) -> Result<i32, String> {
+async fn create_folder_recursively(
+    db_conn: &impl ConnectionTrait,
+    path: &String,
+) -> Result<i32, String> {
     let mut current_path = String::new();
     // The id of the folder with the full path
     let mut folder_id = 0;
@@ -339,7 +342,7 @@ async fn create_folder_recursively(db_conn: &DbConn, path: &String) -> Result<i3
     Ok(folder_id)
 }
 
-async fn folder_exists(db_conn: &DbConn, path: String) -> Result<bool, String> {
+async fn folder_exists(db_conn: &impl ConnectionTrait, path: String) -> Result<bool, String> {
     let result = file::Entity::find()
         .filter(file::Column::Path.eq(path))
         .filter(file::Column::IsFolder.eq(true))
@@ -421,9 +424,11 @@ pub mod tests {
         let actual = get_files(&db_conn).await.unwrap();
         assert_eq!(actual.len(), 2);
         assert!(actual.iter().any(|f| f.path == "folder 1".to_string()));
-        assert!(actual
-            .iter()
-            .any(|f| f.path == "folder 1/folder 2".to_string()));
+        assert!(
+            actual
+                .iter()
+                .any(|f| f.path == "folder 1/folder 2".to_string())
+        );
     }
 
     #[tokio::test]
@@ -625,18 +630,26 @@ pub mod tests {
 
         let actual = get_files(&db_conn).await.unwrap();
         assert!(actual.iter().any(|f| f.path == "destination".to_string()));
-        assert!(actual
-            .iter()
-            .any(|f| f.path == "destination/test/folder 1".to_string()));
-        assert!(actual
-            .iter()
-            .any(|f| f.path == "destination/test/folder 1/folder 2".to_string()));
-        assert!(actual
-            .iter()
-            .any(|f| f.path == "destination/test/folder 1/folder 2/file".to_string()));
-        assert!(actual
-            .iter()
-            .any(|f| f.path == "destination/test/file".to_string()));
+        assert!(
+            actual
+                .iter()
+                .any(|f| f.path == "destination/test/folder 1".to_string())
+        );
+        assert!(
+            actual
+                .iter()
+                .any(|f| f.path == "destination/test/folder 1/folder 2".to_string())
+        );
+        assert!(
+            actual
+                .iter()
+                .any(|f| f.path == "destination/test/folder 1/folder 2/file".to_string())
+        );
+        assert!(
+            actual
+                .iter()
+                .any(|f| f.path == "destination/test/file".to_string())
+        );
     }
 
     #[tokio::test]
@@ -663,12 +676,16 @@ pub mod tests {
         let actual = get_files(&db_conn).await.unwrap();
         assert!(actual.iter().any(|f| f.path == "test".to_string()));
         assert!(actual.iter().any(|f| f.path == "folder 1".to_string()));
-        assert!(actual
-            .iter()
-            .any(|f| f.path == "folder 1/folder 2".to_string()));
-        assert!(actual
-            .iter()
-            .any(|f| f.path == "folder 1/folder 2/file".to_string()));
+        assert!(
+            actual
+                .iter()
+                .any(|f| f.path == "folder 1/folder 2".to_string())
+        );
+        assert!(
+            actual
+                .iter()
+                .any(|f| f.path == "folder 1/folder 2/file".to_string())
+        );
         assert!(actual.iter().any(|f| f.path == "test/file".to_string()));
     }
 
@@ -796,21 +813,31 @@ pub mod tests {
         // Assert
 
         let actual = get_files(&db_conn).await.unwrap();
-        assert!(actual
-            .iter()
-            .any(|f| f.path == "new name/subfolder".to_string()));
-        assert!(actual
-            .iter()
-            .any(|f| f.path == "new name/subfolder/folder 2".to_string()));
-        assert!(actual
-            .iter()
-            .any(|f| f.path == "new name/subfolder/folder 2/file".to_string()));
-        assert!(actual
-            .iter()
-            .any(|f| f.path == "new name/subfolder/folder 2/folder 3".to_string()));
-        assert!(actual
-            .iter()
-            .any(|f| f.path == "new name/subfolder/folder 2/folder 3/file".to_string()));
+        assert!(
+            actual
+                .iter()
+                .any(|f| f.path == "new name/subfolder".to_string())
+        );
+        assert!(
+            actual
+                .iter()
+                .any(|f| f.path == "new name/subfolder/folder 2".to_string())
+        );
+        assert!(
+            actual
+                .iter()
+                .any(|f| f.path == "new name/subfolder/folder 2/file".to_string())
+        );
+        assert!(
+            actual
+                .iter()
+                .any(|f| f.path == "new name/subfolder/folder 2/folder 3".to_string())
+        );
+        assert!(
+            actual
+                .iter()
+                .any(|f| f.path == "new name/subfolder/folder 2/folder 3/file".to_string())
+        );
     }
 
     #[tokio::test]
@@ -854,24 +881,28 @@ pub mod tests {
 
         // Act
 
-        let actual = list_folder_children(&db_conn, folder_id)
-            .await
-            .unwrap();
+        let actual = list_folder_children(&db_conn, folder_id).await.unwrap();
 
         // Assert
 
         assert_eq!(actual.len(), 3);
 
-        assert!(actual
-            .iter()
-            .any(|f| f.path == "folder 1/folder 2".to_string()));
+        assert!(
+            actual
+                .iter()
+                .any(|f| f.path == "folder 1/folder 2".to_string())
+        );
 
-        assert!(actual
-            .iter()
-            .any(|f| f.path == "folder 1/folder 4".to_string()));
+        assert!(
+            actual
+                .iter()
+                .any(|f| f.path == "folder 1/folder 4".to_string())
+        );
 
-        assert!(actual
-            .iter()
-            .any(|f| f.path == "folder 1/file 1".to_string()));
+        assert!(
+            actual
+                .iter()
+                .any(|f| f.path == "folder 1/file 1".to_string())
+        );
     }
 }

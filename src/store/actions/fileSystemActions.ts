@@ -18,6 +18,7 @@ import {
 	getFiles as getFilesApi,
 	renameFolder as renameFolderApi,
 } from "../../api/fileApi";
+import { importFile as importFileApi } from "../../api/exportImportApi";
 import {
 	selectFolderById,
 	selectSelectedFileId,
@@ -74,6 +75,10 @@ export function moveFile(fileId: number, destinationFolderId: number) {
 
 export function moveFolder(folderId: number, destinationFolderId: number) {
 	return executeRequest(() => moveFolderApi(folderId, destinationFolderId));
+}
+
+export function importFile(importItemPath: string, importIntoPath: string) {
+	return executeRequest(() => importFileApi(importItemPath, importIntoPath));
 }
 
 function executeRequest<T>(

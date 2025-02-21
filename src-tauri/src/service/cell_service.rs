@@ -4,7 +4,7 @@ use crate::{
 };
 
 use prelude::Expr;
-use sea_orm::{entity::*, query::*, DbConn};
+use sea_orm::{DbConn, entity::*, query::*};
 
 use super::repetition_service;
 
@@ -35,7 +35,23 @@ pub async fn create_cell(
         Err(err) => return Err(err.to_string()),
     };
 
-    increase_cells_indices_starting_from(&txn, file_id, index, 1).await?;
+    let cell_id = create_cell_no_transaction(&txn, file_id, &content, &cell_type, index).await?;
+
+    let result = txn.commit().await;
+    match result {
+        Ok(_) => Ok(cell_id),
+        Err(err) => Err(err.to_string()),
+    }
+}
+
+pub async fn create_cell_no_transaction(
+    db_conn: &impl ConnectionTrait,
+    file_id: i32,
+    content: &String,
+    cell_type: &CellType,
+    index: i32,
+) -> Result<i32, String> {
+    increase_cells_indices_starting_from(db_conn, file_id, index, 1).await?;
 
     let active_model = cell::ActiveModel {
         file_id: Set(file_id),
@@ -44,20 +60,16 @@ pub async fn create_cell(
         index: Set(index),
         ..Default::default()
     };
-    let result = cell::Entity::insert(active_model).exec(&txn).await;
+    let result = cell::Entity::insert(active_model).exec(db_conn).await;
     let cell_id = match result {
         Ok(insert_result) => insert_result.last_insert_id,
         Err(err) => return Err(err.to_string()),
     };
 
-    repetition_service::update_repetitions_for_cell(&txn, file_id, cell_id, cell_type, &content)
+    repetition_service::update_repetitions_for_cell(db_conn, file_id, cell_id, cell_type, &content)
         .await?;
 
-    let result = txn.commit().await;
-    match result {
-        Ok(_) => Ok(cell_id),
-        Err(err) => Err(err.to_string()),
-    }
+    Ok(cell_id)
 }
 
 pub async fn delete_cell(db_conn: &DbConn, cell_id: i32) -> Result<(), String> {
@@ -90,15 +102,13 @@ pub async fn move_cell(db_conn: &DbConn, cell_id: i32, new_index: i32) -> Result
 
     increase_cells_indices_starting_from(&txn, cell.file_id, cell.index + 1, -1).await?;
     increase_cells_indices_starting_from(&txn, cell.file_id, new_index, 1).await?;
-    update_cell(
-        &txn,
-        cell::ActiveModel {
-            id: Set(cell_id),
-            index: Set(new_index),
-            ..Default::default()
-        },
-    )
+    update_cell(&txn, cell::ActiveModel {
+        id: Set(cell_id),
+        index: Set(new_index),
+        ..Default::default()
+    })
     .await?;
+
     let result = txn.commit().await;
     match result {
         Ok(_) => Ok(()),
@@ -138,21 +148,18 @@ pub async fn update_cells_contents(
 
     for request in requests {
         let cell = get_cell_by_id(&txn, request.cell_id).await?;
-        update_cell(
-            &txn,
-            cell::ActiveModel {
-                id: Set(request.cell_id),
-                content: Set(request.content.clone()),
-                ..Default::default()
-            },
-        )
+        update_cell(&txn, cell::ActiveModel {
+            id: Set(request.cell_id),
+            content: Set(request.content.clone()),
+            ..Default::default()
+        })
         .await?;
 
         repetition_service::update_repetitions_for_cell(
             &txn,
             cell.file_id,
             request.cell_id,
-            cell.cell_type,
+            &cell.cell_type,
             &request.content,
         )
         .await?;

@@ -18,6 +18,6 @@ pub use file_api::{
     rename_file, rename_folder,
 };
 
-pub use export_import_api::export_item;
+pub use export_import_api::{export_item, import_file};
 
 pub use settings_api::{get_settings, update_settings};

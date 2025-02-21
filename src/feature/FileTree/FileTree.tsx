@@ -58,7 +58,7 @@ function FileTree({ folder, onFileClick, onRootClick }: Props) {
 			)}
 
 			<FileTreeItem
-				path=""
+				fullPath=""
 				folder={folder}
 				onMarkForDeletion={handleMarkForDeletion}
 				id={0}
