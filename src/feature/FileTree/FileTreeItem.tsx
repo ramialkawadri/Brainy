@@ -44,6 +44,7 @@ interface Props {
 	onRootClick: () => void;
 }
 
+// TODO: refactor
 /**
  * Displays a folder or a file based on whether the folder parameter is given
  * or not.
@@ -142,6 +143,7 @@ function FileTreeItem({
 		},
 		{
 			// TODO:
+            // TODO: only on folders
 			iconName: mdiImport,
 			text: "Import",
 			onClick: () => {
