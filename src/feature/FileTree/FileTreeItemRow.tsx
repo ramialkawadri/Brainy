@@ -12,6 +12,9 @@ import useAppSelector from "../../hooks/useAppSelector";
 import { Action } from "./ActionsMenu";
 import { selectSelectedFileId } from "../../store/selectors/fileSystemSelectors";
 import getFileName from "../../util/getFileName";
+import { useEffect, useState } from "react";
+import { renameFile, renameFolder } from "../../store/actions/fileSystemActions";
+import useAppDispatch from "../../hooks/useAppDispatch";
 
 interface Props {
 	isRoot: boolean;
@@ -22,17 +25,14 @@ interface Props {
 	showActions: boolean;
 	actions: Action[];
 	fullPath: string;
-    newName: string,
-    onNewNameUpdate: (newName: string) => void;
 	onDragStart: (e: React.DragEvent<HTMLDivElement>) => void;
-	onRenameSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
+	onRenameEnd: () => void;
 	onShowActionsClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
 	onHideActions: () => void;
 	onClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
-    onStopRenaming: () => void;
+	onStopRenaming: () => void;
 }
 
-// TODO: move some of the state here
 function FileTreeItemRow({
 	isRoot,
 	id,
@@ -42,17 +42,30 @@ function FileTreeItemRow({
 	showActions,
 	actions,
 	fullPath,
-    newName,
-    onNewNameUpdate,
 	onDragStart,
-	onRenameSubmit,
+	onRenameEnd,
 	onShowActionsClick,
 	onClick,
 	onHideActions,
-    onStopRenaming,
+	onStopRenaming,
 }: Props) {
+	const [newName, setNewName] = useState(getFileName(fullPath));
 	const selectedFileId = useAppSelector(selectSelectedFileId);
+    const dispatch = useAppDispatch();
 	const isSelected = selectedFileId === id && !isRoot;
+
+    useEffect(() => {
+        if (!isRenaming) setNewName(getFileName(fullPath));
+    }, [isRenaming, fullPath])
+
+    const handleRenameSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+		e.preventDefault();
+
+		if (isFolder) await dispatch(renameFolder(id, newName));
+		else await dispatch(renameFile(id, newName));
+
+        onRenameEnd();
+    };
 
 	return (
 		<div
@@ -76,11 +89,11 @@ function FileTreeItemRow({
 					size={1}
 				/>
 				{isRenaming && (
-					<form onSubmit={onRenameSubmit}>
+					<form onSubmit={e => void handleRenameSubmit(e)}>
 						<input
 							type="text"
 							value={newName}
-							onChange={e => onNewNameUpdate(e.target.value)}
+							onChange={e => setNewName(e.target.value)}
 							onFocus={e => e.target.select()}
 							autoFocus
 							className={`${styles.fileTreeRenameInput}`}

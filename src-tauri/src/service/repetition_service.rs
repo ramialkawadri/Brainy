@@ -215,19 +215,9 @@ pub async fn get_repetitions_for_files(
 mod tests {
     use chrono::Duration;
 
-    use crate::service::{cell_service, file_service, tests::get_db};
+    use crate::service::{tests::create_file_cell, tests::get_db};
 
     use super::*;
-
-    async fn create_file_cell(db_conn: &DbConn, file_name: &str) -> (i32, i32) {
-        let file_id = file_service::create_file(db_conn, file_name.into())
-            .await
-            .unwrap();
-        let cell_id = cell_service::create_cell(db_conn, file_id, "".into(), CellType::Note, 0)
-            .await
-            .unwrap();
-        (file_id, cell_id)
-    }
 
     #[tokio::test]
     async fn update_repetitions_for_cell_flash_card_with_no_repetitions_added_repetition() {

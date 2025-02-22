@@ -7,14 +7,13 @@ use crate::dto::exported_item::{ExportedCell, ExportedItem, ExportedItemType};
 use super::{cell_service, file_service};
 
 // TODO: unit test
-// TODO: FIX: exporting just a file also include its parent folder! 
 pub async fn export_item(
     db_conn: &DbConn,
     item_id: i32,
     export_path: String,
 ) -> Result<(), String> {
     let item = file_service::get_by_id(db_conn, item_id).await?;
-    let slash_index = item.path.find('/');
+    let slash_index = item.path.rfind('/');
     let skip_prefix_length = if let Some(index) = slash_index {
         index + 1
     } else {
@@ -83,8 +82,7 @@ async fn get_exported_item(
 pub async fn import_file(
     db_conn: &DbConn,
     import_item_path: String,
-    // TODO: make into a number
-    import_into_path: String,
+    import_into_folder_id: i32,
 ) -> Result<(), String> {
     let import_file = match File::open(import_item_path) {
         Err(err) => return Err(err.to_string()),
@@ -96,12 +94,20 @@ pub async fn import_file(
         Ok(exported_item) => exported_item,
     };
 
+    let import_into_folder_path = if import_into_folder_id == 0 {
+        "".into()
+    } else {
+        file_service::get_by_id(db_conn, import_into_folder_id)
+            .await?
+            .path
+    };
+
     let txn = match db_conn.begin().await {
         Ok(txn) => txn,
         Err(err) => return Err(err.to_string()),
     };
 
-    import_exported_item(&txn, &exported_item, &import_into_path).await?;
+    import_exported_item(&txn, &exported_item, &import_into_folder_path).await?;
 
     let result = txn.commit().await;
     match result {
@@ -181,4 +187,13 @@ async fn import_folder_from_exported_item(
     }
 
     Ok(())
+}
+
+
+#[cfg(test)]
+mod tests {
+    use crate::service::{tests::create_file_cell, tests::get_db};
+    use super::*;
+
+    // TODO:
 }

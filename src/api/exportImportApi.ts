@@ -7,9 +7,9 @@ export function exportItem(itemId: number, exportPath: string) {
 	});
 }
 
-export function importFile(importItemPath: string, importIntoPath: string) {
+export function importFile(importItemPath: string, importIntoFolderId: number) {
 	return invoke("import_file", {
 		importItemPath,
-		importIntoPath,
+		importIntoFolderId,
 	});
 }

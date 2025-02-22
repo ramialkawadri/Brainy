@@ -80,14 +80,14 @@
 	width: 100%;
 }
 
-.file-tree-children {
+.file-tree-item-children {
 	margin-left: var(--default-padding);
 	padding-left: var(--default-padding);
 	border-left: 1px solid var(--border-color);
 	transition: var(--default-transition-time);
 }
 
-.file-tree-children:hover {
+.file-tree-item-children:hover {
 	border-left-color: var(--hover-border-color);
 }
 

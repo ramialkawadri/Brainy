@@ -1,8 +1,8 @@
 import {
 	save as openSaveDialog,
 	open as openOpenDialog,
+	DialogFilter,
 } from "@tauri-apps/plugin-dialog";
-import Icon from "@mdi/react";
 import styles from "./styles.module.css";
 import {
 	mdiDeleteOutline,
@@ -16,19 +16,17 @@ import React, { useState } from "react";
 import { Action } from "./ActionsMenu";
 import useAppDispatch from "../../hooks/useAppDispatch";
 import {
-	createFile,
-	createFolder,
 	importFile,
 	moveFile,
 	moveFolder,
-	renameFile,
-	renameFolder,
 } from "../../store/actions/fileSystemActions";
 import getFileName from "../../util/getFileName";
-import { setSelectedFileId } from "../../store/reducers/fileSystemReducers";
+import { requestFailure, setSelectedFileId } from "../../store/reducers/fileSystemReducers";
 import UiFolder from "../../type/ui/uiFolder";
 import { exportItem } from "../../api/exportImportApi";
 import FileTreeItemRow from "./FileTreeItemRow";
+import FileTreeItemChildren from "./FileTreeItemChildren";
+import errorToString from "../../util/errorToString";
 
 const dragFormatForFolder = "brainy/folderpath";
 const dragFormatForFile = "brainy/filepath";
@@ -41,6 +39,11 @@ interface Props {
 	onFileClick: () => void;
 	onRootClick: () => void;
 }
+
+const jsonFileFilter: DialogFilter = {
+	name: "*.json",
+	extensions: ["json"],
+};
 
 /**
  * Displays a folder or a file based on whether the folder parameter is given
@@ -57,17 +60,13 @@ function FileTreeItem({
 	const isRoot = fullPath === "";
 	const [showActions, setShowActions] = useState(false);
 	const [isRenaming, setIsRenaming] = useState(false);
-	const [newName, setNewName] = useState("");
 	const [creatingNewFolder, setCreatingNewFolder] = useState(false);
 	const [creatingNewFile, setCreatingNewFile] = useState(false);
-	// Creating new folder or file share the same controlled input.
-	const [newItemName, setNewItemName] = useState("");
 	const [isDragOver, setIsDragOver] = useState(false);
 	const [isOpen, setIsOpen] = useState(false);
 	const dispatch = useAppDispatch();
 	const isExpanded = isRoot || isOpen;
-
-	const actions: Action[] = [];
+    const actions: Action[] = [];
 
 	const showCreateNewFileInput = () => {
 		setCreatingNewFolder(false);
@@ -121,17 +120,16 @@ function FileTreeItem({
 			void (async () => {
 				setShowActions(false);
 				const savePath = await openSaveDialog({
-					filters: [
-						{
-							name: "JSON file",
-							extensions: ["json"],
-						},
-					],
+					filters: [jsonFileFilter],
 					defaultPath: getFileName(fullPath),
 				});
 				if (!savePath) return;
-				// TODO: error handling
-				await exportItem(id, savePath);
+                try {
+                    await exportItem(id, savePath);
+                } catch (e) {
+                    console.error(e);
+                    dispatch(requestFailure(errorToString(e)));
+                }
 			})();
 		},
 	});
@@ -144,15 +142,10 @@ function FileTreeItem({
 				void (async () => {
 					setShowActions(false);
 					const openPath = await openOpenDialog({
-						filters: [
-							{
-								name: "JSON file",
-								extensions: ["json"],
-							},
-						],
+						filters: [jsonFileFilter],
 					});
 					if (!openPath) return;
-					await dispatch(importFile(openPath, fullPath));
+					await dispatch(importFile(openPath, id));
 				})();
 			},
 		});
@@ -162,7 +155,6 @@ function FileTreeItem({
 		if (isRoot) return;
 		setShowActions(false);
 		setIsRenaming(true);
-		setNewName(getFileName(fullPath));
 	}
 
 	function markForDeletion() {
@@ -193,14 +185,6 @@ function FileTreeItem({
 		setShowActions(!showActions);
 	};
 
-	const handleRenaming = async (e: React.FormEvent<HTMLFormElement>) => {
-		e.preventDefault();
-		setIsRenaming(false);
-
-		if (folder) await dispatch(renameFolder(id, newName));
-		else await dispatch(renameFile(id, newName));
-	};
-
 	const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
 		e.stopPropagation();
 
@@ -217,17 +201,7 @@ function FileTreeItem({
 		}
 	};
 
-	const handleCreateNewItemSubmit = async (
-		e: React.FormEvent<HTMLFormElement>,
-	) => {
-		e.preventDefault();
-		const newItemPath = isRoot ? newItemName : fullPath + "/" + newItemName;
-		if (creatingNewFolder) {
-			await dispatch(createFolder(newItemPath));
-		} else if (creatingNewFile) {
-			await dispatch(createFile(newItemPath));
-		}
-		setNewItemName("");
+	const handleCreateNewItemEnd = () => {
 		setCreatingNewFolder(false);
 		setCreatingNewFile(false);
 	};
@@ -279,6 +253,7 @@ function FileTreeItem({
 				onDragLeave={handleDragLeave}
 				onDrop={e => void handleDrop(e)}
 				onKeyDown={handleKeyDown}>
+
 				<FileTreeItemRow
 					isRoot={isRoot}
 					id={id}
@@ -287,97 +262,28 @@ function FileTreeItem({
 					showActions={showActions}
 					isExpanded={isExpanded}
 					actions={actions}
-                    newName={newName}
-                    onDragStart={handleDragStart}
-					onRenameSubmit={e => void handleRenaming(e)}
+					onDragStart={handleDragStart}
+					onRenameEnd={() => setIsRenaming(false)}
 					fullPath={fullPath}
 					onShowActionsClick={handleShowActions}
 					onClick={handleClick}
 					onHideActions={() => setShowActions(false)}
-                    onNewNameUpdate={setNewName}
-                    onStopRenaming={() => setIsRenaming(false)}
+					onStopRenaming={() => setIsRenaming(false)}
 				/>
 
 				{folder && isExpanded && (
-					<div className={`${styles.fileTreeChildren}`}>
-						{(creatingNewFile || creatingNewFolder) && (
-							<form
-								className={styles.fileTreeNewItemRow}
-								onSubmit={e =>
-									void handleCreateNewItemSubmit(e)
-								}>
-								<Icon
-									path={
-										creatingNewFolder
-											? mdiFolderPlusOutline
-											: mdiFileDocumentPlusOutline
-									}
-									size={1}
-								/>
-								<input
-									type="text"
-									value={newItemName}
-									onChange={e =>
-										setNewItemName(e.target.value)
-									}
-									placeholder="Enter the name"
-									autoFocus
-									onBlur={() => {
-										setCreatingNewFolder(false);
-										setCreatingNewFile(false);
-									}}
-								/>
-							</form>
-						)}
-
-						{folder.subFolders.length + folder.files.length === 0 &&
-							!creatingNewFolder &&
-							!creatingNewFile && (
-								<p>
-									This folder is empty,
-									<button
-										onClick={() => setCreatingNewFile(true)}
-										className="link">
-										&nbsp;create a file
-									</button>
-								</p>
-							)}
-
-						{folder.subFolders.map(subFolder => (
-							<FileTreeItem
-								key={subFolder.id}
-								folder={subFolder}
-								onMarkForDeletion={onMarkForDeletion}
-								fullPath={
-									fullPath
-										? fullPath + "/" + subFolder.name
-										: subFolder.name
-								}
-								id={subFolder.id}
-								onFileClick={onFileClick}
-								onRootClick={onRootClick}
-							/>
-						))}
-
-						{folder.files.map(
-							file =>
-								file.isVisible && (
-									<FileTreeItem
-										key={file.id}
-										folder={null}
-										onMarkForDeletion={onMarkForDeletion}
-										fullPath={
-											fullPath
-												? fullPath + "/" + file.name
-												: file.name
-										}
-										id={file.id}
-										onFileClick={onFileClick}
-										onRootClick={onRootClick}
-									/>
-								),
-						)}
-					</div>
+					<FileTreeItemChildren
+						creatingNewFile={creatingNewFile}
+						creatingNewFolder={creatingNewFolder}
+                        onFileClick={onFileClick}
+                        onRootClick={onRootClick}
+                        onMarkForDeletion={onMarkForDeletion}
+                        onCreatingNewItemEnd={handleCreateNewItemEnd}
+                        isRoot={isRoot}
+                        folder={folder}
+                        fullPath={fullPath}
+                        onCreateNewFileClick={() => setCreatingNewFile(true)}
+					/>
 				)}
 			</div>
 		)

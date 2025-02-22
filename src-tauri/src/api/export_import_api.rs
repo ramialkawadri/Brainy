@@ -17,8 +17,8 @@ pub async fn export_item(
 pub async fn import_file(
     db_conn: State<'_, Mutex<DbConn>>,
     import_item_path: String,
-    import_into_path: String,
+    import_into_folder_id: i32,
 ) -> Result<(), String> {
     let db_conn = db_conn.lock().await;
-    export_import_service::import_file(&db_conn, import_item_path, import_into_path).await
+    export_import_service::import_file(&db_conn, import_item_path, import_into_folder_id).await
 }
