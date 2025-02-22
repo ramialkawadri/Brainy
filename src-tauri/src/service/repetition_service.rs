@@ -19,7 +19,7 @@ pub async fn update_repetitions_for_cell(
     file_id: i32,
     cell_id: i32,
     cell_type: &CellType,
-    content: &String,
+    content: &str,
 ) -> Result<(), String> {
     let cell_repetitions = get_repetitions_by_cell_id(db_conn, cell_id).await?;
     let mut repetitions_to_insert: Vec<repetition::ActiveModel> = vec![];
@@ -28,7 +28,7 @@ pub async fn update_repetitions_for_cell(
     match cell_type {
         CellType::Note => (),
         CellType::FlashCard | CellType::TrueFalse => {
-            if cell_repetitions.len() == 0 {
+            if cell_repetitions.is_empty() {
                 repetitions_to_insert.push(repetition::ActiveModel {
                     file_id: Set(file_id),
                     cell_id: Set(cell_id),
@@ -80,7 +80,7 @@ async fn get_repetitions_by_cell_id(
 }
 
 fn update_repetitions_for_cloze_cell(
-    content: &String,
+    content: &str,
     file_id: i32,
     cell_id: i32,
     current_cell_repetitions: &Vec<repetition::Model>,
@@ -89,7 +89,7 @@ fn update_repetitions_for_cloze_cell(
 ) {
     let re = Regex::new("<cloze[^>]*index=\"(\\d+)\"[^>]*>").expect("Invalid regex");
     let indices: HashSet<&str> = re
-        .captures_iter(&content[..])
+        .captures_iter(content)
         .map(|c| c.extract())
         .map(|c: (&str, [&str; 1])| c.1[0])
         .collect();
@@ -228,7 +228,7 @@ mod tests {
 
         // Act
 
-        update_repetitions_for_cell(&db_conn, file_id, cell_id, &CellType::FlashCard, &"".into())
+        update_repetitions_for_cell(&db_conn, file_id, cell_id, &CellType::FlashCard, "")
             .await
             .unwrap();
 
@@ -255,7 +255,7 @@ mod tests {
 
         // Act
 
-        update_repetitions_for_cell(&db_conn, file_id, cell_id, &CellType::FlashCard, &"".into())
+        update_repetitions_for_cell(&db_conn, file_id, cell_id, &CellType::FlashCard, "")
             .await
             .unwrap();
 
@@ -293,7 +293,7 @@ mod tests {
             file_id,
             cell_id,
             &CellType::Cloze,
-            &content.into(),
+            content,
         )
         .await
         .unwrap();

@@ -47,7 +47,7 @@ pub async fn create_cell(
 pub async fn create_cell_no_transaction(
     db_conn: &impl ConnectionTrait,
     file_id: i32,
-    content: &String,
+    content: &str,
     cell_type: &CellType,
     index: i32,
 ) -> Result<i32, String> {
@@ -56,7 +56,7 @@ pub async fn create_cell_no_transaction(
     let active_model = cell::ActiveModel {
         file_id: Set(file_id),
         cell_type: Set(cell_type.clone()),
-        content: Set(content.clone()),
+        content: Set(content.to_owned()),
         index: Set(index),
         ..Default::default()
     };
@@ -66,7 +66,7 @@ pub async fn create_cell_no_transaction(
         Err(err) => return Err(err.to_string()),
     };
 
-    repetition_service::update_repetitions_for_cell(db_conn, file_id, cell_id, cell_type, &content)
+    repetition_service::update_repetitions_for_cell(db_conn, file_id, cell_id, cell_type, content)
         .await?;
 
     Ok(cell_id)
@@ -112,7 +112,7 @@ pub async fn move_cell(db_conn: &DbConn, cell_id: i32, new_index: i32) -> Result
     let result = txn.commit().await;
     match result {
         Ok(_) => Ok(()),
-        Err(err) => return Err(err.to_string()),
+        Err(err) => Err(err.to_string()),
     }
 }
 

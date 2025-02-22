@@ -2,9 +2,10 @@ use sea_orm::entity::prelude::*;
 use sea_orm::sea_query::ForeignKeyAction;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum, Serialize, Deserialize)]
 #[sea_orm(rs_type = "String", db_type = "String(StringLen::None)")]
 pub enum CellType {
+    #[default]
     #[sea_orm(string_value = "FlashCard")]
     FlashCard,
     #[sea_orm(string_value = "Note")]
@@ -13,12 +14,6 @@ pub enum CellType {
     Cloze,
     #[sea_orm(string_value = "TrueFalse")]
     TrueFalse,
-}
-
-impl Default for CellType {
-    fn default() -> Self {
-        CellType::Note
-    }
 }
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Default, Serialize, Deserialize)]

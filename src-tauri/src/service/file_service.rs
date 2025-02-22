@@ -75,7 +75,7 @@ pub async fn delete_file(db_conn: &DbConn, file_id: i32) -> Result<(), String> {
 
     match result {
         Ok(_) => Ok(()),
-        Err(err) => return Err(err.to_string()),
+        Err(err) => Err(err.to_string()),
     }
 }
 
@@ -106,7 +106,7 @@ pub async fn delete_folder(db_conn: &DbConn, folder_id: i32) -> Result<(), Strin
     let result = txn.commit().await;
     match result {
         Ok(_) => Ok(()),
-        Err(err) => return Err(err.to_string()),
+        Err(err) => Err(err.to_string()),
     }
 }
 
@@ -151,9 +151,7 @@ pub async fn move_folder(
         get_by_id(db_conn, destination_folder_id).await?.path
     };
 
-    if destination_path == folder.path {
-        return Ok(());
-    } else if destination_path == get_folder_path(&folder.path) {
+    if destination_path == folder.path || destination_path == get_folder_path(&folder.path) {
         return Ok(());
     } else if destination_path.starts_with((folder.path.clone() + "/").as_str()) {
         return Err("You cannot move into an inner folder!".into());
@@ -218,7 +216,7 @@ async fn file_exists(db_conn: &impl ConnectionTrait, path: String) -> Result<boo
 
     match result {
         Ok(result) => Ok(result > 0),
-        Err(err) => return Err(err.to_string()),
+        Err(err) => Err(err.to_string()),
     }
 }
 
@@ -273,7 +271,7 @@ pub async fn list_folder_children_recursively(
         .await;
     match result {
         Ok(rows) => Ok(rows),
-        Err(err) => return Err(err.to_string()),
+        Err(err) => Err(err.to_string()),
     }
 }
 
@@ -295,7 +293,7 @@ async fn update_path(db_conn: &DbConn, id: i32, new_path: String) -> Result<(), 
         .await;
     match result {
         Ok(_) => Ok(()),
-        Err(err) => return Err(err.to_string()),
+        Err(err) => Err(err.to_string()),
     }
 }
 
@@ -309,7 +307,7 @@ pub async fn get_by_id(db_conn: &DbConn, id: i32) -> Result<file::Model, String>
 
 async fn create_folder_recursively(
     db_conn: &impl ConnectionTrait,
-    path: &String,
+    path: &str,
 ) -> Result<i32, String> {
     let mut current_path = String::new();
     // The id of the folder with the full path
@@ -317,7 +315,7 @@ async fn create_folder_recursively(
 
     for name in path.split("/") {
         if !current_path.is_empty() {
-            current_path.push_str("/");
+            current_path.push('/');
         }
         current_path.push_str(name);
         if current_path.is_empty() {
@@ -351,19 +349,19 @@ async fn folder_exists(db_conn: &impl ConnectionTrait, path: String) -> Result<b
 
     match result {
         Ok(result) => Ok(result > 0),
-        Err(err) => return Err(err.to_string()),
+        Err(err) => Err(err.to_string()),
     }
 }
 
-fn get_file_name(path: &String) -> String {
+fn get_file_name(path: &str) -> String {
     let index = path.rfind("/");
     match index {
         Some(index) => path.chars().skip(index + 1).collect(),
-        None => path.clone(),
+        None => path.to_owned(),
     }
 }
 
-fn get_folder_path(path: &String) -> String {
+fn get_folder_path(path: &str) -> String {
     let index = path.rfind("/");
     match index {
         Some(index) => path.chars().take(index).collect::<String>(),
@@ -371,11 +369,11 @@ fn get_folder_path(path: &String) -> String {
     }
 }
 
-fn apply_new_name(path: &String, new_name: &String) -> String {
+fn apply_new_name(path: &str, new_name: &String) -> String {
     let index = path.rfind("/");
     match index {
         Some(index) => path.chars().take(index + 1).collect::<String>() + new_name.as_str(),
-        None => new_name.clone(),
+        None => new_name.to_owned(),
     }
 }
 

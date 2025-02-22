@@ -8,17 +8,12 @@ pub struct Settings {
     pub zoom_percentage: f32,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Theme {
+    #[default]
     FollowSystem,
     Light,
     Dark,
-}
-
-impl Default for Theme {
-    fn default() -> Self {
-        Theme::FollowSystem
-    }
 }
 
 impl Settings {

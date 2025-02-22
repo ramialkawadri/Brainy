@@ -3,9 +3,10 @@ use sea_orm::entity::*;
 use sea_orm::sqlx::types::chrono::Utc;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum, Serialize, Deserialize)]
 #[sea_orm(rs_type = "String", db_type = "String(StringLen::None)")]
 pub enum State {
+    #[default]
     #[sea_orm(string_value = "New")]
     New,
     #[sea_orm(string_value = "Learning")]
@@ -14,12 +15,6 @@ pub enum State {
     Relearning,
     #[sea_orm(string_value = "Review")]
     Review,
-}
-
-impl Default for State {
-    fn default() -> Self {
-        State::New
-    }
 }
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Default, Serialize, Deserialize)]

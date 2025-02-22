@@ -6,7 +6,6 @@ use crate::dto::exported_item::{ExportedCell, ExportedItem, ExportedItemType};
 
 use super::{cell_service, file_service};
 
-// TODO: unit test
 pub async fn export_item(
     db_conn: &DbConn,
     item_id: i32,
@@ -42,7 +41,7 @@ async fn get_exported_item(
             cell_service::get_file_cells_ordered_by_index(db_conn, item_id)
                 .await?
                 .into_iter()
-                .map(|cell| ExportedCell::from(cell))
+                .map(ExportedCell::from)
                 .collect(),
         )
     };
@@ -112,7 +111,7 @@ pub async fn import_file(
     let result = txn.commit().await;
     match result {
         Ok(_) => Ok(()),
-        Err(err) => return Err(err.to_string()),
+        Err(err) => Err(err.to_string()),
     }
 }
 
@@ -147,20 +146,17 @@ async fn import_file_from_exported_item(
     )
     .await?;
 
-    match exported_item.cells.as_ref() {
-        Some(cells) => {
-            for (i, cell) in cells.iter().enumerate() {
-                cell_service::create_cell_no_transaction(
-                    db_conn,
-                    file_id,
-                    &cell.content,
-                    &cell.cell_type,
-                    i as i32,
-                )
-                .await?;
-            }
+    if let Some(cells) = exported_item.cells.as_ref() {
+        for (i, cell) in cells.iter().enumerate() {
+            cell_service::create_cell_no_transaction(
+                db_conn,
+                file_id,
+                &cell.content,
+                &cell.cell_type,
+                i as i32,
+            )
+            .await?;
         }
-        _ => {}
     }
 
     Ok(())
@@ -177,23 +173,144 @@ async fn import_folder_from_exported_item(
     )
     .await?;
 
-    match exported_item.children.as_ref() {
-        Some(children) => {
-            for child in children {
-                import_exported_item(db_conn, &child, parent_folder_path).await?
-            }
+    if let Some(children) = exported_item.children.as_ref() {
+        for child in children {
+            import_exported_item(db_conn, child, parent_folder_path).await?
         }
-        _ => {}
     }
 
     Ok(())
 }
 
-
 #[cfg(test)]
 mod tests {
-    use crate::service::{tests::create_file_cell, tests::get_db};
-    use super::*;
+    use std::path::PathBuf;
 
-    // TODO:
+    use super::*;
+    use crate::{
+        entity::cell::CellType,
+        service::tests::{create_file_cell_with_cell_type_and_content, get_db},
+    };
+    use rand::prelude::*;
+
+    fn get_random_file_path() -> PathBuf {
+        let temp_dir = std::env::current_dir().unwrap().join("temp");
+
+        if !temp_dir.exists() {
+            std::fs::create_dir(&temp_dir).unwrap();
+        }
+
+        let mut rng = rand::rng();
+        let mut file_name = String::new();
+
+        for _ in 1..6 {
+            file_name = format!("{}{}", file_name, rng.random::<char>());
+        }
+
+        temp_dir.join(format!("{file_name}.json"))
+    }
+
+    #[tokio::test]
+    async fn export_item_file_exported_file_correctly() {
+        // Arrange
+
+        let db_conn = get_db().await;
+        let (file_id, _) = create_file_cell_with_cell_type_and_content(
+            &db_conn,
+            "folder/file 1",
+            CellType::FlashCard,
+            "file content",
+        )
+        .await;
+        let export_path = get_random_file_path();
+
+        // Act
+
+        export_item(&db_conn, file_id, export_path.to_str().unwrap().into())
+            .await
+            .unwrap();
+
+        // Assert
+
+        let file = File::open(export_path.clone()).unwrap();
+        let exported_item: ExportedItem = serde_json::from_reader(file).unwrap();
+
+        assert_eq!(exported_item.item_type, ExportedItemType::File);
+        assert_eq!(exported_item.path, "file 1".to_string());
+        let cells = exported_item.cells.unwrap();
+        assert_eq!(cells.len(), 1);
+        assert_eq!(cells[0].content, "file content");
+        assert_eq!(cells[0].cell_type, CellType::FlashCard);
+    }
+
+    #[tokio::test]
+    async fn export_item_folder_exported_folder_correctly() {
+        // Arrange
+
+        let db_conn = get_db().await;
+        let folder_id = file_service::create_folder(&db_conn, "folder 1/folder 2".into())
+            .await
+            .unwrap();
+        create_file_cell_with_cell_type_and_content(
+            &db_conn,
+            "folder 1/folder 2/file 1",
+            CellType::FlashCard,
+            "file content",
+        )
+        .await;
+        create_file_cell_with_cell_type_and_content(
+            &db_conn,
+            "folder 1/folder 2/file 2",
+            CellType::TrueFalse,
+            "file content",
+        )
+        .await;
+        create_file_cell_with_cell_type_and_content(
+            &db_conn,
+            "folder 1/folder 2/folder 3/file 3",
+            CellType::TrueFalse,
+            "file content",
+        )
+        .await;
+        let export_path = get_random_file_path();
+
+        // Act
+
+        export_item(&db_conn, folder_id, export_path.to_str().unwrap().into())
+            .await
+            .unwrap();
+
+        // Assert
+
+        let file = File::open(export_path.clone()).unwrap();
+        let exported_item: ExportedItem = serde_json::from_reader(file).unwrap();
+
+        assert_eq!(exported_item.item_type, ExportedItemType::Folder);
+        assert_eq!(exported_item.path, "folder 2".to_string());
+        assert_eq!(exported_item.cells, None);
+        let children = exported_item.children.unwrap();
+        assert_eq!(children.len(), 3);
+
+        let folder3 = children
+            .iter()
+            .find(|child| child.path == "folder 2/folder 3")
+            .unwrap()
+            .clone();
+        assert_eq!(folder3.item_type, ExportedItemType::Folder);
+        assert_eq!(folder3.cells, None);
+        let folder3_children = folder3.children.unwrap();
+        assert_eq!(folder3_children.len(), 1);
+
+        let file3 = folder3_children
+            .iter()
+            .find(|child| child.path == "folder 2/folder 3/file 3".to_string())
+            .unwrap()
+            .clone();
+        assert_eq!(file3.item_type, ExportedItemType::File);
+        assert_eq!(file3.children, None);
+        let file3_cells = file3.cells.unwrap();
+        assert_eq!(file3_cells.len(), 1);
+        assert_eq!(file3_cells[0].content, "file content");
+        assert_eq!(file3_cells[0].cell_type, CellType::TrueFalse);
+    }
 }
