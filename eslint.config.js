@@ -8,7 +8,7 @@ import tseslint from "typescript-eslint";
 import parser from "@typescript-eslint/parser";
 
 export default tseslint.config(
-	{ ignores: ["dist"] },
+	{ ignores: ["dist", "src-tauri/target/release"] },
 	{
 		settings: {
 			react: {
