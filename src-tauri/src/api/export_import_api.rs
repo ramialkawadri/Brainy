@@ -4,21 +4,21 @@ use tauri::State;
 use tokio::sync::Mutex;
 
 #[tauri::command]
-pub async fn export_item(
+pub async fn export(
     db_conn: State<'_, Mutex<DbConn>>,
     item_id: i32,
     export_path: String,
 ) -> Result<(), String> {
     let db_conn = db_conn.lock().await;
-    export_import_service::export_item(&db_conn, item_id, export_path).await
+    export_import_service::export(&db_conn, item_id, export_path).await
 }
 
 #[tauri::command]
-pub async fn import_file(
+pub async fn import(
     db_conn: State<'_, Mutex<DbConn>>,
     import_item_path: String,
     import_into_folder_id: i32,
 ) -> Result<(), String> {
     let db_conn = db_conn.lock().await;
-    export_import_service::import_file(&db_conn, import_item_path, import_into_folder_id).await
+    export_import_service::import(&db_conn, import_item_path, import_into_folder_id).await
 }
