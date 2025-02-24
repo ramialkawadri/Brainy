@@ -32,14 +32,35 @@ interface Props {
 	extraExtensions?: AnyExtension[];
 	commands?: Command[];
 	autofocus: boolean;
+	renderAsTipTapEditor: boolean;
 	onUpdate: (html: string) => void;
 	onFocus?: (editor: Editor) => void;
 	onBlur?: () => void;
+    onDivFocus?: () => void;
 }
 
-function RichTextEditor({
+function RichTextEditor(props: Props) {
+	return (
+		<>
+			{props.title && <p className={styles.title}>{props.title}</p>}
+			<div className={styles.innerEditor}>
+				{props.renderAsTipTapEditor && <TipTapEditor {...props} />}
+				{!props.renderAsTipTapEditor && (
+					<div className={styles.editor} tabIndex={0} onClick={props.onDivFocus}>
+						<div
+							dangerouslySetInnerHTML={{
+								__html: props.initialContent,
+							}}
+						/>
+					</div>
+				)}
+			</div>
+		</>
+	);
+}
+
+function TipTapEditor({
 	initialContent,
-	title,
 	editable,
 	extraExtensions,
 	commands,
@@ -80,9 +101,7 @@ function RichTextEditor({
 
 	return (
 		<>
-			{title && <p className={styles.title}>{title}</p>}
-
-			<div className={styles.innerEditor}>
+			<div>
 				{editor && (
 					<BubbleMenu
 						editor={editor}

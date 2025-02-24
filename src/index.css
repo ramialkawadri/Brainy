@@ -71,6 +71,8 @@ body {
 	font-size: 1.6rem;
 	line-height: 1.5;
 	font-family: "Roboto", sans-serif;
+	font-optical-sizing: auto;
+	font-variation-settings: "wdth" 100;
 	font-weight: 300;
 	font-style: normal;
 	background-color: var(--grey-background-color);

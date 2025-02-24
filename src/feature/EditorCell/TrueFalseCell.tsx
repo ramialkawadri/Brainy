@@ -54,6 +54,7 @@ export function TrueFalseCell({
 				editable={editable}
 				autofocus={autofocus}
 				onFocus={onFocus}
+				renderAsTipTapEditor={autofocus}
 			/>
 			<div className={styles.buttonsRow}>
 				<button

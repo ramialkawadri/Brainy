@@ -37,7 +37,7 @@ import AddCellContainer from "./AddCellContainer";
 import Repetition from "../../type/backend/entity/repetition";
 
 const autoSaveDelayInMilliSeconds = 2000;
-const oneMinuteInMilliSeconds = 60 * 1000;
+const oneMinuteInMilliseconds = 60 * 1000;
 
 interface Props {
 	editCellId: number | null;
@@ -75,6 +75,7 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 		setShowInsertNewCell(false),
 	);
 
+	// TODO: move from use effect to event code
 	useEffect(() => {
 		if (
 			tipTapEditorRef.current &&
@@ -99,6 +100,7 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [selectedFileId]);
 
+	// TODO: move from use effect to event code
 	useEffect(() => {
 		if (tipTapEditorRef.current)
 			tipTapEditorRef.current.commands.scrollIntoView();
@@ -203,6 +205,8 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 	}, [executeRequest, selectedFileId]);
 
 	const saveChanges = useCallback(async () => {
+		if (changedCellsIds.current.size === 0) return;
+
 		await executeRequest(async () => {
 			const requests: UpdateCellRequest[] = [];
 
@@ -234,7 +238,7 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 
 	const retrieveSelectedFileCells = useCallback(async () => {
 		return await executeRequest(async () => {
-            await forceSave();
+			await forceSave();
 			const fetchedCells =
 				await getFileCellsOrderedByIndex(selectedFileId);
 			setCells(fetchedCells);
@@ -248,7 +252,7 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 	useEffect(() => {
 		const intervalId = setInterval(
 			retrieveRepetitionCounts,
-			oneMinuteInMilliSeconds,
+			oneMinuteInMilliseconds,
 		);
 		return () => clearInterval(intervalId);
 	}, [retrieveRepetitionCounts]);
@@ -286,7 +290,7 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 	};
 
 	const handleCellDeleteConfirm = async () => {
-        changedCellsIds.current.delete(selectedCellId!);
+		changedCellsIds.current.delete(selectedCellId!);
 		setShowDeleteDialog(false);
 		const cellIndex = cells.findIndex(c => c.id === selectedCellId);
 		await executeRequest(async () => await deleteCell(selectedCellId!));
