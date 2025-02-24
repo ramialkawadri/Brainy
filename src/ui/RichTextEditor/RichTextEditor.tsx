@@ -36,7 +36,6 @@ interface Props {
 	onUpdate: (html: string) => void;
 	onFocus?: (editor: Editor) => void;
 	onBlur?: () => void;
-    onDivFocus?: () => void;
 }
 
 function RichTextEditor(props: Props) {
@@ -46,7 +45,7 @@ function RichTextEditor(props: Props) {
 			<div className={styles.innerEditor}>
 				{props.renderAsTipTapEditor && <TipTapEditor {...props} />}
 				{!props.renderAsTipTapEditor && (
-					<div className={styles.editor} tabIndex={0} onClick={props.onDivFocus}>
+					<div className={styles.editor} tabIndex={0}>
 						<div
 							dangerouslySetInnerHTML={{
 								__html: props.initialContent,
