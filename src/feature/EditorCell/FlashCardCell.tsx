@@ -42,7 +42,7 @@ function FlashCardCell({
 			JSON.stringify({
 				question,
 				answer: html,
-			}),
+            } as FlashCard),
 		);
 	};
 

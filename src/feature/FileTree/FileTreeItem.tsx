@@ -21,7 +21,10 @@ import {
 	moveFolder,
 } from "../../store/actions/fileSystemActions";
 import getFileName from "../../util/getFileName";
-import { requestFailure, setSelectedFileId } from "../../store/reducers/fileSystemReducers";
+import {
+	requestFailure,
+	setSelectedFileId,
+} from "../../store/reducers/fileSystemReducers";
 import UiFolder from "../../type/ui/uiFolder";
 import { exportItem } from "../../api/exportImportApi";
 import FileTreeItemRow from "./FileTreeItemRow";
@@ -66,7 +69,7 @@ function FileTreeItem({
 	const [isOpen, setIsOpen] = useState(false);
 	const dispatch = useAppDispatch();
 	const isExpanded = isRoot || isOpen;
-    const actions: Action[] = [];
+	const actions: Action[] = [];
 
 	const showCreateNewFileInput = () => {
 		setCreatingNewFolder(false);
@@ -124,12 +127,12 @@ function FileTreeItem({
 					defaultPath: getFileName(fullPath),
 				});
 				if (!savePath) return;
-                try {
-                    await exportItem(id, savePath);
-                } catch (e) {
-                    console.error(e);
-                    dispatch(requestFailure(errorToString(e)));
-                }
+				try {
+					await exportItem(id, savePath);
+				} catch (e) {
+					console.error(e);
+					dispatch(requestFailure(errorToString(e)));
+				}
 			})();
 		},
 	});
@@ -253,7 +256,6 @@ function FileTreeItem({
 				onDragLeave={handleDragLeave}
 				onDrop={e => void handleDrop(e)}
 				onKeyDown={handleKeyDown}>
-
 				<FileTreeItemRow
 					isRoot={isRoot}
 					id={id}
@@ -275,14 +277,14 @@ function FileTreeItem({
 					<FileTreeItemChildren
 						creatingNewFile={creatingNewFile}
 						creatingNewFolder={creatingNewFolder}
-                        onFileClick={onFileClick}
-                        onRootClick={onRootClick}
-                        onMarkForDeletion={onMarkForDeletion}
-                        onCreatingNewItemEnd={handleCreateNewItemEnd}
-                        isRoot={isRoot}
-                        folder={folder}
-                        fullPath={fullPath}
-                        onCreateNewFileClick={() => setCreatingNewFile(true)}
+						onFileClick={onFileClick}
+						onRootClick={onRootClick}
+						onMarkForDeletion={onMarkForDeletion}
+						onCreatingNewItemEnd={handleCreateNewItemEnd}
+						isRoot={isRoot}
+						folder={folder}
+						fullPath={fullPath}
+						onCreateNewFileClick={() => setCreatingNewFile(true)}
 					/>
 				)}
 			</div>

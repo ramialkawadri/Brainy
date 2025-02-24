@@ -78,7 +78,9 @@ export function moveFolder(folderId: number, destinationFolderId: number) {
 }
 
 export function importFile(importItemPath: string, importIntoFolderId: number) {
-	return executeRequest(() => importFileApi(importItemPath, importIntoFolderId));
+	return executeRequest(() =>
+		importFileApi(importItemPath, importIntoFolderId),
+	);
 }
 
 function executeRequest<T>(

@@ -13,7 +13,10 @@ import { Action } from "./ActionsMenu";
 import { selectSelectedFileId } from "../../store/selectors/fileSystemSelectors";
 import getFileName from "../../util/getFileName";
 import { useEffect, useState } from "react";
-import { renameFile, renameFolder } from "../../store/actions/fileSystemActions";
+import {
+	renameFile,
+	renameFolder,
+} from "../../store/actions/fileSystemActions";
 import useAppDispatch from "../../hooks/useAppDispatch";
 
 interface Props {
@@ -51,21 +54,21 @@ function FileTreeItemRow({
 }: Props) {
 	const [newName, setNewName] = useState(getFileName(fullPath));
 	const selectedFileId = useAppSelector(selectSelectedFileId);
-    const dispatch = useAppDispatch();
+	const dispatch = useAppDispatch();
 	const isSelected = selectedFileId === id && !isRoot;
 
-    useEffect(() => {
-        if (!isRenaming) setNewName(getFileName(fullPath));
-    }, [isRenaming, fullPath])
+	useEffect(() => {
+		if (!isRenaming) setNewName(getFileName(fullPath));
+	}, [isRenaming, fullPath]);
 
-    const handleRenameSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+	const handleRenameSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 
 		if (isFolder) await dispatch(renameFolder(id, newName));
 		else await dispatch(renameFile(id, newName));
 
-        onRenameEnd();
-    };
+		onRenameEnd();
+	};
 
 	return (
 		<div

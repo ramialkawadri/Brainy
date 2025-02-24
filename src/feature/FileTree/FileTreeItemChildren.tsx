@@ -5,19 +5,22 @@ import { useState } from "react";
 import UiFolder from "../../type/ui/uiFolder";
 import FileTreeItem from "./FileTreeItem";
 import useAppDispatch from "../../hooks/useAppDispatch";
-import { createFile, createFolder } from "../../store/actions/fileSystemActions";
+import {
+	createFile,
+	createFolder,
+} from "../../store/actions/fileSystemActions";
 
 interface Props {
 	creatingNewFolder: boolean;
 	creatingNewFile: boolean;
 	folder: UiFolder;
 	fullPath: string;
-    isRoot: boolean;
+	isRoot: boolean;
 	onMarkForDeletion: (id: number, isFolder: boolean) => void;
 	onFileClick: () => void;
 	onRootClick: () => void;
-    onCreatingNewItemEnd: () => void;
-    onCreateNewFileClick: () => void;
+	onCreatingNewItemEnd: () => void;
+	onCreateNewFileClick: () => void;
 }
 
 function FileTreeItemChildren({
@@ -25,18 +28,20 @@ function FileTreeItemChildren({
 	creatingNewFolder,
 	folder,
 	fullPath,
-    isRoot,
-    onMarkForDeletion,
-    onFileClick,
-    onRootClick,
-    onCreatingNewItemEnd,
-    onCreateNewFileClick,
+	isRoot,
+	onMarkForDeletion,
+	onFileClick,
+	onRootClick,
+	onCreatingNewItemEnd,
+	onCreateNewFileClick,
 }: Props) {
 	// Creating new folder or file share the same controlled input.
 	const [newItemName, setNewItemName] = useState("");
 	const dispatch = useAppDispatch();
 
-    const handleCreateNewItemSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+	const handleCreateNewItemSubmit = async (
+		e: React.FormEvent<HTMLFormElement>,
+	) => {
 		e.preventDefault();
 		const newItemPath = isRoot ? newItemName : fullPath + "/" + newItemName;
 		if (creatingNewFolder) {
@@ -45,8 +50,8 @@ function FileTreeItemChildren({
 			await dispatch(createFile(newItemPath));
 		}
 		setNewItemName("");
-        onCreatingNewItemEnd();
-    };
+		onCreatingNewItemEnd();
+	};
 
 	return (
 		<div className={`${styles.fileTreeItemChildren}`}>
@@ -69,7 +74,7 @@ function FileTreeItemChildren({
 						placeholder="Enter the name"
 						autoFocus
 						onBlur={onCreatingNewItemEnd}
-                    />
+					/>
 				</form>
 			)}
 
@@ -78,9 +83,7 @@ function FileTreeItemChildren({
 				!creatingNewFile && (
 					<p>
 						This folder is empty,
-						<button
-							onClick={onCreateNewFileClick}
-							className="link">
+						<button onClick={onCreateNewFileClick} className="link">
 							&nbsp;create a file
 						</button>
 					</p>

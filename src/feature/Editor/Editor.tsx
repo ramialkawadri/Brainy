@@ -24,13 +24,17 @@ import {
 	moveCell,
 	updateCellsContents,
 } from "../../api/cellApi";
-import { getStudyRepetitionCounts } from "../../api/repetitionApi";
+import {
+	getFileRepetitions,
+	getStudyRepetitionCounts,
+} from "../../api/repetitionApi";
 import errorToString from "../../util/errorToString";
 import { Editor as TipTapEditor } from "@tiptap/react";
 import { TauriEvent, UnlistenFn } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import UpdateCellRequest from "../../type/backend/dto/updateCellRequest";
 import AddCellContainer from "./AddCellContainer";
+import Repetition from "../../type/backend/entity/repetition";
 
 const autoSaveDelayInMilliSeconds = 2000;
 const oneMinuteInMilliSeconds = 60 * 1000;
@@ -56,6 +60,7 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 			review: 0,
 		});
 	const [cells, setCells] = useState<Cell[]>([]);
+	const [repetitions, setRepetitions] = useState<Repetition[]>([]);
 	// This ref is only used for keeping updated cells that are not yet saved.
 	const updatedCells = useRef(cells);
 	const tipTapEditorRef = useRef<TipTapEditor | null>(null);
@@ -197,16 +202,6 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 		});
 	}, [executeRequest, selectedFileId]);
 
-	const retrieveSelectedFileCells = useCallback(async () => {
-		return await executeRequest(async () => {
-			const fetchedCells =
-				await getFileCellsOrderedByIndex(selectedFileId);
-			setCells(fetchedCells);
-			updatedCells.current = fetchedCells;
-			return fetchedCells;
-		});
-	}, [executeRequest, selectedFileId]);
-
 	const saveChanges = useCallback(async () => {
 		await executeRequest(async () => {
 			const requests: UpdateCellRequest[] = [];
@@ -224,8 +219,31 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 			changedCellsIds.current.clear();
 			await retrieveRepetitionCounts();
 			setCells(updatedCells.current);
+			const fetchedRepetitions = await getFileRepetitions(selectedFileId);
+			setRepetitions(fetchedRepetitions);
 		});
-	}, [executeRequest, retrieveRepetitionCounts]);
+	}, [executeRequest, retrieveRepetitionCounts, selectedFileId]);
+
+	const forceSave = useCallback(async () => {
+		if (autoSaveTimeoutId.current !== null) {
+			clearTimeout(autoSaveTimeoutId.current);
+			autoSaveTimeoutId.current = null;
+		}
+		await saveChanges();
+	}, [saveChanges]);
+
+	const retrieveSelectedFileCells = useCallback(async () => {
+		return await executeRequest(async () => {
+            await forceSave();
+			const fetchedCells =
+				await getFileCellsOrderedByIndex(selectedFileId);
+			setCells(fetchedCells);
+			const fetchedRepetitions = await getFileRepetitions(selectedFileId);
+			setRepetitions(fetchedRepetitions);
+			updatedCells.current = fetchedCells;
+			return fetchedCells;
+		});
+	}, [executeRequest, forceSave, selectedFileId]);
 
 	useEffect(() => {
 		const intervalId = setInterval(
@@ -254,14 +272,6 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 		}, autoSaveDelayInMilliSeconds);
 	};
 
-	const forceSave = useCallback(async () => {
-		if (autoSaveTimeoutId.current !== null) {
-			clearTimeout(autoSaveTimeoutId.current);
-			autoSaveTimeoutId.current = null;
-		}
-		await saveChanges();
-	}, [saveChanges]);
-
 	useEffect(() => {
 		return () => void forceSave();
 	}, [forceSave]);
@@ -276,7 +286,7 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 	};
 
 	const handleCellDeleteConfirm = async () => {
-		await forceSave();
+        changedCellsIds.current.delete(selectedCellId!);
 		setShowDeleteDialog(false);
 		const cellIndex = cells.findIndex(c => c.id === selectedCellId);
 		await executeRequest(async () => await deleteCell(selectedCellId!));
@@ -382,6 +392,10 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 										handleDragStart(e, cell.id!)
 									}
 									onDragEnd={() => setDraggedCellId(null)}
+									repetitions={repetitions.filter(
+										r => r.cellId === cell.id,
+									)}
+									cellType={cell.cellType}
 								/>
 							)}
 

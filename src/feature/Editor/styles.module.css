@@ -117,6 +117,10 @@
 		color: var(--red-color);
 	}
 
+	& .repetitions-info-button {
+		position: relative;
+	}
+
 	& .drag {
 		cursor: grab;
 	}
@@ -195,4 +199,44 @@ body:global(.dark) .focus-tools {
 		align-items: center;
 		gap: 8px;
 	}
+}
+
+.repetitions-info-container {
+	position: absolute;
+	cursor: auto;
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	align-items: start;
+	min-width: 18rem;
+	border-radius: var(--default-border-radius);
+	text-align: left;
+
+	padding: var(--medium-padding);
+	background-color: var(--default-background-color);
+	box-shadow: var(--darker-box-shadow);
+
+	top: calc(100% + 13px);
+	right: 0;
+	z-index: 1;
+}
+
+.repetitions-info-container::after {
+	content: "";
+	border: 12px solid var(--default-background-color);
+	position: absolute;
+	border-top-width: 0;
+	border-left-color: transparent;
+	border-right-color: transparent;
+	top: 0;
+	transform: translateY(-100%);
+	right: 4px;
+}
+
+.repetitions-info-box {
+	padding: 4px 0;
+}
+
+.repetitions-info-box:not(:last-child) {
+	border-bottom: 1px solid var(--hover-border-color);
 }
