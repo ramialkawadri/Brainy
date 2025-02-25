@@ -352,6 +352,7 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 		}
 	};
 
+    // TODO: different inner container width!!
 	return (
 		<div className={styles.container} onKeyDown={handleKeyDown}>
 			{showDeleteDialog && (

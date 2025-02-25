@@ -14,6 +14,7 @@ interface Props {
 }
 
 function EditorCell({ cell, editable, autofocus, onUpdate, onFocus }: Props) {
+
 	switch (cell.cellType) {
 		case "FlashCard":
 			return (

@@ -87,6 +87,7 @@ function TipTapEditor({
 					return false;
 				},
 			},
+            shouldRerenderOnTransaction: false,
 		},
 		[],
 	);
