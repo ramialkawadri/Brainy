@@ -14,7 +14,6 @@ interface Props {
 }
 
 function EditorCell({ cell, editable, autofocus, onUpdate, onFocus }: Props) {
-
 	switch (cell.cellType) {
 		case "FlashCard":
 			return (
@@ -34,7 +33,6 @@ function EditorCell({ cell, editable, autofocus, onUpdate, onFocus }: Props) {
 					onUpdate={onUpdate}
 					autofocus={autofocus}
 					onFocus={onFocus}
-					renderAsTipTapEditor={autofocus}
 				/>
 			);
 		case "Cloze":

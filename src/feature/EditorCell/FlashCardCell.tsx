@@ -27,7 +27,7 @@ function FlashCardCell({
 	const isAnswerEditorFocused = useRef(false);
 
 	const handleQuestionUpdate = (html: string) => {
-        question.current = html;
+		question.current = html;
 		onUpdate(
 			JSON.stringify({
 				question: html,
@@ -37,7 +37,7 @@ function FlashCardCell({
 	};
 
 	const handleAnswerUpdate = (html: string) => {
-        answer.current = html;
+		answer.current = html;
 		onUpdate(
 			JSON.stringify({
 				question: question.current,
@@ -46,7 +46,6 @@ function FlashCardCell({
 		);
 	};
 
-    // TODO: clicking on answer field should focus on it and not question
 	return (
 		<div className={styles.flashCard}>
 			<RichTextEditor
@@ -56,7 +55,6 @@ function FlashCardCell({
 				editable={editable}
 				autofocus={autofocus && !isAnswerEditorFocused.current}
 				onFocus={onFocus}
-				renderAsTipTapEditor={autofocus}
 			/>
 			<RichTextEditor
 				title="Answer"
@@ -69,7 +67,6 @@ function FlashCardCell({
 					onFocus(e);
 				}}
 				onBlur={() => (isAnswerEditorFocused.current = false)}
-				renderAsTipTapEditor={autofocus}
 			/>
 		</div>
 	);

@@ -12,7 +12,7 @@ export function updateCellsContents(requests: UpdateCellRequest[]) {
 	return invoke("update_cells_contents", { requests });
 }
 
-export function createCell(cell: Cell) {
+export function createCell(cell: Cell): Promise<number> {
 	return invoke("create_cell", { ...cell });
 }
 

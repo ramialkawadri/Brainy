@@ -18,11 +18,11 @@
 }
 
 .editor {
-    min-height: calc(1.4rem + 4 * var(--small-padding));
+	min-height: calc(1.4rem + 4 * var(--small-padding));
 }
 
 .editor div {
-    padding: var(--small-padding) var(--default-padding);
+	padding: var(--small-padding) var(--default-padding);
 	outline: none;
 
 	ul,

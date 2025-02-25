@@ -35,6 +35,7 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import UpdateCellRequest from "../../type/backend/dto/updateCellRequest";
 import AddCellContainer from "./AddCellContainer";
 import Repetition from "../../type/backend/entity/repetition";
+import RenderIfVisible from "../../ui/RenderIfVisible";
 
 const autoSaveDelayInMilliSeconds = 2000;
 const oneMinuteInMilliseconds = 60 * 1000;
@@ -185,13 +186,14 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 	};
 
 	const executeRequest = useCallback(
-		async <T,>(cb: () => Promise<T>) => {
+		async <T,>(cb: () => Promise<T>): Promise<T | null> => {
 			try {
 				return await cb();
 			} catch (e) {
 				console.error(e);
 				onError(errorToString(e));
 			}
+			return null;
 		},
 		[onError],
 	);
@@ -282,9 +284,9 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 
 	const insertNewCell = async (cellType: CellType, index: number) => {
 		const cell = createDefaultCell(cellType, selectedFileId, index);
-		await executeRequest(async () => await createCell(cell));
-		const cells = await retrieveSelectedFileCells();
-		if (cells) setSelectedCellId(cells[index].id!);
+		const cellId = await executeRequest(async () => await createCell(cell));
+		await retrieveSelectedFileCells();
+		if (cellId) setSelectedCellId(cellId);
 		await retrieveRepetitionCounts();
 		setShowInsertNewCell(false);
 	};
@@ -352,9 +354,14 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 		}
 	};
 
-    // TODO: different inner container width!!
+	const outerEditorContainerRef = useRef(null);
+
+	// TODO: different inner container width!!
 	return (
-		<div className={styles.container} onKeyDown={handleKeyDown}>
+		<div
+			className={styles.container}
+			onKeyDown={handleKeyDown}
+			key={selectedFileId}>
 			{showDeleteDialog && (
 				<ConfirmationDialog
 					text="Are you sure you want to delete the cell?"
@@ -369,73 +376,88 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 				onStudyButtonClick={() => void startStudy()}
 			/>
 
-			<div className={styles.outerEditorContainer}>
+			<div
+				className={styles.outerEditorContainer}
+				ref={outerEditorContainerRef}>
 				<div
 					className={`container ${styles.editorContainer}`}
 					ref={editorRef}>
 					{cells.length === 0 && <p>The file is empty</p>}
 
 					{cells.map((cell, i) => (
-						<div
+						<RenderIfVisible
 							key={cell.id}
-							onFocus={() => selectCell(cell.id!)}
-							onClick={() => handleCellClick(cell.id!)}
-							onDragOver={e => handleDragOver(e, cell.id!)}
-							onDragLeave={() => setDragOverCellId(null)}
-							onDrop={() => void handleDrop(i)}
-							className={`${styles.cell}
+							defaultHeight={200}
+							stayRendered={selectedCellId === cell.id}
+							root={outerEditorContainerRef.current}>
+							<div
+								key={cell.id}
+								onFocus={() => selectCell(cell.id!)}
+								onClick={() => handleCellClick(cell.id!)}
+								onDragOver={e => handleDragOver(e, cell.id!)}
+								onDragLeave={() => setDragOverCellId(null)}
+								onDrop={() => void handleDrop(i)}
+								className={`${styles.cell}
                             ${selectedCellId === cell.id ? styles.selectedCell : ""}
                             ${dragOverCellId === cell.id ? styles.dragOver : ""}
                             ${draggedCellId === cell.id ? styles.dragging : ""}`}>
-							{selectedCellId === cell.id && (
-								<FocusTools
-									onInsert={() =>
-										setShowInsertNewCell(!showInsertNewCell)
-									}
-									onDelete={() => setShowDeleteDialog(true)}
-									onDragStart={e =>
-										handleDragStart(e, cell.id!)
-									}
-									onDragEnd={() => setDraggedCellId(null)}
-									repetitions={repetitions.filter(
-										r => r.cellId === cell.id,
-									)}
-									cellType={cell.cellType}
-								/>
-							)}
-
-							{showInsertNewCell &&
-								selectedCellId === cell.id && (
-									<NewCellTypeSelector
-										className={styles.insertCellPopup}
-										onClick={cellType =>
-											void insertNewCell(cellType, i + 1)
+								{selectedCellId === cell.id && (
+									<FocusTools
+										onInsert={() =>
+											setShowInsertNewCell(
+												!showInsertNewCell,
+											)
 										}
+										onDelete={() =>
+											setShowDeleteDialog(true)
+										}
+										onDragStart={e =>
+											handleDragStart(e, cell.id!)
+										}
+										onDragEnd={() => setDraggedCellId(null)}
+										repetitions={repetitions.filter(
+											r => r.cellId === cell.id,
+										)}
+										cellType={cell.cellType}
 									/>
 								)}
 
-							<div className={styles.cellTitle}>
-								<Icon
-									path={getCellIcon(cell.cellType)}
-									size={1}
-								/>
-								<span>
-									{cellTypesDisplayNames[cell.cellType]}
-								</span>
-							</div>
+								{showInsertNewCell &&
+									selectedCellId === cell.id && (
+										<NewCellTypeSelector
+											className={styles.insertCellPopup}
+											onClick={cellType =>
+												void insertNewCell(
+													cellType,
+													i + 1,
+												)
+											}
+										/>
+									)}
 
-							<EditorCell
-								cell={cell}
-								editable={draggedCellId === null}
-								autofocus={selectedCellId === cell.id}
-								onUpdate={content =>
-									handleUpdate(content, i, cell.id!)
-								}
-								onFocus={editor =>
-									(tipTapEditorRef.current = editor)
-								}
-							/>
-						</div>
+								<div className={styles.cellTitle}>
+									<Icon
+										path={getCellIcon(cell.cellType)}
+										size={1}
+									/>
+									<span>
+										{cellTypesDisplayNames[cell.cellType]}
+									</span>
+								</div>
+
+								<EditorCell
+									cell={cell}
+									editable={draggedCellId === null}
+									autofocus={selectedCellId === cell.id}
+									onUpdate={content =>
+										handleUpdate(content, i, cell.id!)
+									}
+									onFocus={editor =>
+										(tipTapEditorRef.current = editor)
+									}
+								/>
+							</div>
+						</RenderIfVisible>
 					))}
 
 					<AddCellContainer

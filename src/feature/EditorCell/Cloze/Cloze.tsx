@@ -56,7 +56,6 @@ function ClozeCell({ cell, editable, autofocus, onUpdate, onFocus }: Props) {
 			autofocus={autofocus}
 			onUpdate={onUpdate}
 			onFocus={onFocus}
-			renderAsTipTapEditor={autofocus}
 		/>
 	);
 }
