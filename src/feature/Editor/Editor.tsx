@@ -76,7 +76,6 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 		setShowInsertNewCell(false),
 	);
 
-	// TODO: move from use effect to event code
 	useEffect(() => {
 		if (
 			tipTapEditorRef.current &&
@@ -93,19 +92,13 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 			await retrieveRepetitionCounts();
 			const cells = await retrieveSelectedFileCells();
 			if (cells && cells.length > 0) {
-				if (editCellId !== null) setSelectedCellId(editCellId);
-				else setSelectedCellId(cells[0].id!);
+				if (editCellId !== null) selectCell(editCellId);
+				else selectCell(cells[0].id!);
 			}
 		})();
 
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [selectedFileId]);
-
-	// TODO: move from use effect to event code
-	useEffect(() => {
-		if (tipTapEditorRef.current)
-			tipTapEditorRef.current.commands.scrollIntoView();
-	}, [selectedCellId]);
 
 	useEffect(() => {
 		let unlisten: UnlistenFn;
@@ -155,7 +148,7 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 			const selectedCellIndex = cells.findIndex(
 				c => c.id === selectedCellId,
 			);
-			setSelectedCellId(
+			selectCell(
 				cells[Math.min(cells.length - 1, selectedCellIndex + 1)].id!,
 			);
 		} else if (e.ctrlKey && e.code == "ArrowUp") {
@@ -163,7 +156,7 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 			const selectedCellIndex = cells.findIndex(
 				c => c.id === selectedCellId,
 			);
-			setSelectedCellId(cells[Math.max(0, selectedCellIndex - 1)].id!);
+			selectCell(cells[Math.max(0, selectedCellIndex - 1)].id!);
 		} else if (e.altKey && e.code === "Delete") {
 			if (selectedCellId !== null) setShowDeleteDialog(true);
 		}
@@ -286,7 +279,7 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 		const cell = createDefaultCell(cellType, selectedFileId, index);
 		const cellId = await executeRequest(async () => await createCell(cell));
 		await retrieveSelectedFileCells();
-		if (cellId) setSelectedCellId(cellId);
+		if (cellId) selectCell(cellId);
 		await retrieveRepetitionCounts();
 		setShowInsertNewCell(false);
 	};
@@ -300,18 +293,20 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 		await retrieveSelectedFileCells();
 		tipTapEditorRef.current = null;
 		if (cellIndex > 0) {
-			setSelectedCellId(cellIndex > 0 ? cells[cellIndex - 1].id! : null);
+			selectCell(cellIndex > 0 ? cells[cellIndex - 1].id! : null);
 		} else if (cellIndex === 0 && cells.length > 1) {
-			setSelectedCellId(cells[1].id!);
+			selectCell(cells[1].id!);
 		} else {
-			setSelectedCellId(null);
+			selectCell(null);
 		}
 	};
 
-	const selectCell = (id: number) => {
+	const selectCell = (id: number | null) => {
 		if (selectedCellId !== id) {
 			setShowInsertNewCell(false);
 			setSelectedCellId(id);
+		if (tipTapEditorRef.current)
+			tipTapEditorRef.current.commands.scrollIntoView();
 		}
 	};
 
@@ -350,13 +345,19 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 		if (cellId === selectedCellId && tipTapEditorRef.current) {
 			tipTapEditorRef.current.commands.focus();
 		} else {
-			setSelectedCellId(cellId);
+			selectCell(cellId);
 		}
 	};
 
+        const handleDragLeave = (e: React.DragEvent) => {
+        if (e.currentTarget.contains(e.relatedTarget as unknown as Node)) {
+            return;
+        }
+        setDragOverCellId(null);
+    }
+
 	const outerEditorContainerRef = useRef(null);
 
-	// TODO: different inner container width!!
 	return (
 		<div
 			className={styles.container}
@@ -395,7 +396,7 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 								onFocus={() => selectCell(cell.id!)}
 								onClick={() => handleCellClick(cell.id!)}
 								onDragOver={e => handleDragOver(e, cell.id!)}
-								onDragLeave={() => setDragOverCellId(null)}
+								onDragLeave={handleDragLeave}
 								onDrop={() => void handleDrop(i)}
 								className={`${styles.cell}
                             ${selectedCellId === cell.id ? styles.selectedCell : ""}
@@ -464,7 +465,7 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 						isDragOver={dragOverCellId === cells.length}
 						onDragOver={e => handleDragOver(e, cells.length)}
 						onDrop={() => void handleDrop(cells.length)}
-						onDragLeave={() => setDragOverCellId(null)}
+						onDragLeave={handleDragLeave}
 						onAddNewCell={cellType =>
 							void insertNewCell(cellType, cells.length)
 						}

@@ -10,7 +10,7 @@ import useGlobalKey from "../../hooks/useGlobalKey";
 interface Props {
 	isDragOver: boolean;
 	onDragOver: (e: React.DragEvent) => void;
-	onDragLeave: () => void;
+	onDragLeave: (e: React.DragEvent) => void;
 	onDrop: () => void;
 	onAddNewCell: (cellType: CellType) => void;
 	onPopupHide: () => void;
