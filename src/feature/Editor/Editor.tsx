@@ -65,6 +65,7 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 	// This ref is only used for keeping updated cells that are not yet saved.
 	const updatedCells = useRef(cells);
 	const tipTapEditorRef = useRef<TipTapEditor | null>(null);
+	const outerEditorContainerRef = useRef<HTMLDivElement>(null);
 	const selectedFileId = useAppSelector(selectSelectedFileId)!;
 	const editorRef = useRef<HTMLDivElement>(null);
 	const autoSaveTimeoutId = useRef<number>(null);
@@ -305,8 +306,8 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 		if (selectedCellId !== id) {
 			setShowInsertNewCell(false);
 			setSelectedCellId(id);
-		if (tipTapEditorRef.current)
-			tipTapEditorRef.current.commands.scrollIntoView();
+			if (tipTapEditorRef.current)
+				tipTapEditorRef.current.commands.scrollIntoView();
 		}
 	};
 
@@ -349,14 +350,17 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 		}
 	};
 
-        const handleDragLeave = (e: React.DragEvent) => {
-        if (e.currentTarget.contains(e.relatedTarget as unknown as Node)) {
-            return;
-        }
-        setDragOverCellId(null);
-    }
+	const handleDragLeave = (e: React.DragEvent) => {
+		if (e.currentTarget.contains(e.relatedTarget as unknown as Node)) {
+			return;
+		}
+		setDragOverCellId(null);
+	};
 
-	const outerEditorContainerRef = useRef(null);
+	const handleShowRepetitionsInfo = () => {
+		setShowInsertNewCell(false);
+		setShowDeleteDialog(false);
+	};
 
 	return (
 		<div
@@ -420,6 +424,9 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 											r => r.cellId === cell.id,
 										)}
 										cellType={cell.cellType}
+										onShowRepetitionsInfo={
+											handleShowRepetitionsInfo
+										}
 									/>
 								)}
 

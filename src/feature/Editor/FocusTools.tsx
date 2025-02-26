@@ -19,9 +19,9 @@ interface Props {
 	onDelete: () => void;
 	onDragStart: (e: React.DragEvent<HTMLButtonElement>) => void;
 	onDragEnd: (e: React.DragEvent<HTMLButtonElement>) => void;
+	onShowRepetitionsInfo: () => void;
 }
 
-// TODO: hide repetitions info when other buttons are clicked
 function FocusTools({
 	repetitions,
 	cellType,
@@ -29,6 +29,7 @@ function FocusTools({
 	onDelete,
 	onDragStart,
 	onDragEnd,
+	onShowRepetitionsInfo,
 }: Props) {
 	const [showRepetitionsInfo, setShowRepetitionsInfo] = useState(false);
 	const repetitionsInfoRef = useRef<HTMLButtonElement>(null);
@@ -36,6 +37,11 @@ function FocusTools({
 	useOutsideClick(repetitionsInfoRef as React.RefObject<HTMLElement>, () =>
 		setShowRepetitionsInfo(false),
 	);
+
+	const handleShowRepetitionsInfoClick = () => {
+		setShowRepetitionsInfo(value => !value);
+		if (!showRepetitionsInfo) onShowRepetitionsInfo();
+	};
 
 	return (
 		<div className={styles.focusTools} onClick={e => e.stopPropagation()}>
@@ -61,7 +67,7 @@ function FocusTools({
 					className={`transparent ${styles.repetitionsInfoButton}`}
 					title="Show repetitions info"
 					ref={repetitionsInfoRef}
-					onClick={() => setShowRepetitionsInfo(value => !value)}>
+					onClick={() => handleShowRepetitionsInfoClick()}>
 					<Icon path={mdiInformationOutline} size={1} />
 					{showRepetitionsInfo && (
 						<RepetitionsInfo
