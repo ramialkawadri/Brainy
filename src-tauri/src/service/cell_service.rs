@@ -172,7 +172,7 @@ pub async fn update_cells_contents(
     }
 }
 
-async fn get_cell_by_id(
+pub async fn get_cell_by_id(
     db_conn: &impl ConnectionTrait,
     cell_id: i32,
 ) -> Result<cell::Model, String> {

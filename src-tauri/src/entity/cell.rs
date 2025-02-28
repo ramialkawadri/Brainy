@@ -2,7 +2,9 @@ use sea_orm::entity::prelude::*;
 use sea_orm::sea_query::ForeignKeyAction;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Default, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum, Serialize, Deserialize)]
+#[derive(
+    Debug, Default, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum, Serialize, Deserialize,
+)]
 #[sea_orm(rs_type = "String", db_type = "String(StringLen::None)")]
 pub enum CellType {
     #[default]

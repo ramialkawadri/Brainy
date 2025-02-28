@@ -25,3 +25,7 @@ export function getRepetitionsForFiles(
 ): Promise<Repetition[]> {
 	return invoke("get_repetitions_for_files", { fileIds });
 }
+
+export function resetRepetitionsForCell(cellId: number) {
+	return invoke("reset_repetitions_for_cell", { cellId });
+}

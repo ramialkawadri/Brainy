@@ -42,3 +42,12 @@ pub async fn get_repetitions_for_files(
     let db_conn = db_conn.lock().await;
     repetition_service::get_repetitions_for_files(&db_conn, file_ids).await
 }
+
+#[tauri::command]
+pub async fn reset_repetitions_for_cell(
+    db_conn: State<'_, Mutex<DbConn>>,
+    cell_id: i32,
+) -> Result<(), String> {
+    let db_conn = db_conn.lock().await;
+    repetition_service::reset_repetitions_for_cell(&db_conn, cell_id).await
+}

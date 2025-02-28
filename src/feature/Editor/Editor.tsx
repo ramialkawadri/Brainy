@@ -78,14 +78,10 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 	);
 
 	useEffect(() => {
-		if (
-			tipTapEditorRef.current &&
-			!showInsertNewCell &&
-			!showDeleteDialog
-		) {
+		if (tipTapEditorRef.current && !showDeleteDialog) {
 			tipTapEditorRef.current.commands.focus();
 		}
-	}, [showInsertNewCell, showDeleteDialog]);
+	}, [showDeleteDialog]);
 
 	useEffect(() => {
 		void (async () => {
@@ -133,8 +129,10 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 	const handleKeyDown = (e: React.KeyboardEvent) => {
 		if (e.key === "Escape") {
 			setShowInsertNewCell(false);
+			tipTapEditorRef.current?.commands.focus();
 		} else if (e.ctrlKey && e.shiftKey && e.code === "Enter") {
 			setShowInsertNewCell(!showInsertNewCell);
+			if (showInsertNewCell) tipTapEditorRef.current?.commands.focus();
 		} else if (e.code === "F5") {
 			e.preventDefault();
 			void startStudy();
@@ -370,7 +368,7 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 			{showDeleteDialog && (
 				<ConfirmationDialog
 					text="Are you sure you want to delete the cell?"
-					title="Delete Cell"
+					title="Delete cell"
 					onCancel={() => setShowDeleteDialog(false)}
 					onConfirm={() => void handleCellDeleteConfirm()}
 				/>
@@ -387,7 +385,7 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 				<div
 					className={`container ${styles.editorContainer}`}
 					ref={editorRef}>
-					{cells.length === 0 && <p>The file is empty</p>}
+					{cells.length === 0 && <p>This file is empty</p>}
 
 					{cells.map((cell, i) => (
 						<RenderIfVisible
@@ -408,11 +406,13 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
                             ${draggedCellId === cell.id ? styles.dragging : ""}`}>
 								{selectedCellId === cell.id && (
 									<FocusTools
-										onInsert={() =>
+										onInsert={() => {
 											setShowInsertNewCell(
 												!showInsertNewCell,
-											)
-										}
+											);
+											if (showInsertNewCell)
+												tipTapEditorRef.current?.commands.focus();
+										}}
 										onDelete={() =>
 											setShowDeleteDialog(true)
 										}
@@ -423,10 +423,14 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 										repetitions={repetitions.filter(
 											r => r.cellId === cell.id,
 										)}
-										cellType={cell.cellType}
+										cell={cell}
 										onShowRepetitionsInfo={
 											handleShowRepetitionsInfo
 										}
+										onResetRepetitions={() =>
+											void retrieveRepetitionCounts()
+										}
+										onError={onError}
 									/>
 								)}
 

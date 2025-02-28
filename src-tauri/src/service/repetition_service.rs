@@ -12,6 +12,8 @@ use crate::model::file_repetitions_count::FileRepetitionCounts;
 
 use sea_orm::{entity::*, query::*};
 
+use super::cell_service;
+
 const SEED: [u8; 32] = [42u8; 32];
 
 pub async fn update_repetitions_for_cell(
@@ -211,11 +213,39 @@ pub async fn get_repetitions_for_files(
     Ok(repetitions)
 }
 
+pub async fn reset_repetitions_for_cell(db_conn: &DbConn, cell_id: i32) -> Result<(), String> {
+    let txn = match db_conn.begin().await {
+        Ok(txn) => txn,
+        Err(err) => return Err(err.to_string()),
+    };
+
+    if let Err(err) = repetition::Entity::delete_many()
+        .filter(repetition::Column::CellId.eq(cell_id))
+        .exec(&txn)
+        .await
+    {
+        return Err(err.to_string());
+    }
+
+    let cell = cell_service::get_cell_by_id(&txn, cell_id).await?;
+
+    update_repetitions_for_cell(&txn, cell.file_id, cell_id, &cell.cell_type, &cell.content)
+        .await?;
+
+    let result = txn.commit().await;
+    match result {
+        Ok(_) => Ok(()),
+        Err(err) => Err(err.to_string()),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use chrono::Duration;
 
-    use crate::service::{tests::create_file_cell, tests::get_db};
+    use crate::service::tests::{
+        create_file_cell, create_file_cell_with_cell_type_and_content, get_db,
+    };
 
     use super::*;
 
@@ -288,15 +318,9 @@ mod tests {
 
         // Act
 
-        update_repetitions_for_cell(
-            &db_conn,
-            file_id,
-            cell_id,
-            &CellType::Cloze,
-            content,
-        )
-        .await
-        .unwrap();
+        update_repetitions_for_cell(&db_conn, file_id, cell_id, &CellType::Cloze, content)
+            .await
+            .unwrap();
 
         // Assert
 
@@ -494,6 +518,41 @@ mod tests {
         // Assert
 
         assert_eq!(3, actual.len());
+    }
+
+    #[tokio::test]
+    async fn reset_repetitions_for_cell_valid_input_reseted_repetition() {
+        // Arrange
+
+        let db_conn = get_db().await;
+        let (file_id, cell_id) = create_file_cell_with_cell_type_and_content(
+            &db_conn,
+            "file 1",
+            CellType::FlashCard,
+            "old content",
+        )
+        .await;
+        let repetition_id = get_repetitions_by_cell_id(&db_conn, cell_id).await.unwrap()[0].id;
+        update_repetition(&db_conn, repetition::Model {
+            id: repetition_id,
+            file_id,
+            cell_id,
+            state: State::Learning,
+            scheduled_days: 100,
+            ..Default::default()
+        })
+        .await
+        .unwrap();
+
+        // Act
+
+        reset_repetitions_for_cell(&db_conn, cell_id).await.unwrap();
+
+        // Assert
+
+        let actual = get_repetitions_by_cell_id(&db_conn, cell_id).await.unwrap();
+        assert_eq!(State::New, actual[0].state);
+        assert_eq!(0, actual[0].scheduled_days);
     }
 
     async fn insert_repetitions(

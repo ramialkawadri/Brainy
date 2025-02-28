@@ -35,7 +35,7 @@
 	padding: var(--large-padding);
 	padding-top: 0;
 	display: grid;
-	grid-template-columns: 1fr 1fr 1fr;
+	grid-template-columns: 1fr 2fr 1fr;
 	border-top: 1px solid var(--border-color);
 
 	& * {

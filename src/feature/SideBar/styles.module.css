@@ -3,7 +3,7 @@
 	padding: var(--xl-padding);
 	border-right: 1px solid var(--border-color);
 	background-color: var(--side-bar-background-color);
-	width: 28rem;
+	width: 26rem;
 	transition: 0.18s all;
 
 	& * {

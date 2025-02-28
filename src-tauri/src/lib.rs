@@ -46,10 +46,10 @@ pub async fn run() -> Result<(), String> {
             // Cells
             create_cell,
             delete_cell,
+            get_cells_for_files,
             get_file_cells_ordered_by_index,
             move_cell,
             update_cells_contents,
-            get_cells_for_files,
             // Files & Folders
             create_file,
             create_folder,
@@ -61,10 +61,11 @@ pub async fn run() -> Result<(), String> {
             rename_file,
             rename_folder,
             // Repetitions
-            get_study_repetition_counts,
             get_file_repetitions,
-            update_repetition,
             get_repetitions_for_files,
+            get_study_repetition_counts,
+            reset_repetitions_for_cell,
+            update_repetition,
             // Settings
             get_settings,
             update_settings,
