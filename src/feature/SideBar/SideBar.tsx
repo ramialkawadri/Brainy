@@ -14,6 +14,7 @@ import searchFolder from "../../util/searchFolder";
 import { mdiArrowCollapseLeft, mdiCog, mdiHome, mdiMagnify } from "@mdi/js";
 import Icon from "@mdi/react";
 import InputWithIcon from "../../ui/InputWithIcon/InputWithIcon";
+import useGlobalKey from "../../hooks/useGlobalKey";
 
 interface Props {
 	onFileClick: () => void;
@@ -39,6 +40,12 @@ function SideBar({
 	);
 	const selectedFileId = useAppSelector(selectSelectedFileId);
 
+    useGlobalKey((e) => {
+        if (e.ctrlKey && e.key == "\\") {
+            setIsExpanded(!isExpanded);
+        }
+    });
+
 	return (
 		<div className={`${styles.sideBar} ${!isExpanded && styles.closed}`}>
 			<div className={styles.header}>
@@ -48,7 +55,8 @@ function SideBar({
 
 				<button
 					className={`transparent center ${styles.toggleButton}`}
-					onClick={() => setIsExpanded(!isExpanded)}>
+					onClick={() => setIsExpanded(!isExpanded)}
+                    title="Toggle sidebar (Ctrl + \)">
 					<Icon path={mdiArrowCollapseLeft} size={1} />
 				</button>
 			</div>
