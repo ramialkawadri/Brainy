@@ -17,7 +17,6 @@ interface Props {
 function BubbleMenuCommand({ command, editor }: Props) {
 	return (
 		<button
-			key={command.icon}
 			onClick={() => command.onClick(editor.chain().focus()).run()}
 			className={`transparent ${editor.isActive(command.name) && styles.activeButton}`}
 			title={command.title}

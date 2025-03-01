@@ -34,6 +34,7 @@ import UpdateCellRequest from "../../type/backend/dto/updateCellRequest";
 import AddCellContainer from "./AddCellContainer";
 import Repetition from "../../type/backend/entity/repetition";
 import RenderIfVisible from "../../ui/RenderIfVisible";
+import useGlobalKey from "../../hooks/useGlobalKey";
 
 const autoSaveDelayInMilliSeconds = 2000;
 const oneMinuteInMilliseconds = 60 * 1000;
@@ -75,7 +76,8 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 			await retrieveRepetitionCounts();
 			const cells = await retrieveSelectedFileCells();
 			if (cells && cells.length > 0) {
-				if (editCellId !== null) selectCell(editCellId);
+				if (editCellId !== null && cells.some(c => c.id === editCellId))
+					selectCell(editCellId);
 				else selectCell(cells[0].id!);
 			}
 		})();
@@ -112,7 +114,7 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 		if (changedCellsIds.current.size > 0) e.preventDefault();
 	});
 
-	const handleKeyDown = (e: React.KeyboardEvent) => {
+	useGlobalKey(e => {
 		if (e.key === "Escape") {
 			tipTapEditorRef.current?.commands.focus();
 		} else if (e.ctrlKey && e.shiftKey && e.code === "Enter") {
@@ -141,8 +143,10 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 				c => c.id === selectedCellId,
 			);
 			selectCell(cells[Math.max(0, selectedCellIndex - 1)].id!);
+		} else if (e.ctrlKey && e.key === " ") {
+			tipTapEditorRef.current?.commands.focus();
 		}
-	};
+	}, "keydown");
 
 	const moveCurrentCellByNumber = async (number: number) => {
 		const selectedCellIndex = cells.findIndex(c => c.id === selectedCellId);
@@ -339,10 +343,7 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 	};
 
 	return (
-		<div
-			className={styles.container}
-			onKeyDown={handleKeyDown}
-			key={selectedFileId}>
+		<div className={styles.container} key={selectedFileId}>
 			<TitleBar
 				repetitionCounts={repetitionCounts}
 				onStudyButtonClick={() => void startStudy()}
@@ -351,8 +352,7 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 			<div
 				className={styles.outerEditorContainer}
 				ref={outerEditorContainerRef}>
-				<div
-					className={`container ${styles.editorContainer}`}>
+				<div className={`container ${styles.editorContainer}`}>
 					{cells.length === 0 && <p>This file is empty</p>}
 
 					{cells.map((cell, i) => (
@@ -389,8 +389,8 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 											r => r.cellId === cell.id,
 										)}
 										cell={cell}
-										onShowRepetitionsInfo={
-                                            () => setShowInsertNewCell(false)
+										onShowRepetitionsInfo={() =>
+											setShowInsertNewCell(false)
 										}
 										onResetRepetitions={() =>
 											void retrieveRepetitionCounts()
@@ -399,11 +399,9 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 										onCellDeleteConfirm={() =>
 											void handleCellDeleteConfirm()
 										}
-										onDeleteDialogHide={() => {
-											if (tipTapEditorRef.current) {
-												tipTapEditorRef.current.commands.focus();
-											}
-										}}
+										onDeleteDialogHide={() =>
+											tipTapEditorRef.current?.commands.focus()
+										}
 									/>
 								)}
 

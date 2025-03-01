@@ -67,7 +67,6 @@ function RichTextEditor({
 					return false;
 				},
 			},
-			shouldRerenderOnTransaction: false,
 		},
 		[],
 	);
