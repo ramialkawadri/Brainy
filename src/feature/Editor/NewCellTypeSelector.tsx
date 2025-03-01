@@ -1,4 +1,4 @@
-import { forwardRef, useState } from "react";
+import { useRef, useState } from "react";
 import styles from "./styles.module.css";
 import Icon from "@mdi/react";
 import getCellIcon from "../../util/getCellIcon";
@@ -9,51 +9,59 @@ import {
 } from "../../type/backend/entity/cell";
 import InputWithIcon from "../../ui/InputWithIcon/InputWithIcon";
 import { mdiMagnify } from "@mdi/js";
+import useOutsideClick from "../../hooks/useOutsideClick";
+import useGlobalKey from "../../hooks/useGlobalKey";
 
 interface Props {
 	className?: string;
 	onClick: (cellType: CellType) => void;
+	onHide: () => void;
 }
 
-const NewCellTypeSelector = forwardRef<HTMLDivElement, Props>(
-	({ className, onClick }: Props, ref) => {
-		const [searchText, setSearchText] = useState("");
+function NewCellTypeSelector({ className, onClick, onHide }: Props) {
+	const [searchText, setSearchText] = useState("");
+	const containerRef = useRef<HTMLDivElement>(null);
 
-		return (
-			<div
-				className={`${className} ${styles.newCellSelector}`}
-				ref={ref}
-				onClick={e => e.stopPropagation()}>
-				<label htmlFor="search-type">Insert New Cell</label>
-				<InputWithIcon
-					id="search-type"
-					placeholder="Search"
-					onChange={e => setSearchText(e.target.value)}
-					autoFocus
-					iconName={mdiMagnify}
-					value={searchText}
-				/>
+	useOutsideClick(containerRef as React.RefObject<HTMLElement>, onHide);
 
-				{allCellTypes
-					.filter(key =>
-						cellTypesDisplayNames[key]
-							.toLowerCase()
-							.includes(searchText.toLowerCase()),
-					)
-					.map(cellType => (
-						<button
-							key={cellType}
-							className="transparent"
-							onClick={() => onClick(cellType)}>
-							<Icon path={getCellIcon(cellType)} size={1} />
-							<span>{cellTypesDisplayNames[cellType]}</span>
-						</button>
-					))}
-			</div>
-		);
-	},
-);
+	useGlobalKey(e => {
+		if (e.key === "Escape") {
+			onHide();
+		}
+	});
 
-NewCellTypeSelector.displayName = "NewCellTypeSelector";
+	return (
+		<div
+			className={`${className} ${styles.newCellSelector}`}
+			ref={containerRef}
+			onClick={e => e.stopPropagation()}>
+			<label htmlFor="search-type">Insert New Cell</label>
+			<InputWithIcon
+				id="search-type"
+				placeholder="Search"
+				onChange={e => setSearchText(e.target.value)}
+				autoFocus
+				iconName={mdiMagnify}
+				value={searchText}
+			/>
+
+			{allCellTypes
+				.filter(key =>
+					cellTypesDisplayNames[key]
+						.toLowerCase()
+						.includes(searchText.toLowerCase()),
+				)
+				.map(cellType => (
+					<button
+						key={cellType}
+						className="transparent"
+						onClick={() => onClick(cellType)}>
+						<Icon path={getCellIcon(cellType)} size={1} />
+						<span>{cellTypesDisplayNames[cellType]}</span>
+					</button>
+				))}
+		</div>
+	);
+}
 
 export default NewCellTypeSelector;

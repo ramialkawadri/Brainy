@@ -40,11 +40,11 @@ function SideBar({
 	);
 	const selectedFileId = useAppSelector(selectSelectedFileId);
 
-    useGlobalKey((e) => {
-        if (e.ctrlKey && e.key == "\\") {
-            setIsExpanded(!isExpanded);
-        }
-    });
+	useGlobalKey(e => {
+		if (e.ctrlKey && e.key == "\\") {
+			setIsExpanded(!isExpanded);
+		}
+	});
 
 	return (
 		<div className={`${styles.sideBar} ${!isExpanded && styles.closed}`}>
@@ -56,7 +56,7 @@ function SideBar({
 				<button
 					className={`transparent center ${styles.toggleButton}`}
 					onClick={() => setIsExpanded(!isExpanded)}
-                    title="Toggle sidebar (Ctrl + \)">
+					title="Toggle sidebar (Ctrl + \)">
 					<Icon path={mdiArrowCollapseLeft} size={1} />
 				</button>
 			</div>

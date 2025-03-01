@@ -1,9 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import useOutsideClick from "../../hooks/useOutsideClick";
 import createDefaultCell from "../../util/createDefaultCell";
 import TitleBar from "./TitleBar";
 import styles from "./styles.module.css";
-import ConfirmationDialog from "../../ui/ConfirmationDialog/ConfirmationDialog";
 import useAppSelector from "../../hooks/useAppSelector";
 import { selectSelectedFileId } from "../../store/selectors/fileSystemSelectors";
 import Cell, {
@@ -47,7 +45,6 @@ interface Props {
 }
 
 function Editor({ editCellId, onError, onStudyStart }: Props) {
-	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 	// Used for the focus tools.
 	const [showInsertNewCell, setShowInsertNewCell] = useState(false);
 	const [selectedCellId, setSelectedCellId] = useState<number | null>(null);
@@ -67,21 +64,10 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 	const tipTapEditorRef = useRef<TipTapEditor | null>(null);
 	const outerEditorContainerRef = useRef<HTMLDivElement>(null);
 	const selectedFileId = useAppSelector(selectSelectedFileId)!;
-	const editorRef = useRef<HTMLDivElement>(null);
 	const autoSaveTimeoutId = useRef<number>(null);
 	// Used to store the ids of the changed cells so that we update them all
 	// together instead of updating one by one.
 	const changedCellsIds = useRef(new Set<number>());
-
-	useOutsideClick(editorRef as React.RefObject<HTMLElement>, () =>
-		setShowInsertNewCell(false),
-	);
-
-	useEffect(() => {
-		if (tipTapEditorRef.current && !showDeleteDialog) {
-			tipTapEditorRef.current.commands.focus();
-		}
-	}, [showDeleteDialog]);
 
 	useEffect(() => {
 		void (async () => {
@@ -128,7 +114,6 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 
 	const handleKeyDown = (e: React.KeyboardEvent) => {
 		if (e.key === "Escape") {
-			setShowInsertNewCell(false);
 			tipTapEditorRef.current?.commands.focus();
 		} else if (e.ctrlKey && e.shiftKey && e.code === "Enter") {
 			setShowInsertNewCell(!showInsertNewCell);
@@ -156,8 +141,6 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 				c => c.id === selectedCellId,
 			);
 			selectCell(cells[Math.max(0, selectedCellIndex - 1)].id!);
-		} else if (e.altKey && e.code === "Delete") {
-			if (selectedCellId !== null) setShowDeleteDialog(true);
 		}
 	};
 
@@ -285,7 +268,6 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 
 	const handleCellDeleteConfirm = async () => {
 		changedCellsIds.current.delete(selectedCellId!);
-		setShowDeleteDialog(false);
 		const cellIndex = cells.findIndex(c => c.id === selectedCellId);
 		await executeRequest(async () => await deleteCell(selectedCellId!));
 		await retrieveRepetitionCounts();
@@ -349,15 +331,11 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 	};
 
 	const handleDragLeave = (e: React.DragEvent) => {
+		// NOTE: only works on windows, needs to change
 		if (e.currentTarget.contains(e.relatedTarget as unknown as Node)) {
 			return;
 		}
 		setDragOverCellId(null);
-	};
-
-	const handleShowRepetitionsInfo = () => {
-		setShowInsertNewCell(false);
-		setShowDeleteDialog(false);
 	};
 
 	return (
@@ -365,15 +343,6 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 			className={styles.container}
 			onKeyDown={handleKeyDown}
 			key={selectedFileId}>
-			{showDeleteDialog && (
-				<ConfirmationDialog
-					text="Are you sure you want to delete the cell?"
-					title="Delete cell"
-					onCancel={() => setShowDeleteDialog(false)}
-					onConfirm={() => void handleCellDeleteConfirm()}
-				/>
-			)}
-
 			<TitleBar
 				repetitionCounts={repetitionCounts}
 				onStudyButtonClick={() => void startStudy()}
@@ -383,8 +352,7 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 				className={styles.outerEditorContainer}
 				ref={outerEditorContainerRef}>
 				<div
-					className={`container ${styles.editorContainer}`}
-					ref={editorRef}>
+					className={`container ${styles.editorContainer}`}>
 					{cells.length === 0 && <p>This file is empty</p>}
 
 					{cells.map((cell, i) => (
@@ -413,9 +381,6 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 											if (showInsertNewCell)
 												tipTapEditorRef.current?.commands.focus();
 										}}
-										onDelete={() =>
-											setShowDeleteDialog(true)
-										}
 										onDragStart={e =>
 											handleDragStart(e, cell.id!)
 										}
@@ -425,12 +390,20 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 										)}
 										cell={cell}
 										onShowRepetitionsInfo={
-											handleShowRepetitionsInfo
+                                            () => setShowInsertNewCell(false)
 										}
 										onResetRepetitions={() =>
 											void retrieveRepetitionCounts()
 										}
 										onError={onError}
+										onCellDeleteConfirm={() =>
+											void handleCellDeleteConfirm()
+										}
+										onDeleteDialogHide={() => {
+											if (tipTapEditorRef.current) {
+												tipTapEditorRef.current.commands.focus();
+											}
+										}}
 									/>
 								)}
 
@@ -443,6 +416,9 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 													cellType,
 													i + 1,
 												)
+											}
+											onHide={() =>
+												setShowInsertNewCell(false)
 											}
 										/>
 									)}
