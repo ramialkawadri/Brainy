@@ -157,6 +157,10 @@ body:global(.dark) .focus-tools {
 	border-top-color: var(--primary-color);
 	box-shadow: 0 -2px 0 var(--primary-color);
 	border-radius: 0;
+
+    & * {
+        pointer-events: none;
+    }
 }
 
 .cell-title {

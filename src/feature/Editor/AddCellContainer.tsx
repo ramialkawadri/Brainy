@@ -2,8 +2,7 @@ import Icon from "@mdi/react";
 import styles from "./styles.module.css";
 import { mdiPlus } from "@mdi/js";
 import NewCellTypeSelector from "./NewCellTypeSelector";
-import { useRef, useState } from "react";
-import useOutsideClick from "../../hooks/useOutsideClick";
+import { useState } from "react";
 import { CellType } from "../../type/backend/entity/cell";
 import useGlobalKey from "../../hooks/useGlobalKey";
 
@@ -25,17 +24,11 @@ function AddCellContainer({
 	onPopupHide,
 }: Props) {
 	const [showAddNewCellPopup, setShowAddNewCellPopup] = useState(false);
-	const addNewCellPopupRef = useRef<HTMLDivElement>(null);
 
 	const hidePopup = () => {
 		onPopupHide();
 		setShowAddNewCellPopup(false);
 	};
-
-	useOutsideClick(
-		addNewCellPopupRef as React.RefObject<HTMLElement>,
-		hidePopup,
-	);
 
 	useGlobalKey(e => {
 		if (e.key === "Escape") {
@@ -69,7 +62,7 @@ function AddCellContainer({
 							onAddNewCell(cellType);
 							hidePopup();
 						}}
-						ref={addNewCellPopupRef}
+                        onHide={hidePopup}
 					/>
 				</div>
 			)}

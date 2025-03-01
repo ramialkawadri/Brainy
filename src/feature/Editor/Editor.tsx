@@ -334,14 +334,6 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 		}
 	};
 
-	const handleDragLeave = (e: React.DragEvent) => {
-		// NOTE: only works on windows, needs to change
-		if (e.currentTarget.contains(e.relatedTarget as unknown as Node)) {
-			return;
-		}
-		setDragOverCellId(null);
-	};
-
 	return (
 		<div className={styles.container} key={selectedFileId}>
 			<TitleBar
@@ -366,7 +358,7 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 								onFocus={() => selectCell(cell.id!)}
 								onClick={() => handleCellClick(cell.id!)}
 								onDragOver={e => handleDragOver(e, cell.id!)}
-								onDragLeave={handleDragLeave}
+								onDragLeave={() => setDragOverCellId(null)}
 								onDrop={() => void handleDrop(i)}
 								className={`${styles.cell}
                             ${selectedCellId === cell.id ? styles.selectedCell : ""}
@@ -450,7 +442,7 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 						isDragOver={dragOverCellId === cells.length}
 						onDragOver={e => handleDragOver(e, cells.length)}
 						onDrop={() => void handleDrop(cells.length)}
-						onDragLeave={handleDragLeave}
+                        onDragLeave={() => setDragOverCellId(null)}
 						onAddNewCell={cellType =>
 							void insertNewCell(cellType, cells.length)
 						}
