@@ -69,6 +69,7 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 	// Used to store the ids of the changed cells so that we update them all
 	// together instead of updating one by one.
 	const changedCellsIds = useRef(new Set<number>());
+    const selectedCellRef = useRef<HTMLDivElement>(null);
 
 	useEffect(() => {
 		void (async () => {
@@ -145,6 +146,7 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 			selectCell(cells[Math.max(0, selectedCellIndex - 1)].id!);
 		} else if (e.ctrlKey && e.key === " ") {
 			tipTapEditorRef.current?.commands.focus();
+            selectedCellRef.current?.scrollIntoView();
 		}
 	}, "keydown");
 
@@ -290,8 +292,6 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 		if (selectedCellId !== id) {
 			setShowInsertNewCell(false);
 			setSelectedCellId(id);
-			if (tipTapEditorRef.current)
-				tipTapEditorRef.current.commands.scrollIntoView();
 		}
 	};
 
@@ -355,6 +355,7 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 							root={outerEditorContainerRef.current}>
 							<div
 								key={cell.id}
+                                ref={cell.id === selectedCellId ? selectedCellRef : null}
 								onFocus={() => selectCell(cell.id!)}
 								onClick={() => handleCellClick(cell.id!)}
 								onDragOver={e => handleDragOver(e, cell.id!)}

@@ -3,6 +3,7 @@
 }
 
 .box {
+    min-width: 30rem;
 	max-width: 600px;
 	width: 100%;
 	background: var(--default-background-color);
