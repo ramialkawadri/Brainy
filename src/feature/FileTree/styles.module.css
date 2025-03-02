@@ -3,7 +3,8 @@
 	border: 2px solid transparent;
 	border-radius: var(--default-border-radius);
 
-	&.drag-over {
+    /* If none of the children has drag-over class, then add border color */
+	&:not(:has(.drag-over)).drag-over {
 		border-color: var(--primary-color);
 	}
 }

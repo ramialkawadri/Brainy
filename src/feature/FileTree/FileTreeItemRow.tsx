@@ -29,6 +29,7 @@ interface Props {
 	actions: Action[];
 	fullPath: string;
 	onDragStart: (e: React.DragEvent<HTMLDivElement>) => void;
+	onDragEnd: (e: React.DragEvent<HTMLDivElement>) => void;
 	onRenameEnd: () => void;
 	onShowActionsClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
 	onHideActions: () => void;
@@ -46,6 +47,7 @@ function FileTreeItemRow({
 	actions,
 	fullPath,
 	onDragStart,
+    onDragEnd,
 	onRenameEnd,
 	onShowActionsClick,
 	onClick,
@@ -74,7 +76,8 @@ function FileTreeItemRow({
 		<div
 			className={`${styles.fileTreeRow}`}
 			draggable={!isRoot && !isRenaming}
-			onDragStart={onDragStart}>
+			onDragStart={onDragStart}
+            onDragEnd={onDragEnd}>
 			<button
 				className={`${styles.fileTreeButton}
                 ${isSelected && !isFolder && !isRenaming ? "primary" : "transparent"}`}

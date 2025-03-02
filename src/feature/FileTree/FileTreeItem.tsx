@@ -12,7 +12,7 @@ import {
 	mdiImport,
 	mdiPencilOutline,
 } from "@mdi/js";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { Action } from "./ActionsMenu";
 import useAppDispatch from "../../hooks/useAppDispatch";
 import {
@@ -38,9 +38,12 @@ interface Props {
 	folder: UiFolder | null;
 	fullPath: string;
 	id: number;
+    isAnyItemDragged: boolean;
 	onMarkForDeletion: (id: number, isFolder: boolean) => void;
 	onFileClick: () => void;
 	onRootClick: () => void;
+    onDragStart: () => void;
+    onDragEnd: () => void;
 }
 
 const jsonFileFilter: DialogFilter = {
@@ -56,9 +59,12 @@ function FileTreeItem({
 	folder,
 	fullPath,
 	id,
+    isAnyItemDragged,
 	onMarkForDeletion,
 	onFileClick,
 	onRootClick,
+    onDragStart,
+    onDragEnd
 }: Props) {
 	const isRoot = fullPath === "";
 	const [showActions, setShowActions] = useState(false);
@@ -67,6 +73,7 @@ function FileTreeItem({
 	const [creatingNewFile, setCreatingNewFile] = useState(false);
 	const [isDragOver, setIsDragOver] = useState(false);
 	const [isOpen, setIsOpen] = useState(false);
+    const dragEnterTarget = useRef<EventTarget>(null);
 	const dispatch = useAppDispatch();
 	const isExpanded = isRoot || isOpen;
 	const actions: Action[] = [];
@@ -215,6 +222,7 @@ function FileTreeItem({
 		setShowActions(false);
 		const format = folder ? dragFormatForFolder : dragFormatForFile;
 		e.dataTransfer.setData(format, id.toString());
+        onDragStart();
 	};
 
 	const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
@@ -230,8 +238,8 @@ function FileTreeItem({
 		setIsDragOver(true);
 	};
 
-	const handleDragLeave = () => {
-		if (folder) setIsDragOver(false);
+	const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+		if (e.target === dragEnterTarget.current && folder) setIsDragOver(false);
 	};
 
 	const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
@@ -251,7 +259,8 @@ function FileTreeItem({
 	return (
 		(!folder || isRoot || folder.isVisible) && (
 			<div
-				className={`${styles.fileItemOuterContainer} ${isDragOver ? styles.dragOver : ""}`}
+				className={`${styles.fileItemOuterContainer} ${isDragOver && isAnyItemDragged ? styles.dragOver : ""}`}
+                onDragEnter={e => dragEnterTarget.current = e.target}
 				onDragOver={handleDragOver}
 				onDragLeave={handleDragLeave}
 				onDrop={e => void handleDrop(e)}
@@ -271,6 +280,7 @@ function FileTreeItem({
 					onClick={handleClick}
 					onHideActions={() => setShowActions(false)}
 					onStopRenaming={() => setIsRenaming(false)}
+                    onDragEnd={onDragEnd}
 				/>
 
 				{folder && isExpanded && (
@@ -282,9 +292,12 @@ function FileTreeItem({
 						onMarkForDeletion={onMarkForDeletion}
 						onCreatingNewItemEnd={handleCreateNewItemEnd}
 						isRoot={isRoot}
+                        isAnyItemDragged={isAnyItemDragged}
 						folder={folder}
 						fullPath={fullPath}
 						onCreateNewFileClick={() => setCreatingNewFile(true)}
+                        onDragStart={onDragStart}
+                        onDragEnd={onDragEnd}
 					/>
 				)}
 			</div>
