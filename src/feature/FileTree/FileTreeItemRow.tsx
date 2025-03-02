@@ -47,7 +47,7 @@ function FileTreeItemRow({
 	actions,
 	fullPath,
 	onDragStart,
-    onDragEnd,
+	onDragEnd,
 	onRenameEnd,
 	onShowActionsClick,
 	onClick,
@@ -77,7 +77,7 @@ function FileTreeItemRow({
 			className={`${styles.fileTreeRow}`}
 			draggable={!isRoot && !isRenaming}
 			onDragStart={onDragStart}
-            onDragEnd={onDragEnd}>
+			onDragEnd={onDragEnd}>
 			<button
 				className={`${styles.fileTreeButton}
                 ${isSelected && !isFolder && !isRenaming ? "primary" : "transparent"}`}

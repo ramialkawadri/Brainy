@@ -16,14 +16,14 @@ interface Props {
 	folder: UiFolder;
 	fullPath: string;
 	isRoot: boolean;
-    isAnyItemDragged: boolean;
+	isAnyItemDragged: boolean;
 	onMarkForDeletion: (id: number, isFolder: boolean) => void;
 	onFileClick: () => void;
 	onRootClick: () => void;
 	onCreatingNewItemEnd: () => void;
 	onCreateNewFileClick: () => void;
-    onDragStart: () => void;
-    onDragEnd: () => void;
+	onDragStart: () => void;
+	onDragEnd: () => void;
 }
 
 function FileTreeItemChildren({
@@ -32,14 +32,14 @@ function FileTreeItemChildren({
 	folder,
 	fullPath,
 	isRoot,
-    isAnyItemDragged,
+	isAnyItemDragged,
 	onMarkForDeletion,
 	onFileClick,
 	onRootClick,
 	onCreatingNewItemEnd,
 	onCreateNewFileClick,
-    onDragStart,
-    onDragEnd,
+	onDragStart,
+	onDragEnd,
 }: Props) {
 	// Creating new folder or file share the same controlled input.
 	const [newItemName, setNewItemName] = useState("");
@@ -106,11 +106,11 @@ function FileTreeItemChildren({
 							: subFolder.name
 					}
 					id={subFolder.id}
-                            isAnyItemDragged={isAnyItemDragged}
+					isAnyItemDragged={isAnyItemDragged}
 					onFileClick={onFileClick}
 					onRootClick={onRootClick}
-                    onDragStart={onDragStart}
-                    onDragEnd={onDragEnd}
+					onDragStart={onDragStart}
+					onDragEnd={onDragEnd}
 				/>
 			))}
 
@@ -127,11 +127,11 @@ function FileTreeItemChildren({
 									: file.name
 							}
 							id={file.id}
-                            isAnyItemDragged={isAnyItemDragged}
+							isAnyItemDragged={isAnyItemDragged}
 							onFileClick={onFileClick}
 							onRootClick={onRootClick}
-                            onDragStart={onDragStart}
-                            onDragEnd={onDragEnd}
+							onDragStart={onDragStart}
+							onDragEnd={onDragEnd}
 						/>
 					),
 			)}

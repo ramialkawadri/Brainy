@@ -21,7 +21,7 @@ function FileTree({ folder, onFileClick, onRootClick }: Props) {
 	const [folderMarkedForDeletion, setFolderMarkedForDeletion] = useState<
 		number | null
 	>(null);
-    const [isAnyItemDragged, setIsAnyItemDragged] = useState(false);
+	const [isAnyItemDragged, setIsAnyItemDragged] = useState(false);
 	const dispatch = useAppDispatch();
 
 	const handleDelete = async () => {
@@ -63,11 +63,11 @@ function FileTree({ folder, onFileClick, onRootClick }: Props) {
 				folder={folder}
 				onMarkForDeletion={handleMarkForDeletion}
 				id={0}
-                isAnyItemDragged={isAnyItemDragged}
+				isAnyItemDragged={isAnyItemDragged}
 				onFileClick={onFileClick}
 				onRootClick={onRootClick}
-                onDragStart={() => setIsAnyItemDragged(true)}
-                onDragEnd={() => setIsAnyItemDragged(false)}
+				onDragStart={() => setIsAnyItemDragged(true)}
+				onDragEnd={() => setIsAnyItemDragged(false)}
 			/>
 		</>
 	);

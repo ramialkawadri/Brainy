@@ -158,9 +158,9 @@ body:global(.dark) .focus-tools {
 	box-shadow: 0 -2px 0 var(--primary-color);
 	border-radius: 0;
 
-    & * {
-        pointer-events: none;
-    }
+	& * {
+		pointer-events: none;
+	}
 }
 
 .cell-title {

@@ -69,7 +69,7 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 	// Used to store the ids of the changed cells so that we update them all
 	// together instead of updating one by one.
 	const changedCellsIds = useRef(new Set<number>());
-    const selectedCellRef = useRef<HTMLDivElement>(null);
+	const selectedCellRef = useRef<HTMLDivElement>(null);
 
 	useEffect(() => {
 		void (async () => {
@@ -146,7 +146,7 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 			selectCell(cells[Math.max(0, selectedCellIndex - 1)].id!);
 		} else if (e.ctrlKey && e.key === " ") {
 			tipTapEditorRef.current?.commands.focus();
-            selectedCellRef.current?.scrollIntoView();
+			selectedCellRef.current?.scrollIntoView();
 		}
 	}, "keydown");
 
@@ -355,7 +355,11 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 							root={outerEditorContainerRef.current}>
 							<div
 								key={cell.id}
-                                ref={cell.id === selectedCellId ? selectedCellRef : null}
+								ref={
+									cell.id === selectedCellId
+										? selectedCellRef
+										: null
+								}
 								onFocus={() => selectCell(cell.id!)}
 								onClick={() => handleCellClick(cell.id!)}
 								onDragOver={e => handleDragOver(e, cell.id!)}
@@ -443,7 +447,7 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 						isDragOver={dragOverCellId === cells.length}
 						onDragOver={e => handleDragOver(e, cells.length)}
 						onDrop={() => void handleDrop(cells.length)}
-                        onDragLeave={() => setDragOverCellId(null)}
+						onDragLeave={() => setDragOverCellId(null)}
 						onAddNewCell={cellType =>
 							void insertNewCell(cellType, cells.length)
 						}

@@ -62,7 +62,7 @@ function AddCellContainer({
 							onAddNewCell(cellType);
 							hidePopup();
 						}}
-                        onHide={hidePopup}
+						onHide={hidePopup}
 					/>
 				</div>
 			)}
