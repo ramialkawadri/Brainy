@@ -41,13 +41,13 @@ function ClozeCell({ cell, editable, autofocus, onUpdate, onFocus }: Props) {
 				{
 					name: "Cloze+1",
 					icon: mdiNumericPositive1,
-					title: "Increase cloze number",
+					title: "Increase cloze group number",
 					onClick: c => c.increaseClozeIndex(),
 				},
 				{
 					name: "Cloze-1",
 					icon: mdiNumericNegative1,
-					title: "Decrease cloze number",
+					title: "Decrease cloze group number",
 					onClick: c => c.decreaseClozeIndex(),
 				},
 			]}
