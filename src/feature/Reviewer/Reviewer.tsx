@@ -158,7 +158,8 @@ function Reviewer({
 								dueToday[currentCellIndex].fileId,
 								dueToday[currentCellIndex].cellId,
 							)
-						}>
+						}
+						title="(e)">
 						<Icon path={mdiPencilOutline} size={1} />
 						<span>Edit</span>
 					</button>
@@ -187,7 +188,8 @@ function Reviewer({
 						</div>
 						<button
 							className="primary"
-							onClick={() => setShowAnswer(true)}>
+							onClick={() => setShowAnswer(true)}
+							title="(Space)">
 							Show Answer
 						</button>
 					</div>
@@ -207,7 +209,8 @@ function Reviewer({
 								onClick={() =>
 									void handleGradeSubmit(Rating.Again)
 								}
-								disabled={isSendingRequest}>
+								disabled={isSendingRequest}
+								title="(1)">
 								Again
 							</button>
 						</div>
@@ -223,7 +226,8 @@ function Reviewer({
 								onClick={() =>
 									void handleGradeSubmit(Rating.Hard)
 								}
-								disabled={isSendingRequest}>
+								disabled={isSendingRequest}
+								title="(2)">
 								Hard
 							</button>
 						</div>
@@ -239,7 +243,8 @@ function Reviewer({
 								onClick={() =>
 									void handleGradeSubmit(Rating.Good)
 								}
-								disabled={isSendingRequest}>
+								disabled={isSendingRequest}
+								title="(3)">
 								Good
 							</button>
 						</div>
@@ -255,7 +260,8 @@ function Reviewer({
 								onClick={() =>
 									void handleGradeSubmit(Rating.Easy)
 								}
-								disabled={isSendingRequest}>
+								disabled={isSendingRequest}
+								title="(4)">
 								Easy
 							</button>
 						</div>

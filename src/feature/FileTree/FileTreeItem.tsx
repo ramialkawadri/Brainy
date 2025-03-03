@@ -101,7 +101,7 @@ function FileTreeItem({
 				iconName: mdiFileDocumentPlusOutline,
 				text: "New File",
 				onClick: showCreateNewFileInput,
-				shortcut: "Ctrl + N",
+				shortcut: "Ctrl + n",
 			},
 		);
 	}

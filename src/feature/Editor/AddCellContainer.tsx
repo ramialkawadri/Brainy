@@ -50,7 +50,7 @@ function AddCellContainer({
 					className={`${styles.addButton} grey-button`}
 					onClick={() => setShowAddNewCellPopup(true)}>
 					<Icon path={mdiPlus} size={1} />
-					<span title="Ctrl + Enter">Add Cell</span>
+					<span title="(Ctrl + Enter)">Add Cell</span>
 				</button>
 			</div>
 
