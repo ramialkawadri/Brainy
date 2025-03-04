@@ -69,7 +69,7 @@ function SideBar({
 				<button
 					className={`transparent center ${styles.toggleButton}`}
 					onClick={() => setIsExpanded(!isExpanded)}
-					title="Toggle sidebar (Ctrl + \)">
+					title="Expand/Collapse sidebar (Ctrl + \)">
 					<Icon path={mdiArrowCollapseLeft} size={1} />
 				</button>
 			</div>
@@ -92,7 +92,7 @@ function SideBar({
 
 			<button
 				className={`transparent ${styles.row}`}
-				title="Home (F1)"
+				title="Help (F1)"
 				onClick={openHelpWebiste}>
 				<Icon path={mdiHelp} size={1} />
 				<p>Help</p>
