@@ -60,6 +60,16 @@ function App() {
 			const settings = await getSettings();
 			applySettings(settings);
 		})();
+
+        document.addEventListener("contextmenu", (e) => {
+            if (!import.meta.env.DEV) e.preventDefault();
+        });
+
+        document.addEventListener("keydown", e => {
+            if (e.ctrlKey && e.key.toLowerCase() === "r" || e.code === "F5") {
+                e.preventDefault();
+            }
+        })
 	}, [dispatch]);
 
 	useEffect(() => {

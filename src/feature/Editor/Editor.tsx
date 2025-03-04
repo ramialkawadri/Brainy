@@ -122,7 +122,6 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 			setShowInsertNewCell(!showInsertNewCell);
 			if (showInsertNewCell) tipTapEditorRef.current?.commands.focus();
 		} else if (e.code === "F5") {
-			e.preventDefault();
 			void startStudy();
 		} else if (e.ctrlKey && e.altKey && e.code == "ArrowDown") {
 			e.preventDefault();
