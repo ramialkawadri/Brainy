@@ -9,12 +9,13 @@ import {
 	selectSelectedFileId,
 } from "../../store/selectors/fileSystemSelectors";
 import { setErrorMessage } from "../../store/reducers/fileSystemReducers";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import searchFolder from "../../util/searchFolder";
-import { mdiArrowCollapseLeft, mdiCog, mdiHome, mdiMagnify } from "@mdi/js";
+import { mdiArrowCollapseLeft, mdiCog, mdiHelp, mdiHome, mdiMagnify } from "@mdi/js";
 import Icon from "@mdi/react";
 import InputWithIcon from "../../ui/InputWithIcon/InputWithIcon";
 import useGlobalKey from "../../hooks/useGlobalKey";
+import { openUrl } from "@tauri-apps/plugin-opener";
 
 interface Props {
 	onFileClick: () => void;
@@ -40,10 +41,16 @@ function SideBar({
 	);
 	const selectedFileId = useAppSelector(selectSelectedFileId);
 
+    const openHelpWebiste = useCallback(() => {
+        void openUrl("https://ramialkawadri.github.io/Brainy-docs/");
+    }, []);
+
 	useGlobalKey(e => {
 		if (e.ctrlKey && e.key == "\\") {
 			setIsExpanded(!isExpanded);
-		}
+		} else if (e.key === "F1") {
+            openHelpWebiste();
+        }
 	});
 
 	return (
@@ -75,6 +82,14 @@ function SideBar({
 				onClick={onSettingsClick}>
 				<Icon path={mdiCog} size={1} />
 				<p>Settings</p>
+			</button>
+
+			<button
+				className={`transparent ${styles.row}`}
+				title="Home (F1)"
+				onClick={openHelpWebiste}>
+				<Icon path={mdiHelp} size={1} />
+				<p>Help</p>
 			</button>
 
 			<InputWithIcon

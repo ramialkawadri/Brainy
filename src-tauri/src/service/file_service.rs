@@ -1,5 +1,5 @@
 use prelude::Expr;
-use sea_orm::{DbConn, entity::*, query::*};
+use sea_orm::{entity::*, query::*, DbConn};
 
 use crate::{dto::file_with_repetitions_count::FileWithRepetitionsCount, entity::file};
 
@@ -422,11 +422,9 @@ pub mod tests {
         let actual = get_files(&db_conn).await.unwrap();
         assert_eq!(actual.len(), 2);
         assert!(actual.iter().any(|f| f.path == "folder 1".to_string()));
-        assert!(
-            actual
-                .iter()
-                .any(|f| f.path == "folder 1/folder 2".to_string())
-        );
+        assert!(actual
+            .iter()
+            .any(|f| f.path == "folder 1/folder 2".to_string()));
     }
 
     #[tokio::test]
@@ -628,26 +626,18 @@ pub mod tests {
 
         let actual = get_files(&db_conn).await.unwrap();
         assert!(actual.iter().any(|f| f.path == "destination".to_string()));
-        assert!(
-            actual
-                .iter()
-                .any(|f| f.path == "destination/test/folder 1".to_string())
-        );
-        assert!(
-            actual
-                .iter()
-                .any(|f| f.path == "destination/test/folder 1/folder 2".to_string())
-        );
-        assert!(
-            actual
-                .iter()
-                .any(|f| f.path == "destination/test/folder 1/folder 2/file".to_string())
-        );
-        assert!(
-            actual
-                .iter()
-                .any(|f| f.path == "destination/test/file".to_string())
-        );
+        assert!(actual
+            .iter()
+            .any(|f| f.path == "destination/test/folder 1".to_string()));
+        assert!(actual
+            .iter()
+            .any(|f| f.path == "destination/test/folder 1/folder 2".to_string()));
+        assert!(actual
+            .iter()
+            .any(|f| f.path == "destination/test/folder 1/folder 2/file".to_string()));
+        assert!(actual
+            .iter()
+            .any(|f| f.path == "destination/test/file".to_string()));
     }
 
     #[tokio::test]
@@ -674,16 +664,12 @@ pub mod tests {
         let actual = get_files(&db_conn).await.unwrap();
         assert!(actual.iter().any(|f| f.path == "test".to_string()));
         assert!(actual.iter().any(|f| f.path == "folder 1".to_string()));
-        assert!(
-            actual
-                .iter()
-                .any(|f| f.path == "folder 1/folder 2".to_string())
-        );
-        assert!(
-            actual
-                .iter()
-                .any(|f| f.path == "folder 1/folder 2/file".to_string())
-        );
+        assert!(actual
+            .iter()
+            .any(|f| f.path == "folder 1/folder 2".to_string()));
+        assert!(actual
+            .iter()
+            .any(|f| f.path == "folder 1/folder 2/file".to_string()));
         assert!(actual.iter().any(|f| f.path == "test/file".to_string()));
     }
 
@@ -811,31 +797,21 @@ pub mod tests {
         // Assert
 
         let actual = get_files(&db_conn).await.unwrap();
-        assert!(
-            actual
-                .iter()
-                .any(|f| f.path == "new name/subfolder".to_string())
-        );
-        assert!(
-            actual
-                .iter()
-                .any(|f| f.path == "new name/subfolder/folder 2".to_string())
-        );
-        assert!(
-            actual
-                .iter()
-                .any(|f| f.path == "new name/subfolder/folder 2/file".to_string())
-        );
-        assert!(
-            actual
-                .iter()
-                .any(|f| f.path == "new name/subfolder/folder 2/folder 3".to_string())
-        );
-        assert!(
-            actual
-                .iter()
-                .any(|f| f.path == "new name/subfolder/folder 2/folder 3/file".to_string())
-        );
+        assert!(actual
+            .iter()
+            .any(|f| f.path == "new name/subfolder".to_string()));
+        assert!(actual
+            .iter()
+            .any(|f| f.path == "new name/subfolder/folder 2".to_string()));
+        assert!(actual
+            .iter()
+            .any(|f| f.path == "new name/subfolder/folder 2/file".to_string()));
+        assert!(actual
+            .iter()
+            .any(|f| f.path == "new name/subfolder/folder 2/folder 3".to_string()));
+        assert!(actual
+            .iter()
+            .any(|f| f.path == "new name/subfolder/folder 2/folder 3/file".to_string()));
     }
 
     #[tokio::test]
@@ -885,22 +861,16 @@ pub mod tests {
 
         assert_eq!(actual.len(), 3);
 
-        assert!(
-            actual
-                .iter()
-                .any(|f| f.path == "folder 1/folder 2".to_string())
-        );
+        assert!(actual
+            .iter()
+            .any(|f| f.path == "folder 1/folder 2".to_string()));
 
-        assert!(
-            actual
-                .iter()
-                .any(|f| f.path == "folder 1/folder 4".to_string())
-        );
+        assert!(actual
+            .iter()
+            .any(|f| f.path == "folder 1/folder 4".to_string()));
 
-        assert!(
-            actual
-                .iter()
-                .any(|f| f.path == "folder 1/file 1".to_string())
-        );
+        assert!(actual
+            .iter()
+            .any(|f| f.path == "folder 1/file 1".to_string()));
     }
 }
