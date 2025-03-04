@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 
 use chrono::Utc;
-use rand::{seq::SliceRandom, SeedableRng};
+use rand::{SeedableRng, seq::SliceRandom};
 use rand_chacha::ChaCha8Rng;
 use regex::Regex;
 use sea_orm::{DbConn, Set};
@@ -337,43 +337,37 @@ mod tests {
         let db_conn = get_db().await;
         let (file_id, cell_id) = create_file_cell(&db_conn, "file 1").await;
         for _ in 0..2 {
-            insert_repetitions(
-                &db_conn,
-                vec![repetition::ActiveModel {
-                    cell_id: Set(cell_id),
-                    file_id: Set(file_id),
-                    state: Set(State::New),
-                    ..Default::default()
-                }],
-            )
+            insert_repetitions(&db_conn, vec![repetition::ActiveModel {
+                cell_id: Set(cell_id),
+                file_id: Set(file_id),
+                state: Set(State::New),
+                ..Default::default()
+            }])
             .await
             .unwrap();
         }
 
-        insert_repetitions(
-            &db_conn,
-            vec![
-                repetition::ActiveModel {
-                    cell_id: Set(cell_id),
-                    file_id: Set(file_id),
-                    state: Set(State::Review),
-                    ..Default::default()
-                },
-                repetition::ActiveModel {
-                    cell_id: Set(cell_id),
-                    file_id: Set(file_id),
-                    state: Set(State::Learning),
-                    ..Default::default()
-                },
-                repetition::ActiveModel {
-                    cell_id: Set(cell_id),
-                    file_id: Set(file_id),
-                    state: Set(State::Learning),
-                    due: Set((Utc::now() + Duration::days(1)).to_utc()),
-                    ..Default::default()
-                },
-            ],
-        )
+        insert_repetitions(&db_conn, vec![
+            repetition::ActiveModel {
+                cell_id: Set(cell_id),
+                file_id: Set(file_id),
+                state: Set(State::Review),
+                ..Default::default()
+            },
+            repetition::ActiveModel {
+                cell_id: Set(cell_id),
+                file_id: Set(file_id),
+                state: Set(State::Learning),
+                ..Default::default()
+            },
+            repetition::ActiveModel {
+                cell_id: Set(cell_id),
+                file_id: Set(file_id),
+                state: Set(State::Learning),
+                due: Set((Utc::now() + Duration::days(1)).to_utc()),
+                ..Default::default()
+            },
+        ])
         .await
         .unwrap();
 
@@ -398,21 +392,18 @@ mod tests {
         let db_conn = get_db().await;
         let (file_id, cell_id) = create_file_cell(&db_conn, "file 1").await;
         let (file_id_2, cell_id_2) = create_file_cell(&db_conn, "file 2").await;
-        insert_repetitions(
-            &db_conn,
-            vec![
-                repetition::ActiveModel {
-                    file_id: Set(file_id),
-                    cell_id: Set(cell_id),
-                    ..Default::default()
-                },
-                repetition::ActiveModel {
-                    file_id: Set(file_id_2),
-                    cell_id: Set(cell_id_2),
-                    ..Default::default()
-                },
-            ],
-        )
+        insert_repetitions(&db_conn, vec![
+            repetition::ActiveModel {
+                file_id: Set(file_id),
+                cell_id: Set(cell_id),
+                ..Default::default()
+            },
+            repetition::ActiveModel {
+                file_id: Set(file_id_2),
+                cell_id: Set(cell_id_2),
+                ..Default::default()
+            },
+        ])
         .await
         .unwrap();
 
@@ -431,14 +422,11 @@ mod tests {
 
         let db_conn = get_db().await;
         let (file_id, cell_id) = create_file_cell(&db_conn, "file 1").await;
-        insert_repetitions(
-            &db_conn,
-            vec![repetition::ActiveModel {
-                file_id: Set(file_id),
-                cell_id: Set(cell_id),
-                ..Default::default()
-            }],
-        )
+        insert_repetitions(&db_conn, vec![repetition::ActiveModel {
+            file_id: Set(file_id),
+            cell_id: Set(cell_id),
+            ..Default::default()
+        }])
         .await
         .unwrap();
         let repetition_id = repetition::Entity::find()
@@ -498,32 +486,26 @@ mod tests {
         let db_conn = get_db().await;
         let (file1_id, cell1_id) = create_file_cell(&db_conn, "file 1").await;
 
-        insert_repetitions(
-            &db_conn,
-            vec![
-                repetition::ActiveModel {
-                    file_id: Set(file1_id),
-                    cell_id: Set(cell1_id),
-                    ..Default::default()
-                },
-                repetition::ActiveModel {
-                    file_id: Set(file1_id),
-                    cell_id: Set(cell1_id),
-                    ..Default::default()
-                },
-            ],
-        )
+        insert_repetitions(&db_conn, vec![
+            repetition::ActiveModel {
+                file_id: Set(file1_id),
+                cell_id: Set(cell1_id),
+                ..Default::default()
+            },
+            repetition::ActiveModel {
+                file_id: Set(file1_id),
+                cell_id: Set(cell1_id),
+                ..Default::default()
+            },
+        ])
         .await
         .unwrap();
         let (file2_id, cell2_id) = create_file_cell(&db_conn, "file 2").await;
-        insert_repetitions(
-            &db_conn,
-            vec![repetition::ActiveModel {
-                file_id: Set(file2_id),
-                cell_id: Set(cell2_id),
-                ..Default::default()
-            }],
-        )
+        insert_repetitions(&db_conn, vec![repetition::ActiveModel {
+            file_id: Set(file2_id),
+            cell_id: Set(cell2_id),
+            ..Default::default()
+        }])
         .await
         .unwrap();
 
@@ -551,17 +533,14 @@ mod tests {
         )
         .await;
         let repetition_id = get_repetitions_by_cell_id(&db_conn, cell_id).await.unwrap()[0].id;
-        update_repetition(
-            &db_conn,
-            repetition::Model {
-                id: repetition_id,
-                file_id,
-                cell_id,
-                state: State::Learning,
-                scheduled_days: 100,
-                ..Default::default()
-            },
-        )
+        update_repetition(&db_conn, repetition::Model {
+            id: repetition_id,
+            file_id,
+            cell_id,
+            state: State::Learning,
+            scheduled_days: 100,
+            ..Default::default()
+        })
         .await
         .unwrap();
 

@@ -4,7 +4,7 @@ use crate::{
 };
 
 use prelude::Expr;
-use sea_orm::{entity::*, query::*, DbConn};
+use sea_orm::{DbConn, entity::*, query::*};
 
 use super::repetition_service;
 
@@ -102,14 +102,11 @@ pub async fn move_cell(db_conn: &DbConn, cell_id: i32, new_index: i32) -> Result
 
     increase_cells_indices_starting_from(&txn, cell.file_id, cell.index + 1, -1).await?;
     increase_cells_indices_starting_from(&txn, cell.file_id, new_index, 1).await?;
-    update_cell(
-        &txn,
-        cell::ActiveModel {
-            id: Set(cell_id),
-            index: Set(new_index),
-            ..Default::default()
-        },
-    )
+    update_cell(&txn, cell::ActiveModel {
+        id: Set(cell_id),
+        index: Set(new_index),
+        ..Default::default()
+    })
     .await?;
 
     let result = txn.commit().await;
@@ -151,14 +148,11 @@ pub async fn update_cells_contents(
 
     for request in requests {
         let cell = get_cell_by_id(&txn, request.cell_id).await?;
-        update_cell(
-            &txn,
-            cell::ActiveModel {
-                id: Set(request.cell_id),
-                content: Set(request.content.clone()),
-                ..Default::default()
-            },
-        )
+        update_cell(&txn, cell::ActiveModel {
+            id: Set(request.cell_id),
+            content: Set(request.content.clone()),
+            ..Default::default()
+        })
         .await?;
 
         repetition_service::update_repetitions_for_cell(

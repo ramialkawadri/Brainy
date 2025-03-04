@@ -11,7 +11,13 @@ import {
 import { setErrorMessage } from "../../store/reducers/fileSystemReducers";
 import { useCallback, useMemo, useState } from "react";
 import searchFolder from "../../util/searchFolder";
-import { mdiArrowCollapseLeft, mdiCog, mdiHelp, mdiHome, mdiMagnify } from "@mdi/js";
+import {
+	mdiArrowCollapseLeft,
+	mdiCog,
+	mdiHelp,
+	mdiHome,
+	mdiMagnify,
+} from "@mdi/js";
 import Icon from "@mdi/react";
 import InputWithIcon from "../../ui/InputWithIcon/InputWithIcon";
 import useGlobalKey from "../../hooks/useGlobalKey";
@@ -41,16 +47,16 @@ function SideBar({
 	);
 	const selectedFileId = useAppSelector(selectSelectedFileId);
 
-    const openHelpWebiste = useCallback(() => {
-        void openUrl("https://ramialkawadri.github.io/Brainy-docs/");
-    }, []);
+	const openHelpWebiste = useCallback(() => {
+		void openUrl("https://ramialkawadri.github.io/Brainy-docs/");
+	}, []);
 
 	useGlobalKey(e => {
 		if (e.ctrlKey && e.key == "\\") {
 			setIsExpanded(!isExpanded);
 		} else if (e.key === "F1") {
-            openHelpWebiste();
-        }
+			openHelpWebiste();
+		}
 	});
 
 	return (

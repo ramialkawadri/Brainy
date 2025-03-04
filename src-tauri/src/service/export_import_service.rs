@@ -1,6 +1,6 @@
 use std::fs::{self, File};
 
-use sea_orm::{query::*, DbConn};
+use sea_orm::{DbConn, query::*};
 
 use crate::dto::exported_item::{ExportedCell, ExportedItem, ExportedItemType};
 
@@ -369,21 +369,31 @@ mod tests {
                 .unwrap();
 
         assert_eq!(import_folder_children.len(), 5);
-        assert!(import_folder_children
-            .iter()
-            .any(|file| file.path == "import folder/folder 2" && file.is_folder));
-        assert!(import_folder_children
-            .iter()
-            .any(|file| file.path == "import folder/folder 2/file 1" && !file.is_folder));
-        assert!(import_folder_children
-            .iter()
-            .any(|file| file.path == "import folder/folder 2/file 2" && !file.is_folder));
-        assert!(import_folder_children
-            .iter()
-            .any(|file| file.path == "import folder/folder 2/folder 3" && file.is_folder));
-        assert!(import_folder_children
-            .iter()
-            .any(|file| file.path == "import folder/folder 2/folder 3/file 3" && !file.is_folder));
+        assert!(
+            import_folder_children
+                .iter()
+                .any(|file| file.path == "import folder/folder 2" && file.is_folder)
+        );
+        assert!(
+            import_folder_children
+                .iter()
+                .any(|file| file.path == "import folder/folder 2/file 1" && !file.is_folder)
+        );
+        assert!(
+            import_folder_children
+                .iter()
+                .any(|file| file.path == "import folder/folder 2/file 2" && !file.is_folder)
+        );
+        assert!(
+            import_folder_children
+                .iter()
+                .any(|file| file.path == "import folder/folder 2/folder 3" && file.is_folder)
+        );
+        assert!(
+            import_folder_children.iter().any(|file| file.path
+                == "import folder/folder 2/folder 3/file 3"
+                && !file.is_folder)
+        );
 
         let file1_id = import_folder_children
             .iter()

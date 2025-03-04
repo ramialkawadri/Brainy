@@ -1,4 +1,4 @@
-use sea_orm::{sea_query::Index, ConnectionTrait, DatabaseConnection, DbBackend, DbErr, Schema};
+use sea_orm::{ConnectionTrait, DatabaseConnection, DbBackend, DbErr, Schema, sea_query::Index};
 
 use crate::entity::{cell, file, repetition};
 
