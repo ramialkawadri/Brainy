@@ -10,7 +10,6 @@ import clozeMark, { clozeMarkName } from "./clozeMark";
 
 interface Props {
 	cell: Cell;
-	editable: boolean;
 	autofocus: boolean;
 	onUpdate: (content: string) => void;
 	onFocus: (editor: Editor) => void;
@@ -18,7 +17,7 @@ interface Props {
 
 const regexp = /<cloze[^>]*index="(\d+)"[^>]*>/g;
 
-function ClozeCell({ cell, editable, autofocus, onUpdate, onFocus }: Props) {
+function ClozeCell({ cell, autofocus, onUpdate, onFocus }: Props) {
 	const handleToggleCloze = (commands: ChainedCommands) => {
 		const matches = cell.content.matchAll(regexp);
 		let newClozeIndex = 1;
@@ -52,7 +51,6 @@ function ClozeCell({ cell, editable, autofocus, onUpdate, onFocus }: Props) {
 				},
 			]}
 			initialContent={cell.content}
-			editable={editable}
 			autofocus={autofocus}
 			onUpdate={onUpdate}
 			onFocus={onFocus}

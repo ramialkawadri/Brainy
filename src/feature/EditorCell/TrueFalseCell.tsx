@@ -7,7 +7,6 @@ import { useState } from "react";
 
 interface Props {
 	cell: Cell;
-	editable: boolean;
 	autofocus: boolean;
 	onUpdate: (content: string) => void;
 	onFocus: (editor: Editor) => void;
@@ -15,7 +14,6 @@ interface Props {
 
 export function TrueFalseCell({
 	cell,
-	editable,
 	autofocus,
 	onUpdate,
 	onFocus,
@@ -51,7 +49,6 @@ export function TrueFalseCell({
 				title="Question"
 				initialContent={question}
 				onUpdate={handleQuestionUpdate}
-				editable={editable}
 				autofocus={autofocus}
 				onFocus={onFocus}
 			/>

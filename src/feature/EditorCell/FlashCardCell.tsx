@@ -7,7 +7,6 @@ import { Editor } from "@tiptap/react";
 
 interface Props {
 	cell: Cell;
-	editable: boolean;
 	autofocus: boolean;
 	onUpdate: (content: string) => void;
 	onFocus: (editor: Editor) => void;
@@ -15,7 +14,6 @@ interface Props {
 
 function FlashCardCell({
 	cell,
-	editable,
 	autofocus,
 	onUpdate,
 	onFocus,
@@ -52,7 +50,6 @@ function FlashCardCell({
 				title="Question"
 				initialContent={question.current}
 				onUpdate={handleQuestionUpdate}
-				editable={editable}
 				autofocus={autofocus && !isAnswerEditorFocused.current}
 				onFocus={onFocus}
 			/>
@@ -60,7 +57,6 @@ function FlashCardCell({
 				title="Answer"
 				initialContent={answer.current}
 				autofocus={false}
-				editable={editable}
 				onUpdate={handleAnswerUpdate}
 				onFocus={e => {
 					isAnswerEditorFocused.current = true;

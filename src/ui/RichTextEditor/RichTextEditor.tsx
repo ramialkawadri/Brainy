@@ -28,7 +28,6 @@ const extensions = [
 interface Props {
 	initialContent: string;
 	title?: string;
-	editable?: boolean;
 	extraExtensions?: AnyExtension[];
 	commands?: Command[];
 	autofocus: boolean;
@@ -40,7 +39,6 @@ interface Props {
 function RichTextEditor({
 	title,
 	initialContent,
-	editable,
 	extraExtensions,
 	commands,
 	autofocus,
@@ -73,10 +71,6 @@ function RichTextEditor({
 	useEffect(() => {
 		if (autofocus && editor) editor.commands.focus();
 	}, [autofocus, editor]);
-
-	useEffect(() => {
-		if (editor) editor.setEditable(editable ?? true);
-	}, [editable, editor]);
 
 	return (
 		<>

@@ -429,7 +429,6 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 
 								<EditorCell
 									cell={cell}
-									editable={draggedCellId === null}
 									autofocus={selectedCellId === cell.id}
 									onUpdate={content =>
 										handleUpdate(content, i, cell.id!)
