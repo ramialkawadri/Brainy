@@ -79,8 +79,8 @@
 	}
 
 	.overlay-cell-selector {
-		width: 50%;
-		max-width: 42rem;
+		width: 42rem;
+		max-width: 80%;
 	}
 }
 
