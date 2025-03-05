@@ -24,6 +24,8 @@ import useGlobalKey from "../../hooks/useGlobalKey";
 import { openUrl } from "@tauri-apps/plugin-opener";
 
 interface Props {
+	isExpanded: boolean;
+	setIsExpanded: (val: boolean) => void;
 	onFileClick: () => void;
 	onRootClick: () => void;
 	onHomeClick: () => void;
@@ -31,13 +33,14 @@ interface Props {
 }
 
 function SideBar({
+	isExpanded,
+	setIsExpanded,
 	onFileClick,
 	onRootClick,
 	onHomeClick,
 	onSettingsClick,
 }: Props) {
 	const [searchText, setSearchText] = useState<string | null>(null);
-	const [isExpanded, setIsExpanded] = useState(true);
 	const rootFolder = useAppSelector(selectRootFolder);
 	const errorMessage = useAppSelector(selectError);
 	const dispatch = useAppDispatch();

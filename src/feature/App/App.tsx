@@ -24,6 +24,7 @@ function App() {
 	const [isStudying, setIsStudying] = useState(false);
 	const [showSettings, setShowSettings] = useState(false);
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
+	const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
 	const selectedFileId = useAppSelector(selectSelectedFileId);
 	const cells = useRef<Cell[]>([]);
 	const cellRepetitions = useRef<Repetition[]>([]);
@@ -61,19 +62,20 @@ function App() {
 			applySettings(settings);
 		})();
 
-        document.addEventListener("contextmenu", (e) => {
-            if (!import.meta.env.DEV) e.preventDefault();
-        });
+		document.addEventListener("contextmenu", e => {
+			if (!import.meta.env.DEV) e.preventDefault();
+		});
 
-        document.addEventListener("keydown", e => {
-            if (e.ctrlKey && e.key.toLowerCase() === "r" || e.code === "F5") {
-                e.preventDefault();
-            }
-        })
+		document.addEventListener("keydown", e => {
+			if ((e.ctrlKey && e.key.toLowerCase() === "r") || e.code === "F5") {
+				e.preventDefault();
+			}
+		});
 	}, [dispatch]);
 
 	useEffect(() => {
 		setIsStudying(false);
+		setIsSidebarExpanded(false);
 	}, [dispatch, selectedFileId]);
 
 	useGlobalKey(e => {
@@ -98,8 +100,10 @@ function App() {
 	const handleHomeClick = () => {
 		setIsStudying(false);
 		dispatch(setSelectedFileId(null));
+		setIsSidebarExpanded(false);
 	};
 
+	// TODO: move sidebar state into global state
 	return (
 		<div className={`${styles.workspace}`}>
 			{errorMessage && (
@@ -112,6 +116,8 @@ function App() {
 			)}
 
 			<SideBar
+				isExpanded={isSidebarExpanded}
+				setIsExpanded={setIsSidebarExpanded}
 				onFileClick={() => setIsStudying(false)}
 				onRootClick={() => setIsStudying(false)}
 				onHomeClick={handleHomeClick}

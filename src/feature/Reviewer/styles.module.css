@@ -88,7 +88,7 @@
 		gap: 1.2rem;
 	}
 
-	& .editButtonContainer {
+	& .edit-button-container {
 		display: block;
 
 		& button {
@@ -104,6 +104,21 @@
 
 		& div {
 			gap: 4px;
+		}
+	}
+}
+
+@media (max-width: 600px) {
+	.bottom-bar {
+		display: flex;
+		justify-content: center;
+
+		& .edit-button-container {
+			display: none;
+		}
+
+		& .timer-container {
+			display: none;
 		}
 	}
 }

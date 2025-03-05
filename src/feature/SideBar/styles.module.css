@@ -21,8 +21,9 @@
 	}
 
 	&.closed {
-		width: 72px;
+		width: 62px;
 		overflow: hidden;
+		padding: var(--xl-padding) var(--medium-padding);
 
 		& > * {
 			display: none;
@@ -49,6 +50,26 @@
 			& p {
 				display: none;
 			}
+		}
+	}
+}
+
+@media (max-width: 600px) {
+	.side-bar {
+		width: 100vw;
+		transition: none;
+
+        .toggle-button {
+            display: none;
+        }
+
+		&.closed {
+            padding: var(--xl-padding) var(--default-padding);
+			width: 52px;
+
+            .toggle-button {
+                display: block;
+            }
 		}
 	}
 }
