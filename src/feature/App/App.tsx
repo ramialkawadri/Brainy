@@ -20,6 +20,8 @@ import errorToString from "../../util/errorToString";
 import applySettings from "../../util/applySettings";
 import useGlobalKey from "../../hooks/useGlobalKey";
 
+const SMALL_SCREEN_MAX_WIDTH = 600;
+
 function App() {
 	const [isStudying, setIsStudying] = useState(false);
 	const [showSettings, setShowSettings] = useState(false);
@@ -30,6 +32,13 @@ function App() {
 	const cellRepetitions = useRef<Repetition[]>([]);
 	const editCellId = useRef<number | null>(null);
 	const dispatch = useAppDispatch();
+	const isSmallScreen = useRef(window.innerWidth <= SMALL_SCREEN_MAX_WIDTH);
+
+	useEffect(() => {
+		window.addEventListener("resize", () => {
+			isSmallScreen.current = window.innerWidth <= SMALL_SCREEN_MAX_WIDTH;
+		});
+	});
 
 	const handleEditorStudyClick = async () => {
 		try {
@@ -75,7 +84,8 @@ function App() {
 
 	useEffect(() => {
 		setIsStudying(false);
-		setIsSidebarExpanded(false);
+
+		if (isSmallScreen.current) setIsSidebarExpanded(false);
 	}, [dispatch, selectedFileId]);
 
 	useGlobalKey(e => {
@@ -100,10 +110,11 @@ function App() {
 	const handleHomeClick = () => {
 		setIsStudying(false);
 		dispatch(setSelectedFileId(null));
-		setIsSidebarExpanded(false);
+
+		if (isSmallScreen.current) setIsSidebarExpanded(false);
 	};
 
-	// TODO: move sidebar state into global state
+	// TODO: move sidebar state into global state, use react router to change selected file
 	return (
 		<div className={`${styles.workspace}`}>
 			{errorMessage && (

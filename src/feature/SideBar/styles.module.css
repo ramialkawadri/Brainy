@@ -59,17 +59,17 @@
 		width: 100vw;
 		transition: none;
 
-        .toggle-button {
-            display: none;
-        }
+		.toggle-button {
+			display: none;
+		}
 
 		&.closed {
-            padding: var(--xl-padding) var(--default-padding);
+			padding: var(--xl-padding) var(--default-padding);
 			width: 52px;
 
-            .toggle-button {
-                display: block;
-            }
+			.toggle-button {
+				display: block;
+			}
 		}
 	}
 }
