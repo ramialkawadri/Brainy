@@ -18,8 +18,6 @@ interface Props {
 	isRoot: boolean;
 	isAnyItemDragged: boolean;
 	onMarkForDeletion: (id: number, isFolder: boolean) => void;
-	onFileClick: () => void;
-	onRootClick: () => void;
 	onCreatingNewItemEnd: () => void;
 	onCreateNewFileClick: () => void;
 	onDragStart: () => void;
@@ -34,8 +32,6 @@ function FileTreeItemChildren({
 	isRoot,
 	isAnyItemDragged,
 	onMarkForDeletion,
-	onFileClick,
-	onRootClick,
 	onCreatingNewItemEnd,
 	onCreateNewFileClick,
 	onDragStart,
@@ -107,8 +103,6 @@ function FileTreeItemChildren({
 					}
 					id={subFolder.id}
 					isAnyItemDragged={isAnyItemDragged}
-					onFileClick={onFileClick}
-					onRootClick={onRootClick}
 					onDragStart={onDragStart}
 					onDragEnd={onDragEnd}
 				/>
@@ -128,8 +122,6 @@ function FileTreeItemChildren({
 							}
 							id={file.id}
 							isAnyItemDragged={isAnyItemDragged}
-							onFileClick={onFileClick}
-							onRootClick={onRootClick}
 							onDragStart={onDragStart}
 							onDragEnd={onDragEnd}
 						/>

@@ -2,8 +2,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import createDefaultCell from "../../util/createDefaultCell";
 import TitleBar from "./TitleBar";
 import styles from "./styles.module.css";
-import useAppSelector from "../../hooks/useAppSelector";
-import { selectSelectedFileId } from "../../store/selectors/fileSystemSelectors";
 import Cell, {
 	CellType,
 	cellTypesDisplayNames,
@@ -35,6 +33,8 @@ import AddCellContainer from "./AddCellContainer";
 import Repetition from "../../type/backend/entity/repetition";
 import RenderIfVisible from "../../ui/RenderIfVisible";
 import useGlobalKey from "../../hooks/useGlobalKey";
+import { useSearchParams } from "react-router";
+import { fileIdQueryParameter } from "../../constants";
 
 const autoSaveDelayInMilliSeconds = 2000;
 const oneMinuteInMilliseconds = 60 * 1000;
@@ -64,7 +64,8 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 	const updatedCells = useRef(cells);
 	const tipTapEditorRef = useRef<TipTapEditor | null>(null);
 	const outerEditorContainerRef = useRef<HTMLDivElement>(null);
-	const selectedFileId = useAppSelector(selectSelectedFileId)!;
+	const [searchParams] = useSearchParams();
+	const selectedFileId = Number(searchParams.get(fileIdQueryParameter));
 	const autoSaveTimeoutId = useRef<number>(null);
 	// Used to store the ids of the changed cells so that we update them all
 	// together instead of updating one by one.

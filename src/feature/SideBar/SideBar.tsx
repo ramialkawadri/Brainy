@@ -6,7 +6,6 @@ import useAppDispatch from "../../hooks/useAppDispatch";
 import {
 	selectError,
 	selectRootFolder,
-	selectSelectedFileId,
 } from "../../store/selectors/fileSystemSelectors";
 import { setErrorMessage } from "../../store/reducers/fileSystemReducers";
 import { useCallback, useMemo, useState } from "react";
@@ -22,12 +21,12 @@ import Icon from "@mdi/react";
 import InputWithIcon from "../../ui/InputWithIcon/InputWithIcon";
 import useGlobalKey from "../../hooks/useGlobalKey";
 import { openUrl } from "@tauri-apps/plugin-opener";
+import { useSearchParams } from "react-router";
+import { fileIdQueryParameter } from "../../constants";
 
 interface Props {
 	isExpanded: boolean;
 	setIsExpanded: (val: boolean) => void;
-	onFileClick: () => void;
-	onRootClick: () => void;
 	onHomeClick: () => void;
 	onSettingsClick: () => void;
 }
@@ -35,8 +34,6 @@ interface Props {
 function SideBar({
 	isExpanded,
 	setIsExpanded,
-	onFileClick,
-	onRootClick,
 	onHomeClick,
 	onSettingsClick,
 }: Props) {
@@ -48,7 +45,8 @@ function SideBar({
 		() => searchFolder(rootFolder, searchText ?? ""),
 		[rootFolder, searchText],
 	);
-	const selectedFileId = useAppSelector(selectSelectedFileId);
+	const [searchParams] = useSearchParams();
+	const selectedFileId = Number(searchParams.get(fileIdQueryParameter));
 
 	const openHelpWebiste = useCallback(() => {
 		void openUrl("https://ramialkawadri.github.io/Brainy-docs/");
@@ -117,11 +115,7 @@ function SideBar({
 				/>
 			)}
 
-			<FileTree
-				folder={rootUiFolder}
-				onFileClick={onFileClick}
-				onRootClick={onRootClick}
-			/>
+			<FileTree folder={rootUiFolder} />
 		</div>
 	);
 }

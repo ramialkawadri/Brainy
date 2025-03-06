@@ -12,12 +12,7 @@ interface Props {
 	onFocus: (editor: Editor) => void;
 }
 
-export function TrueFalseCell({
-	cell,
-	autofocus,
-	onUpdate,
-	onFocus,
-}: Props) {
+export function TrueFalseCell({ cell, autofocus, onUpdate, onFocus }: Props) {
 	const trueFalse = JSON.parse(cell.content) as TrueFalse;
 
 	const [question, setQuestion] = useState(trueFalse.question);

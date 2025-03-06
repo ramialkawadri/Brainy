@@ -12,12 +12,7 @@ interface Props {
 	onFocus: (editor: Editor) => void;
 }
 
-function FlashCardCell({
-	cell,
-	autofocus,
-	onUpdate,
-	onFocus,
-}: Props) {
+function FlashCardCell({ cell, autofocus, onUpdate, onFocus }: Props) {
 	const flashCard = JSON.parse(cell.content) as FlashCard;
 
 	const question = useRef(flashCard.question);

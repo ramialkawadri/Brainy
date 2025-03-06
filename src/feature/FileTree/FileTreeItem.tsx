@@ -21,15 +21,15 @@ import {
 	moveFolder,
 } from "../../store/actions/fileSystemActions";
 import getFileName from "../../util/getFileName";
-import {
-	requestFailure,
-	setSelectedFileId,
-} from "../../store/reducers/fileSystemReducers";
+import { requestFailure } from "../../store/reducers/fileSystemReducers";
 import UiFolder from "../../type/ui/uiFolder";
 import { exportItem } from "../../api/exportImportApi";
 import FileTreeItemRow from "./FileTreeItemRow";
 import FileTreeItemChildren from "./FileTreeItemChildren";
 import errorToString from "../../util/errorToString";
+import { createSearchParams, useSearchParams } from "react-router";
+import { fileIdQueryParameter } from "../../constants";
+import { useNavigate } from "react-router";
 
 const dragFormatForFolder = "brainy/folderpath";
 const dragFormatForFile = "brainy/filepath";
@@ -40,8 +40,6 @@ interface Props {
 	id: number;
 	isAnyItemDragged: boolean;
 	onMarkForDeletion: (id: number, isFolder: boolean) => void;
-	onFileClick: () => void;
-	onRootClick: () => void;
 	onDragStart: () => void;
 	onDragEnd: () => void;
 }
@@ -61,8 +59,6 @@ function FileTreeItem({
 	id,
 	isAnyItemDragged,
 	onMarkForDeletion,
-	onFileClick,
-	onRootClick,
 	onDragStart,
 	onDragEnd,
 }: Props) {
@@ -73,8 +69,10 @@ function FileTreeItem({
 	const [creatingNewFile, setCreatingNewFile] = useState(false);
 	const [isDragOver, setIsDragOver] = useState(false);
 	const [isOpen, setIsOpen] = useState(false);
-	const dragEnterTarget = useRef<EventTarget>(null);
+	const [searchParams] = useSearchParams();
+	const navigate = useNavigate();
 	const dispatch = useAppDispatch();
+	const dragEnterTarget = useRef<EventTarget>(null);
 	const isExpanded = isRoot || isOpen;
 	const actions: Action[] = [];
 
@@ -179,14 +177,18 @@ function FileTreeItem({
 
 		if (folder) {
 			if (isRoot) {
-				onRootClick();
-				dispatch(setSelectedFileId(null));
+				void navigate("/");
 			} else {
 				setIsOpen(!isOpen);
 			}
 		} else {
-			onFileClick();
-			dispatch(setSelectedFileId(id));
+			void navigate({
+				pathname: "editor",
+				search: createSearchParams({
+					...searchParams,
+					[fileIdQueryParameter]: id.toString(),
+				}).toString(),
+			});
 		}
 	};
 
@@ -288,8 +290,6 @@ function FileTreeItem({
 					<FileTreeItemChildren
 						creatingNewFile={creatingNewFile}
 						creatingNewFolder={creatingNewFolder}
-						onFileClick={onFileClick}
-						onRootClick={onRootClick}
 						onMarkForDeletion={onMarkForDeletion}
 						onCreatingNewItemEnd={handleCreateNewItemEnd}
 						isRoot={isRoot}

@@ -9,15 +9,13 @@ export const selectError = (state: RootState) => state.fileSystem.error;
 export const selectRootFolder = (state: RootState) =>
 	state.fileSystem.rootFolder;
 
-export const selectSelectedFileId = (state: RootState) =>
-	state.fileSystem.selectedFileId;
-
 export const selectFileById = createSelector(
 	[selectRootFolder, (_, id: number) => id],
-	(rootFolder, id) => getFolderChildById(rootFolder, id) as ParsedFile,
+	(rootFolder, id) => getFolderChildById(rootFolder, id) as ParsedFile | null,
 );
 
 export const selectFolderById = createSelector(
 	[selectRootFolder, (_, id: number) => id],
-	(rootFolder, id) => getFolderChildById(rootFolder, id) as ParsedFolder,
+	(rootFolder, id) =>
+		getFolderChildById(rootFolder, id) as ParsedFolder | null,
 );

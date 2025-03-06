@@ -8,9 +8,7 @@ import {
 	mdiFolderOutline,
 } from "@mdi/js";
 import ActionsMenu from "./ActionsMenu";
-import useAppSelector from "../../hooks/useAppSelector";
 import { Action } from "./ActionsMenu";
-import { selectSelectedFileId } from "../../store/selectors/fileSystemSelectors";
 import getFileName from "../../util/getFileName";
 import { useEffect, useState } from "react";
 import {
@@ -18,6 +16,8 @@ import {
 	renameFolder,
 } from "../../store/actions/fileSystemActions";
 import useAppDispatch from "../../hooks/useAppDispatch";
+import { useSearchParams } from "react-router";
+import { fileIdQueryParameter } from "../../constants";
 
 interface Props {
 	isRoot: boolean;
@@ -55,7 +55,8 @@ function FileTreeItemRow({
 	onStopRenaming,
 }: Props) {
 	const [newName, setNewName] = useState(getFileName(fullPath));
-	const selectedFileId = useAppSelector(selectSelectedFileId);
+	const [searchParams] = useSearchParams();
+	const selectedFileId = Number(searchParams.get(fileIdQueryParameter));
 	const dispatch = useAppDispatch();
 	const isSelected = selectedFileId === id && !isRoot;
 

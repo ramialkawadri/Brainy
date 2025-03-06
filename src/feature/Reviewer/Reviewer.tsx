@@ -12,12 +12,12 @@ import createRepetitionFromCard from "../../util/createRepetitionFromCard";
 import Cell from "../../type/backend/entity/cell";
 import { updateRepetition } from "../../api/repetitionApi";
 import Timer from "./Timer";
+import { Navigate, useNavigate } from "react-router";
 
 interface Props {
 	cells: Cell[];
 	cellRepetitions: Repetition[];
 	onEditButtonClick: (fileId: number, cellId: number) => void;
-	onReviewEnd: () => void;
 	onError: (message: string) => void;
 }
 
@@ -29,56 +29,26 @@ function Reviewer({
 	cellRepetitions,
 	onEditButtonClick,
 	onError,
-	onReviewEnd,
 }: Props) {
 	const [showAnswer, setShowAnswer] = useState(false);
 	const [currentCellIndex, setCurrentCellIndex] = useState(0);
 	const [isSendingRequest, setIsSendingRequest] = useState(false);
+	const navigate = useNavigate();
 	const startTime = useRef(new Date());
 
 	const dueToday = cellRepetitions.filter(
 		c => new Date(c.due) <= startTime.current,
 	);
-	if (dueToday.length === 0) onReviewEnd();
+	const currentCard =
+		dueToday.length > 0
+			? createCardFromCellRepetition(dueToday[currentCellIndex])
+			: null;
 
-	const currentCard = createCardFromCellRepetition(
-		dueToday[currentCellIndex],
-	);
-
-	const schedulingCards: RecordLog = useMemo(
-		() => fsrs.repeat(currentCard, startTime.current),
+	const schedulingCards: RecordLog | null = useMemo(
+		() =>
+			currentCard ? fsrs.repeat(currentCard, startTime.current) : null,
 		[currentCard, startTime],
 	);
-
-	const handleGradeSubmit = async (grade: Grade) => {
-		if (isSendingRequest) {
-			return;
-		}
-		setIsSendingRequest(true);
-		try {
-			const card = schedulingCards[grade].card;
-			const repetition = createRepetitionFromCard(
-				card,
-				dueToday[currentCellIndex].id,
-				dueToday[currentCellIndex].fileId,
-				dueToday[currentCellIndex].cellId,
-				dueToday[currentCellIndex].additionalContent,
-			);
-			await updateRepetition(repetition);
-		} catch (e) {
-			onError("An error happened!");
-			console.error(e);
-		} finally {
-			setIsSendingRequest(false);
-		}
-		setShowAnswer(false);
-		if (currentCellIndex + 1 === dueToday.length) {
-			onReviewEnd();
-		} else {
-			startTime.current = new Date();
-			setCurrentCellIndex(currentCellIndex + 1);
-		}
-	};
 
 	useGlobalKey(e => {
 		if (e.key === " ") {
@@ -104,11 +74,41 @@ function Reviewer({
 		}
 	});
 
-	const isCurrentCellNew = dueToday[currentCellIndex].state === "New";
+	const handleGradeSubmit = async (grade: Grade) => {
+		if (isSendingRequest || !schedulingCards) {
+			return;
+		}
+		setIsSendingRequest(true);
+		try {
+			const card = schedulingCards[grade]?.card;
+			const repetition = createRepetitionFromCard(
+				card,
+				dueToday[currentCellIndex].id,
+				dueToday[currentCellIndex].fileId,
+				dueToday[currentCellIndex].cellId,
+				dueToday[currentCellIndex].additionalContent,
+			);
+			await updateRepetition(repetition);
+		} catch (e) {
+			onError("An error happened!");
+			console.error(e);
+		} finally {
+			setIsSendingRequest(false);
+		}
+		setShowAnswer(false);
+		if (currentCellIndex + 1 === dueToday.length) {
+			await navigate("/home");
+		} else {
+			startTime.current = new Date();
+			setCurrentCellIndex(currentCellIndex + 1);
+		}
+	};
+
+	const isCurrentCellNew = dueToday[currentCellIndex]?.state === "New";
 	const isCurrentCellLearning =
-		dueToday[currentCellIndex].state === "Learning" ||
-		dueToday[currentCellIndex].state === "Relearning";
-	const isCurrentCellReview = dueToday[currentCellIndex].state === "Review";
+		dueToday[currentCellIndex]?.state === "Learning" ||
+		dueToday[currentCellIndex]?.state === "Relearning";
+	const isCurrentCellReview = dueToday[currentCellIndex]?.state === "Review";
 
 	const counts = {
 		new: 0,
@@ -135,18 +135,22 @@ function Reviewer({
 
 	return (
 		<div className={styles.reviewer}>
-			<div className={`${styles.container}`}>
-				<ReviewerCell
-					cell={
-						cells.find(
-							c => c.id === dueToday[currentCellIndex].cellId,
-						)!
-					}
-					repetition={dueToday[currentCellIndex]}
-					showAnswer={showAnswer}
-					key={currentCellIndex}
-				/>
-			</div>
+			{!dueToday[currentCellIndex] && <Navigate replace to="/home" />}
+
+			{dueToday[currentCellIndex] && (
+				<div className={`${styles.container}`}>
+					<ReviewerCell
+						cell={
+							cells.find(
+								c => c.id === dueToday[currentCellIndex].cellId,
+							)!
+						}
+						repetition={dueToday[currentCellIndex]}
+						showAnswer={showAnswer}
+						key={currentCellIndex}
+					/>
+				</div>
+			)}
 
 			<div className={styles.bottomBar}>
 				<div className={styles.editButtonContainer}>
@@ -195,7 +199,7 @@ function Reviewer({
 					</div>
 				)}
 
-				{showAnswer && (
+				{showAnswer && schedulingCards && (
 					<div className={styles.buttonRow}>
 						<div className={styles.buttonColumn}>
 							<p>

@@ -2,11 +2,10 @@ import Icon from "@mdi/react";
 import styles from "./styles.module.css";
 import { mdiPlayOutline } from "@mdi/js";
 import useAppSelector from "../../hooks/useAppSelector";
-import {
-	selectFileById,
-	selectSelectedFileId,
-} from "../../store/selectors/fileSystemSelectors";
+import { selectFileById } from "../../store/selectors/fileSystemSelectors";
 import FileRepetitionCounts from "../../type/backend/model/fileRepetitionCounts";
+import { useSearchParams } from "react-router";
+import { fileIdQueryParameter } from "../../constants";
 
 interface Props {
 	repetitionCounts: FileRepetitionCounts;
@@ -14,9 +13,10 @@ interface Props {
 }
 
 function TitleBar({ repetitionCounts, onStudyButtonClick }: Props) {
-	const selectedFileId = useAppSelector(selectSelectedFileId);
+	const [searchParams] = useSearchParams();
+	const selectedFileId = Number(searchParams.get(fileIdQueryParameter));
 	const selectedFile = useAppSelector(state =>
-		selectFileById(state, selectedFileId!),
+		selectFileById(state, selectedFileId),
 	);
 
 	const isStudyButtonDisabled =
@@ -37,7 +37,7 @@ function TitleBar({ repetitionCounts, onStudyButtonClick }: Props) {
 					<span>Study</span>
 				</button>
 				<div>
-					<p>{selectedFile.name}</p>
+					<p>{selectedFile?.name}</p>
 					<div className={styles.repetitionCounts}>
 						<span>New: {repetitionCounts.new}</span>
 						<span>&#x2022;</span>

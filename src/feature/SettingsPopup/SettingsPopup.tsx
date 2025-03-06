@@ -9,20 +9,20 @@ import useOutsideClick from "../../hooks/useOutsideClick";
 import useGlobalKey from "../../hooks/useGlobalKey";
 import useAppDispatch from "../../hooks/useAppDispatch";
 import { fetchFiles } from "../../store/actions/fileSystemActions";
-import { setSelectedFileId } from "../../store/reducers/fileSystemReducers";
 import errorToString from "../../util/errorToString";
 import applySettings from "../../util/applySettings";
+import { useNavigate } from "react-router";
 
 interface Props {
 	onClose: () => void;
-	onUpdate: () => void;
 	onError: (error: string) => void;
 }
 
-function SettingsPopup({ onClose, onError, onUpdate }: Props) {
+function SettingsPopup({ onClose, onError }: Props) {
 	const [settings, setSettings] = useState<Settings | null>(null);
 	const boxRef = useRef<HTMLFormElement>(null);
 	const dispatch = useAppDispatch();
+	const navigate = useNavigate();
 
 	useOutsideClick(boxRef as React.RefObject<HTMLElement>, onClose);
 
@@ -64,8 +64,7 @@ function SettingsPopup({ onClose, onError, onUpdate }: Props) {
 			});
 			applySettings(settings!);
 			await dispatch(fetchFiles());
-			dispatch(setSelectedFileId(null));
-			onUpdate();
+			void navigate("/");
 			onClose();
 		} catch (e) {
 			console.error(e);

@@ -1,10 +1,8 @@
-import getFolderChildById from "../../util/getFolderChildById";
 import parseGetFilesResponse from "../../util/parseGetFilesResponse";
 import {
 	requestFailure,
 	requestStart,
 	requestSuccess,
-	setSelectedFileId,
 } from "../reducers/fileSystemReducers";
 
 import {
@@ -19,10 +17,6 @@ import {
 	renameFolder as renameFolderApi,
 } from "../../api/fileApi";
 import { importFile as importFileApi } from "../../api/exportImportApi";
-import {
-	selectFolderById,
-	selectSelectedFileId,
-} from "../selectors/fileSystemSelectors";
 import { AppDispatch, RootState } from "../store";
 import errorToString from "../../util/errorToString";
 
@@ -39,26 +33,11 @@ export function createFolder(path: string) {
 }
 
 export function deleteFile(fileId: number) {
-	return executeRequest(async (dispatch, state) => {
-		await deleteFileApi(fileId);
-		if (selectSelectedFileId(state) === fileId) {
-			dispatch(setSelectedFileId(null));
-		}
-	});
+	return executeRequest(() => deleteFileApi(fileId));
 }
 
 export function deleteFolder(folderId: number) {
-	return executeRequest(async (dispatch, state) => {
-		const selectedFileId = selectSelectedFileId(state);
-		const folder = selectFolderById(state, folderId);
-		const isSelectedFileInFolder =
-			selectedFileId && getFolderChildById(folder, selectedFileId);
-
-		await deleteFolderApi(folderId);
-		if (isSelectedFileInFolder) {
-			dispatch(setSelectedFileId(null));
-		}
-	});
+	return executeRequest(() => deleteFolderApi(folderId));
 }
 
 export function renameFile(fileId: number, newName: string) {

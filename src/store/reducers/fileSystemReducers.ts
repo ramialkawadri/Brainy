@@ -4,7 +4,6 @@ import ParsedFolder from "../../type/parsedFolder";
 interface FileSystemState {
 	error: string | null;
 	rootFolder: ParsedFolder;
-	selectedFileId: number | null;
 }
 
 const initialState: FileSystemState = {
@@ -21,7 +20,6 @@ const initialState: FileSystemState = {
 			review: 0,
 		},
 	},
-	selectedFileId: null,
 };
 
 export const fileSystemSlice = createSlice({
@@ -38,9 +36,6 @@ export const fileSystemSlice = createSlice({
 		requestFailure: (state, payload: PayloadAction<string>) => {
 			state.error = payload.payload;
 		},
-		setSelectedFileId: (state, payload: PayloadAction<number | null>) => {
-			state.selectedFileId = payload.payload;
-		},
 		setErrorMessage: (state, payload: PayloadAction<string>) => {
 			state.error = payload.payload;
 		},
@@ -49,10 +44,5 @@ export const fileSystemSlice = createSlice({
 
 export default fileSystemSlice.reducer;
 
-export const {
-	requestStart,
-	requestSuccess,
-	requestFailure,
-	setSelectedFileId,
-	setErrorMessage,
-} = fileSystemSlice.actions;
+export const { requestStart, requestSuccess, requestFailure, setErrorMessage } =
+	fileSystemSlice.actions;
