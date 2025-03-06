@@ -41,14 +41,14 @@ function FileTree({ folder }: Props) {
 				selectedFileId &&
 				getFolderChildById(folderMarkedForDeletion!, selectedFileId)
 			) {
-				await navigate("/");
+				await navigate("/home", { replace: true });
 			}
 		}
 		if (fileMarkedForDeletionId) {
 			await dispatch(deleteFile(fileMarkedForDeletionId));
 			setFileMarkedForDeletionId(null);
 			if (selectedFileId === fileMarkedForDeletionId) {
-				await navigate("/");
+				await navigate("/home", { replace: true });
 			}
 		}
 	};

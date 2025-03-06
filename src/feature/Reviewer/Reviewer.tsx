@@ -97,7 +97,7 @@ function Reviewer({
 		}
 		setShowAnswer(false);
 		if (currentCellIndex + 1 === dueToday.length) {
-			await navigate("/home");
+			await navigate(-1);
 		} else {
 			startTime.current = new Date();
 			setCurrentCellIndex(currentCellIndex + 1);

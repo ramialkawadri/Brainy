@@ -21,7 +21,7 @@ import Icon from "@mdi/react";
 import InputWithIcon from "../../ui/InputWithIcon/InputWithIcon";
 import useGlobalKey from "../../hooks/useGlobalKey";
 import { openUrl } from "@tauri-apps/plugin-opener";
-import { useSearchParams } from "react-router";
+import { useLocation, useSearchParams } from "react-router";
 import { fileIdQueryParameter } from "../../constants";
 
 interface Props {
@@ -41,6 +41,7 @@ function SideBar({
 	const rootFolder = useAppSelector(selectRootFolder);
 	const errorMessage = useAppSelector(selectError);
 	const dispatch = useAppDispatch();
+	const location = useLocation();
 	const rootUiFolder = useMemo(
 		() => searchFolder(rootFolder, searchText ?? ""),
 		[rootFolder, searchText],
@@ -76,7 +77,13 @@ function SideBar({
 			</div>
 
 			<button
-				className={`${selectedFileId === null ? "primary" : "transparent"} ${styles.row}`}
+				className={`${
+					selectedFileId === 0 &&
+					(location.pathname === "/" ||
+						location.pathname.startsWith("/home"))
+						? "primary"
+						: "transparent"
+				} ${styles.row}`}
 				title="Home (Ctrl + h)"
 				onClick={onHomeClick}>
 				<Icon path={mdiHome} size={1} />
