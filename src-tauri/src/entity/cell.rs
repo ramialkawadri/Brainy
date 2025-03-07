@@ -27,6 +27,7 @@ pub struct Model {
     pub file_id: i32,
     pub index: i32,
     pub content: String,
+    pub searchable_content: String,
     pub cell_type: CellType,
 }
 

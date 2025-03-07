@@ -48,7 +48,7 @@
 }
 
 .outer-editor-container {
-	overflow-y: auto;
+	overflow-y: scroll;
 	height: 100%;
 }
 
