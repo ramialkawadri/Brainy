@@ -43,20 +43,17 @@ function App() {
 	});
 
 	const handleEditorStudyClick = () => {
-        studyFileIds.current = [selectedFileId];
-        void navigate("/reviewer", {
-            state: {
-                from: location.pathname,
-                fromSearch: location.search,
-            } as FromRouteState,
-        });
-
+		studyFileIds.current = [selectedFileId];
+		void navigate("/reviewer", {
+			state: {
+				from: location.pathname,
+				fromSearch: location.search,
+			} as FromRouteState,
+		});
 	};
 
-	const handleHomeStudyClick = (
-		fileIds: number[],
-	) => {
-        studyFileIds.current = fileIds;
+	const handleHomeStudyClick = (fileIds: number[]) => {
+		studyFileIds.current = fileIds;
 		void navigate("/reviewer");
 	};
 
@@ -133,9 +130,7 @@ function App() {
 							key={path}
 							path={path}
 							element={
-								<Home
-									onStudyClick={handleHomeStudyClick}
-								/>
+								<Home onStudyClick={handleHomeStudyClick} />
 							}
 						/>
 					))}
@@ -145,9 +140,7 @@ function App() {
 							<Editor
 								editCellId={editCellId.current}
 								onError={setErrorMessage}
-								onStudyStart={() =>
-									handleEditorStudyClick()
-								}
+								onStudyStart={() => handleEditorStudyClick()}
 							/>
 						}
 					/>
@@ -157,7 +150,7 @@ function App() {
 							<Reviewer
 								onEditButtonClick={handleEditButtonClick}
 								onError={setErrorMessage}
-                                fileIds={studyFileIds.current}
+								fileIds={studyFileIds.current}
 							/>
 						}
 					/>

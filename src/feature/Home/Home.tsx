@@ -29,7 +29,7 @@ function Home({ onStudyClick }: Props) {
 			}
 			folderQueue.push(...currentFolder.subFolders);
 		}
-        onStudyClick(fileIds);
+		onStudyClick(fileIds);
 	};
 
 	return (
