@@ -5,20 +5,13 @@ import { fetchFiles } from "../../store/actions/fileSystemActions";
 import { selectRootFolder } from "../../store/selectors/fileSystemSelectors";
 import ReviewTree from "./ReviewTree";
 import styles from "./styles.module.css";
-import ParsedFile from "../../type/parsedFile";
 import ParsedFolder from "../../type/parsedFolder";
-import Repetition from "../../type/backend/entity/repetition";
-import Cell from "../../type/backend/entity/cell";
-import { getCellsForFiles } from "../../api/cellApi";
-import { getRepetitionsForFiles } from "../../api/repetitionApi";
-import errorToString from "../../util/errorToString";
 
 interface Props {
-	onStudyClick: (fileCells: Cell[], fileRepetitions: Repetition[]) => void;
-	onError: (message: string) => void;
+	onStudyClick: (fileIds: number[]) => void;
 }
 
-function Home({ onStudyClick, onError }: Props) {
+function Home({ onStudyClick }: Props) {
 	const dispatch = useAppDispatch();
 	const rootFolder = useAppSelector(selectRootFolder);
 
@@ -26,23 +19,7 @@ function Home({ onStudyClick, onError }: Props) {
 		void dispatch(fetchFiles());
 	}, [dispatch]);
 
-	const startStudyForFiles = async (fileIds: number[]) => {
-		try {
-			const cells = await getCellsForFiles(fileIds);
-			if (cells.length == 0) return;
-			const repetitions = await getRepetitionsForFiles(fileIds);
-			onStudyClick(cells, repetitions);
-		} catch (e) {
-			console.error(e);
-			onError(errorToString(e));
-		}
-	};
-
-	const handleFileClick = async (file: ParsedFile) => {
-		await startStudyForFiles([file.id]);
-	};
-
-	const handleFolderClick = async (folder: ParsedFolder) => {
+	const handleFolderClick = (folder: ParsedFolder) => {
 		const fileIds = [];
 		const folderQueue = [folder];
 		while (folderQueue.length > 0) {
@@ -52,7 +29,7 @@ function Home({ onStudyClick, onError }: Props) {
 			}
 			folderQueue.push(...currentFolder.subFolders);
 		}
-		await startStudyForFiles(fileIds);
+        onStudyClick(fileIds);
 	};
 
 	return (
@@ -76,7 +53,7 @@ function Home({ onStudyClick, onError }: Props) {
 					<ReviewTree
 						folder={rootFolder}
 						indentationLevel={-1}
-						onFileClick={handleFileClick}
+						onFileClick={file => onStudyClick([file.id])}
 						onFolderClick={handleFolderClick}
 					/>
 				)}

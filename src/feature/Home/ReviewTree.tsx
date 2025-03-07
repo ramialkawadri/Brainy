@@ -9,8 +9,8 @@ interface Props {
 	file?: ParsedFile;
 	name?: string;
 	indentationLevel: number;
-	onFileClick: (file: ParsedFile) => Promise<void>;
-	onFolderClick: (folder: ParsedFolder) => Promise<void>;
+	onFileClick: (file: ParsedFile) => void;
+	onFolderClick: (folder: ParsedFolder) => void;
 }
 
 function ReviewTree({

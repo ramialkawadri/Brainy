@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import styles from "./styles.module.css";
 import ReviewerCell from "../ReviewerCell/ReviewerCell";
 import Icon from "@mdi/react";
@@ -10,14 +10,15 @@ import useGlobalKey from "../../hooks/useGlobalKey";
 import Repetition from "../../type/backend/entity/repetition";
 import createRepetitionFromCard from "../../util/createRepetitionFromCard";
 import Cell from "../../type/backend/entity/cell";
-import { updateRepetition } from "../../api/repetitionApi";
+import { getRepetitionsForFiles, updateRepetition } from "../../api/repetitionApi";
 import Timer from "./Timer";
 import { Navigate, useLocation, useNavigate } from "react-router";
 import FromRouteState from "../../type/fromRouteState";
+import { getCellsForFiles } from "../../api/cellApi";
+import errorToString from "../../util/errorToString";
 
 interface Props {
-	cells: Cell[];
-	cellRepetitions: Repetition[];
+    fileIds: number[],
 	onEditButtonClick: (fileId: number, cellId: number) => void;
 	onError: (message: string) => void;
 }
@@ -26,19 +27,34 @@ const params = generatorParameters();
 const fsrs = new FSRS(params);
 
 function Reviewer({
-	cells,
-	cellRepetitions,
+    fileIds,
 	onEditButtonClick,
 	onError,
 }: Props) {
 	const [showAnswer, setShowAnswer] = useState(false);
 	const [currentCellIndex, setCurrentCellIndex] = useState(0);
-	const [isSendingRequest, setIsSendingRequest] = useState(false);
+	const [isSendingRequest, setIsSendingRequest] = useState(true);
+    const [cells, setCells] = useState<Cell[]>([]);
+    const [repetitions, setRepetitions] = useState<Repetition[]>([]);
 	const navigate = useNavigate();
 	const startTime = useRef(new Date());
 	const location = useLocation();
 
-	const dueToday = cellRepetitions.filter(
+    useEffect(() => {
+        void (async () => {
+            try {
+                setIsSendingRequest(true);
+                setCells(await getCellsForFiles(fileIds));
+                setRepetitions(await getRepetitionsForFiles(fileIds));
+                setIsSendingRequest(false);
+            } catch (e) {
+                console.error(e);
+                onError(errorToString(e));
+            }
+        })();
+    }, [fileIds, onError]);
+
+	const dueToday = repetitions.filter(
 		c => new Date(c.due) <= startTime.current,
 	);
 	const currentCard =
@@ -144,10 +160,10 @@ function Reviewer({
 
 	return (
 		<div className={styles.reviewer}>
-			{!dueToday[currentCellIndex] && <Navigate replace to="/home" />}
+			{!dueToday[currentCellIndex] && !isSendingRequest && <Navigate replace to="/home" />}
 
-			{dueToday[currentCellIndex] && (
 				<div className={`${styles.container}`}>
+                {dueToday[currentCellIndex] && (
 					<ReviewerCell
 						cell={
 							cells.find(
@@ -158,8 +174,8 @@ function Reviewer({
 						showAnswer={showAnswer}
 						key={currentCellIndex}
 					/>
+                )}
 				</div>
-			)}
 
 			<div className={styles.bottomBar}>
 				<div className={styles.editButtonContainer}>

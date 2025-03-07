@@ -11,7 +11,7 @@ interface Props {
 	learningCount: number;
 	reviewCount: number;
 	onExpandClick: () => void;
-	onClick: () => Promise<void>;
+	onClick: () => void;
 }
 
 function Row({

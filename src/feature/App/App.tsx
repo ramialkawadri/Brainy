@@ -7,13 +7,8 @@ import Home from "../Home/Home";
 import useAppDispatch from "../../hooks/useAppDispatch";
 import { fetchFiles } from "../../store/actions/fileSystemActions";
 import SideBar from "../SideBar/SideBar";
-import { getFileCellsOrderedByIndex } from "../../api/cellApi";
-import Cell from "../../type/backend/entity/cell";
-import Repetition from "../../type/backend/entity/repetition";
-import { getFileRepetitions } from "../../api/repetitionApi";
 import SettingsPopup from "../SettingsPopup/SettingsPopup";
 import { getSettings } from "../../api/settingsApi";
-import errorToString from "../../util/errorToString";
 import applySettings from "../../util/applySettings";
 import useGlobalKey from "../../hooks/useGlobalKey";
 import {
@@ -32,8 +27,7 @@ function App() {
 	const [showSettings, setShowSettings] = useState(false);
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 	const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
-	const cells = useRef<Cell[]>([]);
-	const cellRepetitions = useRef<Repetition[]>([]);
+	const studyFileIds = useRef<number[]>([]);
 	const editCellId = useRef<number | null>(null);
 	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
@@ -48,31 +42,21 @@ function App() {
 		});
 	});
 
-	const handleEditorStudyClick = async () => {
-		try {
-			const fetchedCells =
-				await getFileCellsOrderedByIndex(selectedFileId);
-			cells.current = fetchedCells;
-			const repetitions = await getFileRepetitions(selectedFileId);
-			cellRepetitions.current = repetitions;
-			void navigate("/reviewer", {
-				state: {
-					from: location.pathname,
-					fromSearch: location.search,
-				} as FromRouteState,
-			});
-		} catch (e) {
-			console.error(e);
-			setErrorMessage(errorToString(e));
-		}
+	const handleEditorStudyClick = () => {
+        studyFileIds.current = [selectedFileId];
+        void navigate("/reviewer", {
+            state: {
+                from: location.pathname,
+                fromSearch: location.search,
+            } as FromRouteState,
+        });
+
 	};
 
 	const handleHomeStudyClick = (
-		fileCells: Cell[],
-		fileRepetitions: Repetition[],
+		fileIds: number[],
 	) => {
-		cells.current = fileCells;
-		cellRepetitions.current = fileRepetitions;
+        studyFileIds.current = fileIds;
 		void navigate("/reviewer");
 	};
 
@@ -151,7 +135,6 @@ function App() {
 							element={
 								<Home
 									onStudyClick={handleHomeStudyClick}
-									onError={setErrorMessage}
 								/>
 							}
 						/>
@@ -163,7 +146,7 @@ function App() {
 								editCellId={editCellId.current}
 								onError={setErrorMessage}
 								onStudyStart={() =>
-									void handleEditorStudyClick()
+									handleEditorStudyClick()
 								}
 							/>
 						}
@@ -174,8 +157,7 @@ function App() {
 							<Reviewer
 								onEditButtonClick={handleEditButtonClick}
 								onError={setErrorMessage}
-								cells={cells.current}
-								cellRepetitions={cellRepetitions.current}
+                                fileIds={studyFileIds.current}
 							/>
 						}
 					/>
