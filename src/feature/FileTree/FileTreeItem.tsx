@@ -27,7 +27,7 @@ import { exportItem } from "../../api/exportImportApi";
 import FileTreeItemRow from "./FileTreeItemRow";
 import FileTreeItemChildren from "./FileTreeItemChildren";
 import errorToString from "../../util/errorToString";
-import { createSearchParams, useSearchParams } from "react-router";
+import { useSearchParams } from "react-router";
 import { fileIdQueryParameter } from "../../constants";
 import { useNavigate } from "react-router";
 
@@ -182,12 +182,10 @@ function FileTreeItem({
 				setIsOpen(!isOpen);
 			}
 		} else {
+			searchParams.set(fileIdQueryParameter, id.toString());
 			void navigate({
 				pathname: "editor",
-				search: createSearchParams({
-					...searchParams,
-					[fileIdQueryParameter]: id.toString(),
-				}).toString(),
+				search: searchParams.toString(),
 			});
 		}
 	};

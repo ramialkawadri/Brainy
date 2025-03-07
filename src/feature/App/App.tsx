@@ -17,7 +17,6 @@ import errorToString from "../../util/errorToString";
 import applySettings from "../../util/applySettings";
 import useGlobalKey from "../../hooks/useGlobalKey";
 import {
-	createSearchParams,
 	Route,
 	Routes,
 	useLocation,
@@ -25,6 +24,7 @@ import {
 	useSearchParams,
 } from "react-router";
 import { fileIdQueryParameter } from "../../constants";
+import FromRouteState from "../../type/fromRouteState";
 
 const SMALL_SCREEN_MAX_WIDTH = 600;
 
@@ -55,7 +55,12 @@ function App() {
 			cells.current = fetchedCells;
 			const repetitions = await getFileRepetitions(selectedFileId);
 			cellRepetitions.current = repetitions;
-			void navigate("/reviewer");
+			void navigate("/reviewer", {
+				state: {
+					from: location.pathname,
+					fromSearch: location.search,
+				} as FromRouteState,
+			});
 		} catch (e) {
 			console.error(e);
 			setErrorMessage(errorToString(e));
@@ -107,12 +112,10 @@ function App() {
 
 	const handleEditButtonClick = (fileId: number, cellId: number) => {
 		editCellId.current = cellId;
+		searchParams.set(fileIdQueryParameter, fileId.toString());
 		void navigate({
 			pathname: "editor",
-			search: createSearchParams({
-				...searchParams,
-				[fileIdQueryParameter]: fileId.toString(),
-			}).toString(),
+			search: searchParams.toString(),
 		});
 	};
 

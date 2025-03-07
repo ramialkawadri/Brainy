@@ -12,7 +12,8 @@ import createRepetitionFromCard from "../../util/createRepetitionFromCard";
 import Cell from "../../type/backend/entity/cell";
 import { updateRepetition } from "../../api/repetitionApi";
 import Timer from "./Timer";
-import { Navigate, useNavigate } from "react-router";
+import { Navigate, useLocation, useNavigate } from "react-router";
+import FromRouteState from "../../type/fromRouteState";
 
 interface Props {
 	cells: Cell[];
@@ -35,6 +36,7 @@ function Reviewer({
 	const [isSendingRequest, setIsSendingRequest] = useState(false);
 	const navigate = useNavigate();
 	const startTime = useRef(new Date());
+	const location = useLocation();
 
 	const dueToday = cellRepetitions.filter(
 		c => new Date(c.due) <= startTime.current,
@@ -97,7 +99,14 @@ function Reviewer({
 		}
 		setShowAnswer(false);
 		if (currentCellIndex + 1 === dueToday.length) {
-			await navigate(-1);
+			const state = location.state as FromRouteState;
+			await navigate(
+				{
+					pathname: state?.from ?? "/home",
+					search: state?.fromSearch,
+				},
+				{ replace: true },
+			);
 		} else {
 			startTime.current = new Date();
 			setCurrentCellIndex(currentCellIndex + 1);
