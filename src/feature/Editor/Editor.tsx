@@ -197,6 +197,19 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 		});
 	}, [executeRequest, selectedFileId]);
 
+
+	const retrieveSelectedFileCells = useCallback(async () => {
+		return await executeRequest(async () => {
+			const fetchedCells =
+				await getFileCellsOrderedByIndex(selectedFileId);
+			setCells(fetchedCells);
+			const fetchedRepetitions = await getFileRepetitions(selectedFileId);
+			setRepetitions(fetchedRepetitions);
+			updatedCells.current = fetchedCells;
+			return fetchedCells;
+		});
+	}, [executeRequest, selectedFileId]);
+
 	const saveChanges = useCallback(async () => {
 		if (changedCellsIds.current.size === 0) return;
 
@@ -215,11 +228,11 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 			await updateCellsContents(requests);
 			changedCellsIds.current.clear();
 			await retrieveRepetitionCounts();
-			setCells(updatedCells.current);
+            await retrieveSelectedFileCells();
 			const fetchedRepetitions = await getFileRepetitions(selectedFileId);
 			setRepetitions(fetchedRepetitions);
 		});
-	}, [executeRequest, retrieveRepetitionCounts, selectedFileId]);
+	}, [executeRequest, retrieveRepetitionCounts, retrieveSelectedFileCells, selectedFileId]);
 
 	const forceSave = useCallback(async () => {
 		if (autoSaveTimeoutId.current !== null) {
@@ -228,19 +241,6 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 		}
 		await saveChanges();
 	}, [saveChanges]);
-
-	const retrieveSelectedFileCells = useCallback(async () => {
-		return await executeRequest(async () => {
-			await forceSave();
-			const fetchedCells =
-				await getFileCellsOrderedByIndex(selectedFileId);
-			setCells(fetchedCells);
-			const fetchedRepetitions = await getFileRepetitions(selectedFileId);
-			setRepetitions(fetchedRepetitions);
-			updatedCells.current = fetchedCells;
-			return fetchedCells;
-		});
-	}, [executeRequest, forceSave, selectedFileId]);
 
 	useEffect(() => {
 		const intervalId = setInterval(
@@ -276,6 +276,7 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 	const insertNewCell = async (cellType: CellType, index: number) => {
 		const cell = createDefaultCell(cellType, selectedFileId, index);
 		const cellId = await executeRequest(async () => await createCell(cell));
+        await forceSave();
 		await retrieveSelectedFileCells();
 		if (cellId) selectCell(cellId);
 		await retrieveRepetitionCounts();
@@ -287,6 +288,7 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 		const cellIndex = cells.findIndex(c => c.id === selectedCellId);
 		await executeRequest(async () => await deleteCell(selectedCellId!));
 		await retrieveRepetitionCounts();
+        await forceSave();
 		await retrieveSelectedFileCells();
 		tipTapEditorRef.current = null;
 		if (cellIndex > 0) {
@@ -326,6 +328,7 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 		const draggedCellIndex = cells.findIndex(c => c.id === draggedCellId);
 		if (index === draggedCellIndex) return;
 		await executeRequest(async () => await moveCell(draggedCellId, index));
+        await forceSave();
 		await retrieveSelectedFileCells();
 		setDragOverCellId(null);
 		setDraggedCellId(null);

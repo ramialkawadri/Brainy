@@ -28,7 +28,7 @@ pub async fn get_file_cells_ordered_by_index(
 pub async fn create_cell(
     db_conn: &DbConn,
     file_id: i32,
-    content: String,
+    content: &str,
     cell_type: CellType,
     index: i32,
 ) -> Result<i32, String> {
@@ -37,7 +37,7 @@ pub async fn create_cell(
         Err(err) => return Err(err.to_string()),
     };
 
-    let cell_id = create_cell_no_transaction(&txn, file_id, &content, &cell_type, index).await?;
+    let cell_id = create_cell_no_transaction(&txn, file_id, content, &cell_type, index).await?;
 
     let result = txn.commit().await;
     match result {
@@ -75,7 +75,6 @@ pub async fn create_cell_no_transaction(
     Ok(cell_id)
 }
 
-// TODO: test
 fn get_searchable_content(content: &str, cell_type: &CellType) -> String {
     let remove_html_regex = Regex::new("<[^>]*>").expect("Invalid regex");
 
@@ -226,7 +225,6 @@ async fn update_cell(
     db_conn: &impl ConnectionTrait,
     cell: cell::ActiveModel,
 ) -> Result<(), String> {
-    // TODO: update searchable content
     let result = cell::Entity::update(cell).exec(db_conn).await;
     match result {
         Ok(_) => Ok(()),
@@ -291,26 +289,26 @@ mod tests {
             .await
             .unwrap();
         }
+        let content = serde_json::to_string(&FlashCard {
+            question: "question".into(),
+            answer: "<bold>Answer</bold>".into(),
+        })
+        .unwrap();
 
         // Act
 
-        let actual_id = create_cell(
-            &db_conn,
-            file_id,
-            "New cell content".into(),
-            CellType::Note,
-            index,
-        )
-        .await
-        .unwrap();
+        let actual_id = create_cell(&db_conn, file_id, &content, CellType::FlashCard, index)
+            .await
+            .unwrap();
 
         // Assert
 
         let actual = get_file_cells_ordered_by_index(&db_conn, file_id)
             .await
             .unwrap();
-        assert_eq!(actual[1].content, String::from("New cell content"));
+        assert_eq!(actual[1].content, content);
         assert_eq!(actual[1].id, actual_id);
+        assert_eq!(actual[1].searchable_content, "question answer".to_string());
     }
 
     #[tokio::test]
@@ -319,7 +317,7 @@ mod tests {
 
         let db_conn = get_db().await;
         let file_id = create_file(&db_conn, "file 1").await;
-        let cell_id = create_cell(&db_conn, file_id, "".into(), CellType::Note, 0)
+        let cell_id = create_cell(&db_conn, file_id, "", CellType::Note, 0)
             .await
             .unwrap();
 
@@ -405,7 +403,6 @@ mod tests {
         assert_eq!(actual[3].content, "3".to_string());
     }
 
-    // TODO: check searchable content
     #[tokio::test]
     pub async fn update_cells_contents_valid_input_content_updated() {
         // Arrange
@@ -415,7 +412,7 @@ mod tests {
         let cell1_id = create_cell(
             &db_conn,
             file_id,
-            serde_json::to_string(&FlashCard {
+            &serde_json::to_string(&FlashCard {
                 question: "Old content 1".into(),
                 ..Default::default()
             })
@@ -429,7 +426,7 @@ mod tests {
         let cell2_id = create_cell(
             &db_conn,
             file_id,
-            serde_json::to_string(&FlashCard {
+            &serde_json::to_string(&FlashCard {
                 question: "Old content 2".into(),
                 ..Default::default()
             })
@@ -468,6 +465,7 @@ mod tests {
         let actual_cell1 = get_cell_by_id(&db_conn, cell1_id).await.unwrap();
         let flash_card_1: FlashCard = serde_json::from_str(&actual_cell1.content).unwrap();
         assert_eq!(flash_card_1.question, "New content 1".to_string());
+        assert_eq!(actual_cell1.searchable_content, "new content 1 ".to_string());
 
         let actual_cell2 = get_cell_by_id(&db_conn, cell2_id).await.unwrap();
         let flash_card_2: FlashCard = serde_json::from_str(&actual_cell2.content).unwrap();

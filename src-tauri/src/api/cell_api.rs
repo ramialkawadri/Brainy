@@ -25,7 +25,7 @@ pub async fn create_cell(
     index: i32,
 ) -> Result<i32, String> {
     let db_conn = db_conn.lock().await;
-    cell_service::create_cell(&db_conn, file_id, content, cell_type, index).await
+    cell_service::create_cell(&db_conn, file_id, &content, cell_type, index).await
 }
 
 #[tauri::command]
