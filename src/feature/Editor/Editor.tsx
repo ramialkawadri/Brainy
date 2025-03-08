@@ -75,22 +75,6 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 	const selectedCellRef = useRef<HTMLDivElement>(null);
 
 	useEffect(() => {
-		setSearchText("");
-		void (async () => {
-			await forceSave();
-			await retrieveRepetitionCounts();
-			const cells = await retrieveSelectedFileCells();
-			if (cells && cells.length > 0) {
-				if (editCellId !== null && cells.some(c => c.id === editCellId))
-					selectCell(editCellId);
-				else selectCell(cells[0].id!);
-			}
-		})();
-
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [selectedFileId]);
-
-	useEffect(() => {
 		let unlisten: UnlistenFn;
 
 		void (async () => {
@@ -172,6 +156,7 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 					selectedCellIndex + (number > 0 ? number + 1 : number),
 				);
 			});
+            await forceSave();
 			await retrieveSelectedFileCells();
 		}
 	};
@@ -250,13 +235,10 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 		return () => clearInterval(intervalId);
 	}, [retrieveRepetitionCounts]);
 
-	const handleUpdate = (content: string, index: number, id: number) => {
+	const handleUpdate = (content: string, id: number) => {
 		changedCellsIds.current.add(id);
 		const newCells = [...updatedCells.current];
-		newCells[index] = {
-			...updatedCells.current[index],
-			content,
-		};
+        newCells.find(c => c.id === id)!.content = content;
 		updatedCells.current = newCells;
 
 		if (autoSaveTimeoutId.current !== null) {
@@ -300,12 +282,28 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 		}
 	};
 
-	const selectCell = (id: number | null) => {
+	const selectCell = useCallback((id: number | null) => {
 		if (selectedCellId !== id) {
 			setShowInsertNewCell(false);
 			setSelectedCellId(id);
 		}
-	};
+	}, [selectedCellId]);
+
+	useEffect(() => {
+		void (async () => {
+			await forceSave();
+			await retrieveRepetitionCounts();
+			const cells = await retrieveSelectedFileCells();
+			if (cells && cells.length > 0) {
+				if (editCellId !== null && cells.some(c => c.id === editCellId))
+					selectCell(editCellId);
+				else selectCell(cells[0].id!);
+			}
+            setSearchText("");
+		})();
+
+	// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [selectedFileId]);
 
 	const handleDragStart = (e: React.DragEvent, id: number) => {
 		e.stopPropagation();
@@ -347,7 +345,6 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 		}
 	};
 
-	// TODO: drag and drop
 	return (
 		<div className={styles.container} key={selectedFileId}>
 			<TitleBar
@@ -394,7 +391,7 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
                             ${selectedCellId === cell.id ? styles.selectedCell : ""}
                             ${dragOverCellId === cell.id ? styles.dragOver : ""}
                             ${draggedCellId === cell.id ? styles.dragging : ""}`}>
-									{selectedCellId === cell.id && (
+									{selectedCellId === cell.id && !searchText && (
 										<FocusTools
 											onInsert={() => {
 												setShowInsertNewCell(
@@ -469,7 +466,7 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 												searchInputRef.current
 										}
 										onUpdate={content =>
-											handleUpdate(content, i, cell.id!)
+											handleUpdate(content, cell.id!)
 										}
 										onFocus={editor =>
 											(tipTapEditorRef.current = editor)
