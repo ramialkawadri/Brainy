@@ -51,6 +51,7 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 	const [selectedCellId, setSelectedCellId] = useState<number | null>(null);
 	const [draggedCellId, setDraggedCellId] = useState<number | null>(null);
 	const [dragOverCellId, setDragOverCellId] = useState<number | null>(null);
+	const [searchText, setSearchText] = useState("");
 	const [repetitionCounts, setRepetitionCounts] =
 		useState<FileRepetitionCounts>({
 			new: 0,
@@ -64,6 +65,7 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 	const updatedCells = useRef(cells);
 	const tipTapEditorRef = useRef<TipTapEditor | null>(null);
 	const outerEditorContainerRef = useRef<HTMLDivElement>(null);
+	const searchInputRef = useRef<HTMLInputElement>(null);
 	const [searchParams] = useSearchParams();
 	const selectedFileId = Number(searchParams.get(fileIdQueryParameter));
 	const autoSaveTimeoutId = useRef<number>(null);
@@ -73,6 +75,7 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 	const selectedCellRef = useRef<HTMLDivElement>(null);
 
 	useEffect(() => {
+		setSearchText("");
 		void (async () => {
 			await forceSave();
 			await retrieveRepetitionCounts();
@@ -110,6 +113,13 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 			if (unlisten) void unlisten();
 		};
 	});
+
+	useEffect(() => {
+		if (!searchText) {
+			tipTapEditorRef.current?.commands.focus();
+			selectedCellRef.current?.scrollIntoView();
+		}
+	}, [searchText]);
 
 	useBeforeUnload(e => {
 		void forceSave();
@@ -334,113 +344,137 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 		}
 	};
 
+	// TODO: drag and drop
 	return (
 		<div className={styles.container} key={selectedFileId}>
 			<TitleBar
 				repetitionCounts={repetitionCounts}
 				onStudyButtonClick={() => void startStudy()}
+				searchText={searchText}
+				onSearchTextChange={setSearchText}
+				searchInputRef={searchInputRef}
 			/>
 
 			<div
 				className={styles.outerEditorContainer}
 				ref={outerEditorContainerRef}>
-				<div className={`container ${styles.editorContainer}`}>
+				<div className={`${styles.editorContainer}`}>
 					{cells.length === 0 && <p>This file is empty</p>}
 
-					{cells.map((cell, i) => (
-						<RenderIfVisible
-							key={cell.id}
-							defaultHeight={200}
-							stayRendered={selectedCellId === cell.id}
-							root={outerEditorContainerRef.current}>
-							<div
+					{cells
+						.filter(c =>
+							c.searchableContent.includes(
+								searchText.toLowerCase(),
+							),
+						)
+						.map((cell, i) => (
+							<RenderIfVisible
 								key={cell.id}
-								ref={
-									cell.id === selectedCellId
-										? selectedCellRef
-										: null
-								}
-								onFocus={() => selectCell(cell.id!)}
-								onClick={() => handleCellClick(cell.id!)}
-								onDragOver={e => handleDragOver(e, cell.id!)}
-								onDragLeave={() => setDragOverCellId(null)}
-								onDrop={() => void handleDrop(i)}
-								className={`${styles.cell}
+								defaultHeight={200}
+								stayRendered={selectedCellId === cell.id}
+								root={outerEditorContainerRef.current}>
+								<div
+									key={cell.id}
+									ref={
+										cell.id === selectedCellId
+											? selectedCellRef
+											: null
+									}
+									onFocus={() => selectCell(cell.id!)}
+									onClick={() => handleCellClick(cell.id!)}
+									onDragOver={e =>
+										handleDragOver(e, cell.id!)
+									}
+									onDragLeave={() => setDragOverCellId(null)}
+									onDrop={() => void handleDrop(i)}
+									className={`${styles.cell}
                             ${selectedCellId === cell.id ? styles.selectedCell : ""}
                             ${dragOverCellId === cell.id ? styles.dragOver : ""}
                             ${draggedCellId === cell.id ? styles.dragging : ""}`}>
-								{selectedCellId === cell.id && (
-									<FocusTools
-										onInsert={() => {
-											setShowInsertNewCell(
-												!showInsertNewCell,
-											);
-											if (showInsertNewCell)
-												tipTapEditorRef.current?.commands.focus();
-										}}
-										onDragStart={e =>
-											handleDragStart(e, cell.id!)
-										}
-										onDragEnd={() => setDraggedCellId(null)}
-										repetitions={repetitions.filter(
-											r => r.cellId === cell.id,
-										)}
-										cell={cell}
-										onShowRepetitionsInfo={() =>
-											setShowInsertNewCell(false)
-										}
-										onResetRepetitions={() =>
-											void retrieveRepetitionCounts()
-										}
-										onError={onError}
-										onCellDeleteConfirm={() =>
-											void handleCellDeleteConfirm()
-										}
-										onDeleteDialogHide={() =>
-											tipTapEditorRef.current?.commands.focus()
-										}
-									/>
-								)}
-
-								{showInsertNewCell &&
-									selectedCellId === cell.id && (
-										<NewCellTypeSelector
-											className={styles.insertCellPopup}
-											onClick={cellType =>
-												void insertNewCell(
-													cellType,
-													i + 1,
-												)
+									{selectedCellId === cell.id && (
+										<FocusTools
+											onInsert={() => {
+												setShowInsertNewCell(
+													!showInsertNewCell,
+												);
+												if (showInsertNewCell)
+													tipTapEditorRef.current?.commands.focus();
+											}}
+											onDragStart={e =>
+												handleDragStart(e, cell.id!)
 											}
-											onHide={() =>
+											onDragEnd={() =>
+												setDraggedCellId(null)
+											}
+											repetitions={repetitions.filter(
+												r => r.cellId === cell.id,
+											)}
+											cell={cell}
+											onShowRepetitionsInfo={() =>
 												setShowInsertNewCell(false)
+											}
+											onResetRepetitions={() =>
+												void retrieveRepetitionCounts()
+											}
+											onError={onError}
+											onCellDeleteConfirm={() =>
+												void handleCellDeleteConfirm()
+											}
+											onDeleteDialogHide={() =>
+												tipTapEditorRef.current?.commands.focus()
 											}
 										/>
 									)}
 
-								<div className={styles.cellTitle}>
-									<Icon
-										path={getCellIcon(cell.cellType)}
-										size={1}
-									/>
-									<span>
-										{cellTypesDisplayNames[cell.cellType]}
-									</span>
-								</div>
+									{showInsertNewCell &&
+										selectedCellId === cell.id && (
+											<NewCellTypeSelector
+												className={
+													styles.insertCellPopup
+												}
+												onClick={cellType =>
+													void insertNewCell(
+														cellType,
+														i + 1,
+													)
+												}
+												onHide={() =>
+													setShowInsertNewCell(false)
+												}
+											/>
+										)}
 
-								<EditorCell
-									cell={cell}
-									autofocus={selectedCellId === cell.id}
-									onUpdate={content =>
-										handleUpdate(content, i, cell.id!)
-									}
-									onFocus={editor =>
-										(tipTapEditorRef.current = editor)
-									}
-								/>
-							</div>
-						</RenderIfVisible>
-					))}
+									<div className={styles.cellTitle}>
+										<Icon
+											path={getCellIcon(cell.cellType)}
+											size={1}
+										/>
+										<span>
+											{
+												cellTypesDisplayNames[
+													cell.cellType
+												]
+											}
+										</span>
+									</div>
+
+									<EditorCell
+										cell={cell}
+										autofocus={
+											selectedCellId === cell.id &&
+											document.activeElement !==
+												searchInputRef.current
+										}
+										onUpdate={content =>
+											handleUpdate(content, i, cell.id!)
+										}
+										onFocus={editor =>
+											(tipTapEditorRef.current = editor)
+										}
+									/>
+								</div>
+							</RenderIfVisible>
+						))}
 
 					<AddCellContainer
 						isDragOver={dragOverCellId === cells.length}

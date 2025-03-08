@@ -16,7 +16,7 @@ export default interface Cell {
 	id?: number;
 	fileId: number;
 	content: string;
-    searchableContent: string;
+	searchableContent: string;
 	cellType: CellType;
 	index: number;
 }

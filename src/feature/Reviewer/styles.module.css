@@ -12,7 +12,6 @@
 	padding: var(--xxl-padding);
 	text-align: center;
 	width: 100%;
-	max-width: 1200px;
 	margin: 0 auto;
 	display: flex;
 	gap: 1rem;

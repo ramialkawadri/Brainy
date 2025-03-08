@@ -6,4 +6,3 @@ pub struct TrueFalse {
     pub question: String,
     pub is_true: bool,
 }
-

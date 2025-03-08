@@ -30,7 +30,7 @@ interface Props {
 	title?: string;
 	extraExtensions?: AnyExtension[];
 	commands?: Command[];
-	autofocus: boolean;
+	autofocus?: boolean;
 	onUpdate: (html: string) => void;
 	onFocus?: (editor: Editor) => void;
 	onBlur?: () => void;

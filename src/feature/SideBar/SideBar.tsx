@@ -111,7 +111,7 @@ function SideBar({
 				value={searchText ?? ""}
 				onChange={e => setSearchText(e.target.value)}
 				placeholder="Search"
-				className={styles.searchInput}
+				inputClassName={styles.searchInput}
 			/>
 
 			{errorMessage && (

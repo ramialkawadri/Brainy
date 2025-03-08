@@ -82,7 +82,7 @@ pub async fn create_cell_no_transaction(
 fn get_searchable_content(content: &str, cell_type: &CellType) -> String {
     let remove_html_regex = Regex::new("<[^>]*>").expect("Invalid regex");
 
-    match cell_type {
+    let searchable_content = match cell_type {
         CellType::Cloze => remove_html_regex.replace_all(content, "").to_string(),
         CellType::Note => remove_html_regex.replace_all(content, "").to_string(),
         CellType::FlashCard => {
@@ -102,7 +102,9 @@ fn get_searchable_content(content: &str, cell_type: &CellType) -> String {
                 .replace_all(&true_false.question, "")
                 .to_string()
         }
-    }
+    };
+
+    searchable_content.to_lowercase()
 }
 
 pub async fn delete_cell(db_conn: &DbConn, cell_id: i32) -> Result<(), String> {
