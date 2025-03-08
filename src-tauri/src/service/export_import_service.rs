@@ -184,6 +184,7 @@ mod tests {
     use super::*;
     use crate::{
         entity::cell::CellType,
+        model::{flash_card::FlashCard, true_false::TrueFalse},
         service::{
             repetition_service,
             tests::{create_file_cell_with_cell_type_and_content, get_db},
@@ -213,11 +214,16 @@ mod tests {
         // Arrange
 
         let db_conn = get_db().await;
+        let file_content = serde_json::to_string(&FlashCard {
+            question: "file content".into(),
+            ..Default::default()
+        })
+        .unwrap();
         let (file_id, _) = create_file_cell_with_cell_type_and_content(
             &db_conn,
             "folder/file 1",
             CellType::FlashCard,
-            "file content",
+            &file_content,
         )
         .await;
         let export_path = get_random_file_path();
@@ -237,7 +243,7 @@ mod tests {
         assert_eq!(exported_item.path, "file 1".to_string());
         let cells = exported_item.cells.unwrap();
         assert_eq!(cells.len(), 1);
-        assert_eq!(cells[0].content, "file content");
+        assert_eq!(cells[0].content, file_content);
         assert_eq!(cells[0].cell_type, CellType::FlashCard);
     }
 
@@ -253,20 +259,28 @@ mod tests {
             &db_conn,
             "folder 1/folder 2/file 1",
             CellType::FlashCard,
-            "file content",
+            &serde_json::to_string(&FlashCard {
+                question: "file content".into(),
+                ..Default::default()
+            })
+            .unwrap(),
         )
         .await;
         create_file_cell_with_cell_type_and_content(
             &db_conn,
             "folder 1/folder 2/file 2",
             CellType::TrueFalse,
-            "file content",
+            &serde_json::to_string(&TrueFalse {
+                question: "file content".into(),
+                ..Default::default()
+            })
+            .unwrap(),
         )
         .await;
         create_file_cell_with_cell_type_and_content(
             &db_conn,
             "folder 1/folder 2/folder 3/file 3",
-            CellType::TrueFalse,
+            CellType::Note,
             "file content",
         )
         .await;
@@ -309,7 +323,7 @@ mod tests {
         let file3_cells = file3.cells.unwrap();
         assert_eq!(file3_cells.len(), 1);
         assert_eq!(file3_cells[0].content, "file content");
-        assert_eq!(file3_cells[0].cell_type, CellType::TrueFalse);
+        assert_eq!(file3_cells[0].cell_type, CellType::Note);
     }
 
     #[tokio::test]
@@ -320,25 +334,34 @@ mod tests {
         let folder2_id = file_service::create_folder(&db_conn, "folder 1/folder 2".into())
             .await
             .unwrap();
+        let file1_cell_content = serde_json::to_string(&FlashCard {
+            question: "old content".into(),
+            ..Default::default()
+        })
+        .unwrap();
         create_file_cell_with_cell_type_and_content(
             &db_conn,
             "folder 1/folder 2/file 1",
             CellType::FlashCard,
-            "file content",
+            &file1_cell_content,
         )
         .await;
         create_file_cell_with_cell_type_and_content(
             &db_conn,
             "folder 1/folder 2/file 2",
             CellType::TrueFalse,
-            "file content",
+            &serde_json::to_string(&TrueFalse {
+                question: "old content".into(),
+                ..Default::default()
+            })
+            .unwrap(),
         )
         .await;
         create_file_cell_with_cell_type_and_content(
             &db_conn,
             "folder 1/folder 2/folder 3/file 3",
             CellType::Note,
-            "file content",
+            "old content",
         )
         .await;
 
@@ -406,7 +429,7 @@ mod tests {
             .unwrap();
         assert_eq!(file1_cells.len(), 1);
         assert_eq!(file1_cells[0].cell_type, CellType::FlashCard);
-        assert_eq!(file1_cells[0].content, "file content".to_string());
+        assert_eq!(file1_cells[0].content, file1_cell_content);
 
         let file1_repetitions = repetition_service::get_file_repetitions(&db_conn, file1_id)
             .await

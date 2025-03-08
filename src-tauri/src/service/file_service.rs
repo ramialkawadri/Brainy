@@ -499,12 +499,12 @@ pub mod tests {
         let file1_id = create_folder(&db_conn, "test".into()).await.unwrap();
         create_file(&db_conn, "test".into()).await.unwrap();
 
-        cell_service::create_cell(&db_conn, file1_id, "".into(), CellType::FlashCard, 0)
+        cell_service::create_cell(&db_conn, file1_id, "".into(), CellType::Note, 0)
             .await
             .unwrap();
 
         let file2_id = create_file(&db_conn, "test 2".into()).await.unwrap();
-        cell_service::create_cell(&db_conn, file2_id, "".into(), CellType::FlashCard, 0)
+        cell_service::create_cell(&db_conn, file2_id, "".into(), CellType::Note, 0)
             .await
             .unwrap();
 
@@ -527,12 +527,12 @@ pub mod tests {
         let db_conn = get_db().await;
         let folder_id = create_folder(&db_conn, "test".into()).await.unwrap();
         let file1_id = create_file(&db_conn, "test/file".into()).await.unwrap();
-        cell_service::create_cell(&db_conn, file1_id, "".into(), CellType::FlashCard, 0)
+        cell_service::create_cell(&db_conn, file1_id, "".into(), CellType::Note, 0)
             .await
             .unwrap();
 
         let file2_id = create_file(&db_conn, "test".into()).await.unwrap();
-        cell_service::create_cell(&db_conn, file2_id, "".into(), CellType::FlashCard, 0)
+        cell_service::create_cell(&db_conn, file2_id, "".into(), CellType::Note, 0)
             .await
             .unwrap();
 

@@ -1,10 +1,7 @@
 use crate::{
     dto::update_cell_request::UpdateCellRequest,
     entity::cell::{self, CellType},
-    model::{
-        flash_card::{self, FlashCard},
-        true_false::TrueFalse,
-    },
+    model::{flash_card::FlashCard, true_false::TrueFalse},
 };
 
 use prelude::Expr;
@@ -191,6 +188,7 @@ pub async fn update_cells_contents(
             cell::ActiveModel {
                 id: Set(request.cell_id),
                 content: Set(request.content.clone()),
+                searchable_content: Set(get_searchable_content(&request.content, &cell.cell_type)),
                 ..Default::default()
             },
         )
@@ -228,6 +226,7 @@ async fn update_cell(
     db_conn: &impl ConnectionTrait,
     cell: cell::ActiveModel,
 ) -> Result<(), String> {
+    // TODO: update searchable content
     let result = cell::Entity::update(cell).exec(db_conn).await;
     match result {
         Ok(_) => Ok(()),
@@ -258,7 +257,10 @@ pub async fn get_cells_for_files(
 mod tests {
     use repetition_service::get_file_repetitions;
 
-    use crate::service::{file_service, tests::get_db};
+    use crate::{
+        entity::cell,
+        service::{file_service, tests::get_db},
+    };
 
     use super::*;
 
@@ -281,6 +283,7 @@ mod tests {
                 index: Set(i),
                 file_id: Set(file_id),
                 content: Set("Already created".into()),
+                searchable_content: Set("".into()),
                 cell_type: Set(CellType::Note),
                 ..Default::default()
             }
@@ -338,13 +341,13 @@ mod tests {
 
         let db_conn = get_db().await;
         let file_id = create_file(&db_conn, "file 1").await;
-        create_cell(&db_conn, file_id, "0".into(), CellType::FlashCard, 0)
+        create_cell(&db_conn, file_id, "0".into(), CellType::Note, 0)
             .await
             .unwrap();
-        let cell_id = create_cell(&db_conn, file_id, "1".into(), CellType::FlashCard, 1)
+        let cell_id = create_cell(&db_conn, file_id, "1".into(), CellType::Note, 1)
             .await
             .unwrap();
-        create_cell(&db_conn, file_id, "2".into(), CellType::FlashCard, 2)
+        create_cell(&db_conn, file_id, "2".into(), CellType::Note, 2)
             .await
             .unwrap();
         create_cell(&db_conn, file_id, "3".into(), CellType::Note, 3)
@@ -373,13 +376,13 @@ mod tests {
 
         let db_conn = get_db().await;
         let file_id = create_file(&db_conn, "file 1").await;
-        create_cell(&db_conn, file_id, "0".into(), CellType::FlashCard, 0)
+        create_cell(&db_conn, file_id, "0".into(), CellType::Note, 0)
             .await
             .unwrap();
-        create_cell(&db_conn, file_id, "1".into(), CellType::FlashCard, 1)
+        create_cell(&db_conn, file_id, "1".into(), CellType::Note, 1)
             .await
             .unwrap();
-        let cell_id = create_cell(&db_conn, file_id, "2".into(), CellType::FlashCard, 2)
+        let cell_id = create_cell(&db_conn, file_id, "2".into(), CellType::Note, 2)
             .await
             .unwrap();
         create_cell(&db_conn, file_id, "3".into(), CellType::Note, 3)
@@ -402,6 +405,7 @@ mod tests {
         assert_eq!(actual[3].content, "3".to_string());
     }
 
+    // TODO: check searchable content
     #[tokio::test]
     pub async fn update_cells_contents_valid_input_content_updated() {
         // Arrange
@@ -411,7 +415,11 @@ mod tests {
         let cell1_id = create_cell(
             &db_conn,
             file_id,
-            "Old content 1".into(),
+            serde_json::to_string(&FlashCard {
+                question: "Old content 1".into(),
+                ..Default::default()
+            })
+            .unwrap(),
             CellType::FlashCard,
             2,
         )
@@ -421,7 +429,11 @@ mod tests {
         let cell2_id = create_cell(
             &db_conn,
             file_id,
-            "Old content 2".into(),
+            serde_json::to_string(&FlashCard {
+                question: "Old content 2".into(),
+                ..Default::default()
+            })
+            .unwrap(),
             CellType::FlashCard,
             2,
         )
@@ -431,11 +443,19 @@ mod tests {
         let requests = vec![
             UpdateCellRequest {
                 cell_id: cell1_id,
-                content: "New content 1".into(),
+                content: serde_json::to_string(&FlashCard {
+                    question: "New content 1".into(),
+                    ..Default::default()
+                })
+                .unwrap(),
             },
             UpdateCellRequest {
                 cell_id: cell2_id,
-                content: "New content 2".into(),
+                content: serde_json::to_string(&FlashCard {
+                    question: "New content 2".into(),
+                    ..Default::default()
+                })
+                .unwrap(),
             },
         ];
 
@@ -446,10 +466,12 @@ mod tests {
         // Assert
 
         let actual_cell1 = get_cell_by_id(&db_conn, cell1_id).await.unwrap();
-        assert_eq!(actual_cell1.content, "New content 1".to_string());
+        let flash_card_1: FlashCard = serde_json::from_str(&actual_cell1.content).unwrap();
+        assert_eq!(flash_card_1.question, "New content 1".to_string());
 
         let actual_cell2 = get_cell_by_id(&db_conn, cell2_id).await.unwrap();
-        assert_eq!(actual_cell2.content, "New content 2".to_string());
+        let flash_card_2: FlashCard = serde_json::from_str(&actual_cell2.content).unwrap();
+        assert_eq!(flash_card_2.question, "New content 2".to_string());
 
         let repetition_count = get_file_repetitions(&db_conn, file_id).await;
         assert_eq!(repetition_count.unwrap().len(), 2);

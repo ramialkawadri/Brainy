@@ -243,8 +243,9 @@ pub async fn reset_repetitions_for_cell(db_conn: &DbConn, cell_id: i32) -> Resul
 mod tests {
     use chrono::Duration;
 
-    use crate::service::tests::{
-        create_file_cell, create_file_cell_with_cell_type_and_content, get_db,
+    use crate::{
+        model::flash_card::FlashCard,
+        service::tests::{create_file_cell, create_file_cell_with_cell_type_and_content, get_db},
     };
 
     use super::*;
@@ -547,7 +548,11 @@ mod tests {
             &db_conn,
             "file 1",
             CellType::FlashCard,
-            "old content",
+            &serde_json::to_string(&FlashCard {
+                question: "old content".into(),
+                ..Default::default()
+            })
+            .unwrap(),
         )
         .await;
         let repetition_id = get_repetitions_by_cell_id(&db_conn, cell_id).await.unwrap()[0].id;
