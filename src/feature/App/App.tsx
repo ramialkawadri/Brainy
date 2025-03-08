@@ -21,26 +21,16 @@ import {
 import { fileIdQueryParameter } from "../../constants";
 import FromRouteState from "../../type/fromRouteState";
 
-const SMALL_SCREEN_MAX_WIDTH = 600;
-
 function App() {
 	const [showSettings, setShowSettings] = useState(false);
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
-	const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
 	const studyFileIds = useRef<number[]>([]);
 	const editCellId = useRef<number | null>(null);
 	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
-	const isSmallScreen = useRef(window.innerWidth <= SMALL_SCREEN_MAX_WIDTH);
 	const [searchParams] = useSearchParams();
 	const selectedFileId = Number(searchParams.get(fileIdQueryParameter));
 	const location = useLocation();
-
-	useEffect(() => {
-		window.addEventListener("resize", () => {
-			isSmallScreen.current = window.innerWidth <= SMALL_SCREEN_MAX_WIDTH;
-		});
-	});
 
 	const handleEditorStudyClick = () => {
 		studyFileIds.current = [selectedFileId];
@@ -75,10 +65,6 @@ function App() {
 		});
 	}, [dispatch]);
 
-	useEffect(() => {
-		if (isSmallScreen.current) setIsSidebarExpanded(false);
-	}, [location]);
-
 	useGlobalKey(e => {
 		if (e.ctrlKey && e.key.toLowerCase() === "p") {
 			e.preventDefault();
@@ -101,7 +87,6 @@ function App() {
 	};
 
 	const handleHomeClick = () => {
-		if (isSmallScreen.current) setIsSidebarExpanded(false);
 		void navigate("/home");
 	};
 
@@ -117,8 +102,6 @@ function App() {
 			)}
 
 			<SideBar
-				isExpanded={isSidebarExpanded}
-				setIsExpanded={setIsSidebarExpanded}
 				onHomeClick={handleHomeClick}
 				onSettingsClick={() => setShowSettings(true)}
 			/>

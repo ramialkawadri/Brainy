@@ -156,7 +156,7 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 					selectedCellIndex + (number > 0 ? number + 1 : number),
 				);
 			});
-            await forceSave();
+			await forceSave();
 			await retrieveSelectedFileCells();
 		}
 	};
@@ -181,7 +181,6 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 			setRepetitionCounts(repetitionCounts);
 		});
 	}, [executeRequest, selectedFileId]);
-
 
 	const retrieveSelectedFileCells = useCallback(async () => {
 		return await executeRequest(async () => {
@@ -213,11 +212,16 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 			await updateCellsContents(requests);
 			changedCellsIds.current.clear();
 			await retrieveRepetitionCounts();
-            await retrieveSelectedFileCells();
+			await retrieveSelectedFileCells();
 			const fetchedRepetitions = await getFileRepetitions(selectedFileId);
 			setRepetitions(fetchedRepetitions);
 		});
-	}, [executeRequest, retrieveRepetitionCounts, retrieveSelectedFileCells, selectedFileId]);
+	}, [
+		executeRequest,
+		retrieveRepetitionCounts,
+		retrieveSelectedFileCells,
+		selectedFileId,
+	]);
 
 	const forceSave = useCallback(async () => {
 		if (autoSaveTimeoutId.current !== null) {
@@ -238,7 +242,7 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 	const handleUpdate = (content: string, id: number) => {
 		changedCellsIds.current.add(id);
 		const newCells = [...updatedCells.current];
-        newCells.find(c => c.id === id)!.content = content;
+		newCells.find(c => c.id === id)!.content = content;
 		updatedCells.current = newCells;
 
 		if (autoSaveTimeoutId.current !== null) {
@@ -258,7 +262,7 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 	const insertNewCell = async (cellType: CellType, index: number) => {
 		const cell = createDefaultCell(cellType, selectedFileId, index);
 		const cellId = await executeRequest(async () => await createCell(cell));
-        await forceSave();
+		await forceSave();
 		await retrieveSelectedFileCells();
 		if (cellId) selectCell(cellId);
 		await retrieveRepetitionCounts();
@@ -270,7 +274,7 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 		const cellIndex = cells.findIndex(c => c.id === selectedCellId);
 		await executeRequest(async () => await deleteCell(selectedCellId!));
 		await retrieveRepetitionCounts();
-        await forceSave();
+		await forceSave();
 		await retrieveSelectedFileCells();
 		tipTapEditorRef.current = null;
 		if (cellIndex > 0) {
@@ -282,12 +286,15 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 		}
 	};
 
-	const selectCell = useCallback((id: number | null) => {
-		if (selectedCellId !== id) {
-			setShowInsertNewCell(false);
-			setSelectedCellId(id);
-		}
-	}, [selectedCellId]);
+	const selectCell = useCallback(
+		(id: number | null) => {
+			if (selectedCellId !== id) {
+				setShowInsertNewCell(false);
+				setSelectedCellId(id);
+			}
+		},
+		[selectedCellId],
+	);
 
 	useEffect(() => {
 		void (async () => {
@@ -299,10 +306,10 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 					selectCell(editCellId);
 				else selectCell(cells[0].id!);
 			}
-            setSearchText("");
+			setSearchText("");
 		})();
 
-	// eslint-disable-next-line react-hooks/exhaustive-deps
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [selectedFileId]);
 
 	const handleDragStart = (e: React.DragEvent, id: number) => {
@@ -326,7 +333,7 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 		const draggedCellIndex = cells.findIndex(c => c.id === draggedCellId);
 		if (index === draggedCellIndex) return;
 		await executeRequest(async () => await moveCell(draggedCellId, index));
-        await forceSave();
+		await forceSave();
 		await retrieveSelectedFileCells();
 		setDragOverCellId(null);
 		setDraggedCellId(null);
@@ -391,40 +398,41 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
                             ${selectedCellId === cell.id ? styles.selectedCell : ""}
                             ${dragOverCellId === cell.id ? styles.dragOver : ""}
                             ${draggedCellId === cell.id ? styles.dragging : ""}`}>
-									{selectedCellId === cell.id && !searchText && (
-										<FocusTools
-											onInsert={() => {
-												setShowInsertNewCell(
-													!showInsertNewCell,
-												);
-												if (showInsertNewCell)
-													tipTapEditorRef.current?.commands.focus();
-											}}
-											onDragStart={e =>
-												handleDragStart(e, cell.id!)
-											}
-											onDragEnd={() =>
-												setDraggedCellId(null)
-											}
-											repetitions={repetitions.filter(
-												r => r.cellId === cell.id,
-											)}
-											cell={cell}
-											onShowRepetitionsInfo={() =>
-												setShowInsertNewCell(false)
-											}
-											onResetRepetitions={() =>
-												void retrieveRepetitionCounts()
-											}
-											onError={onError}
-											onCellDeleteConfirm={() =>
-												void handleCellDeleteConfirm()
-											}
-											onDeleteDialogHide={() =>
-												tipTapEditorRef.current?.commands.focus()
-											}
-										/>
-									)}
+									{selectedCellId === cell.id &&
+										!searchText && (
+											<FocusTools
+												onInsert={() => {
+													setShowInsertNewCell(
+														!showInsertNewCell,
+													);
+													if (showInsertNewCell)
+														tipTapEditorRef.current?.commands.focus();
+												}}
+												onDragStart={e =>
+													handleDragStart(e, cell.id!)
+												}
+												onDragEnd={() =>
+													setDraggedCellId(null)
+												}
+												repetitions={repetitions.filter(
+													r => r.cellId === cell.id,
+												)}
+												cell={cell}
+												onShowRepetitionsInfo={() =>
+													setShowInsertNewCell(false)
+												}
+												onResetRepetitions={() =>
+													void retrieveRepetitionCounts()
+												}
+												onError={onError}
+												onCellDeleteConfirm={() =>
+													void handleCellDeleteConfirm()
+												}
+												onDeleteDialogHide={() =>
+													tipTapEditorRef.current?.commands.focus()
+												}
+											/>
+										)}
 
 									{showInsertNewCell &&
 										selectedCellId === cell.id && (

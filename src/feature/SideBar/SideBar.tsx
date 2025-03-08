@@ -8,7 +8,7 @@ import {
 	selectRootFolder,
 } from "../../store/selectors/fileSystemSelectors";
 import { setErrorMessage } from "../../store/reducers/fileSystemReducers";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import searchFolder from "../../util/searchFolder";
 import {
 	mdiArrowCollapseLeft,
@@ -21,33 +21,46 @@ import Icon from "@mdi/react";
 import InputWithIcon from "../../ui/InputWithIcon/InputWithIcon";
 import useGlobalKey from "../../hooks/useGlobalKey";
 import { openUrl } from "@tauri-apps/plugin-opener";
-import { useLocation, useSearchParams } from "react-router";
+import { useLocation, useNavigate, useSearchParams } from "react-router";
 import { fileIdQueryParameter } from "../../constants";
 
+const SMALL_SCREEN_MAX_WIDTH = 600;
+
 interface Props {
-	isExpanded: boolean;
-	setIsExpanded: (val: boolean) => void;
 	onHomeClick: () => void;
 	onSettingsClick: () => void;
 }
 
-function SideBar({
-	isExpanded,
-	setIsExpanded,
-	onHomeClick,
-	onSettingsClick,
-}: Props) {
+function SideBar({ onHomeClick, onSettingsClick }: Props) {
 	const [searchText, setSearchText] = useState<string | null>(null);
+	const [isExpanded, setIsExpanded] = useState(true);
 	const rootFolder = useAppSelector(selectRootFolder);
 	const errorMessage = useAppSelector(selectError);
 	const dispatch = useAppDispatch();
+	const navigate = useNavigate();
 	const location = useLocation();
+	const isSmallScreen = useRef(window.innerWidth <= SMALL_SCREEN_MAX_WIDTH);
 	const rootUiFolder = useMemo(
 		() => searchFolder(rootFolder, searchText ?? ""),
 		[rootFolder, searchText],
 	);
 	const [searchParams] = useSearchParams();
 	const selectedFileId = Number(searchParams.get(fileIdQueryParameter));
+
+	useEffect(() => {
+		window.addEventListener("resize", () => {
+			isSmallScreen.current = window.innerWidth <= SMALL_SCREEN_MAX_WIDTH;
+		});
+	}, []);
+
+	useEffect(() => {
+		if (!isSmallScreen.current) return;
+		if (location.pathname === "/") {
+			setIsExpanded(true);
+		} else {
+			setIsExpanded(false);
+		}
+	}, [location]);
 
 	const openHelpWebiste = useCallback(() => {
 		void openUrl("https://ramialkawadri.github.io/Brainy-docs/");
@@ -61,6 +74,17 @@ function SideBar({
 		}
 	});
 
+	const handleToggleSidebarClick = () => {
+		if (isSmallScreen.current) {
+			void navigate({
+                pathname: "/",
+                search: searchParams.toString(),
+            });
+		} else {
+			setIsExpanded(!isExpanded);
+		}
+	};
+
 	return (
 		<div className={`${styles.sideBar} ${!isExpanded && styles.closed}`}>
 			<div className={styles.header}>
@@ -70,7 +94,7 @@ function SideBar({
 
 				<button
 					className={`transparent center ${styles.toggleButton}`}
-					onClick={() => setIsExpanded(!isExpanded)}
+					onClick={handleToggleSidebarClick}
 					title="Expand/Collapse sidebar (Ctrl + \)">
 					<Icon path={mdiArrowCollapseLeft} size={1} />
 				</button>
