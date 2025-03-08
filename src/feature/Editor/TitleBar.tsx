@@ -38,7 +38,7 @@ function TitleBar({
 		0;
 
 	useGlobalKey(e => {
-		if (e.ctrlKey && e.key.toLowerCase() === "f") {
+		if (e.ctrlKey && !e.shiftKey && e.key.toLowerCase() === "f") {
 			e.preventDefault();
 			searchInputRef.current?.focus();
 		}

@@ -30,3 +30,7 @@ export function moveCell(cellId: number, newIndex: number) {
 export function getCellsForFiles(fileIds: number[]): Promise<Cell[]> {
 	return invoke("get_cells_for_files", { fileIds });
 }
+
+export function searchCells(searchText: string): Promise<Cell[]> {
+	return invoke("search_cells", { searchText });
+}

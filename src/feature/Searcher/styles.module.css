@@ -1,0 +1,18 @@
+.container {
+    width: 100%;
+	background-color: var(--default-background-color);
+	padding: var(--large-padding);
+
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+	& * {
+		font-size: 1.2rem;
+	}
+}
+
+.search-input {
+    padding: var(--large-padding);
+}
+

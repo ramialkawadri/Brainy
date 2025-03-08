@@ -61,3 +61,12 @@ pub async fn get_cells_for_files(
     let db_conn = db_conn.lock().await;
     cell_service::get_cells_for_files(&db_conn, file_ids).await
 }
+
+#[tauri::command]
+pub async fn search_cells(
+    db_conn: State<'_, Mutex<DbConn>>,
+    search_text: String,
+) -> Result<Vec<cell::Model>, String> {
+    let db_conn = db_conn.lock().await;
+    cell_service::search_cells(&db_conn, &search_text).await
+}

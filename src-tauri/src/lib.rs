@@ -41,6 +41,11 @@ pub async fn run() -> Result<(), String> {
         .plugin(tauri_plugin_opener::init())
         .setup(|app| {
             app.manage(Mutex::new(db_conn));
+            #[cfg(dev)]
+            {
+                let _ = app.get_webview_window("main").expect("no main window")
+                    .set_title("Brainy - development");
+            }
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -50,6 +55,7 @@ pub async fn run() -> Result<(), String> {
             get_cells_for_files,
             get_file_cells_ordered_by_index,
             move_cell,
+            search_cells,
             update_cells_contents,
             // Files & Folders
             create_file,

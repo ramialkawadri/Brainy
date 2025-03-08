@@ -478,7 +478,7 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 										cell={cell}
 										autofocus={
 											selectedCellId === cell.id &&
-											document.activeElement !==
+											document.activeElement !=
 												searchInputRef.current
 										}
 										onUpdate={content =>

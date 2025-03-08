@@ -251,6 +251,20 @@ pub async fn get_cells_for_files(
     Ok(cells)
 }
 
+// TODO: test, paging
+pub async fn search_cells(db_conn: &DbConn, search_text: &str) -> Result<Vec<cell::Model>, String> {
+    let result = cell::Entity::find()
+        .filter(cell::Column::SearchableContent.contains(search_text.to_lowercase()))
+        .limit(50)
+        .all(db_conn)
+        .await;
+
+    match result {
+        Ok(result) => Ok(result),
+        Err(err) => Err(err.to_string()),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use repetition_service::get_file_repetitions;
@@ -465,7 +479,10 @@ mod tests {
         let actual_cell1 = get_cell_by_id(&db_conn, cell1_id).await.unwrap();
         let flash_card_1: FlashCard = serde_json::from_str(&actual_cell1.content).unwrap();
         assert_eq!(flash_card_1.question, "New content 1".to_string());
-        assert_eq!(actual_cell1.searchable_content, "new content 1 ".to_string());
+        assert_eq!(
+            actual_cell1.searchable_content,
+            "new content 1 ".to_string()
+        );
 
         let actual_cell2 = get_cell_by_id(&db_conn, cell2_id).await.unwrap();
         let flash_card_2: FlashCard = serde_json::from_str(&actual_cell2.content).unwrap();

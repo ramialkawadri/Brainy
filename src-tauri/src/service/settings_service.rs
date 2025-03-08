@@ -12,8 +12,12 @@ use crate::{
     util::database_util::load_database,
 };
 
+#[cfg(not(dev))]
 const SETTINGS_FILE_NAME: &str = "settings.json";
-const DEFAULT_DATABASE_FILE_NAME: &str = "db.db";
+#[cfg(dev)]
+const SETTINGS_FILE_NAME: &str = "settings.dev.json";
+
+const DEFAULT_DATABASE_FILE_NAME: &str = "brainy.db";
 
 pub fn init_settings() {
     let settings_dir = get_settings_dir();

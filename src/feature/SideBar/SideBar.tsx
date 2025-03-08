@@ -71,7 +71,9 @@ function SideBar({ onHomeClick, onSettingsClick }: Props) {
 			setIsExpanded(!isExpanded);
 		} else if (e.key === "F1") {
 			openHelpWebiste();
-		}
+		} else if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "f") {
+            void navigate("/search");
+        }
 	});
 
 	const handleToggleSidebarClick = () => {
@@ -112,6 +114,19 @@ function SideBar({ onHomeClick, onSettingsClick }: Props) {
 				onClick={onHomeClick}>
 				<Icon path={mdiHome} size={1} />
 				<p>Home</p>
+			</button>
+
+			<button
+				className={`${
+					selectedFileId === 0 &&
+				    location.pathname.startsWith("/search")
+						? "primary"
+						: "transparent"
+				} ${styles.row}`}
+				title="Search (Ctrl + Shift + f)"
+				onClick={() => void navigate("/search")}>
+				<Icon path={mdiMagnify} size={1} />
+				<p>Search</p>
 			</button>
 
 			<button

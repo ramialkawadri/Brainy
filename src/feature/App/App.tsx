@@ -20,6 +20,7 @@ import {
 } from "react-router";
 import { fileIdQueryParameter } from "../../constants";
 import FromRouteState from "../../type/fromRouteState";
+import Searcher from "../Searcher/Searcher";
 
 function App() {
 	const [showSettings, setShowSettings] = useState(false);
@@ -137,6 +138,12 @@ function App() {
 							/>
 						}
 					/>
+                    <Route 
+                        path="/search"
+                        element={
+                            <Searcher />
+                        }
+                    />
 				</Routes>
 			</div>
 
