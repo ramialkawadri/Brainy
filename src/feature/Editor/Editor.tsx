@@ -51,6 +51,8 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 	const [selectedCellId, setSelectedCellId] = useState<number | null>(null);
 	const [draggedCellId, setDraggedCellId] = useState<number | null>(null);
 	const [dragOverCellId, setDragOverCellId] = useState<number | null>(null);
+	const [isDragOverAddCellContainer, setIsDragOverAddCellContainer] =
+		useState(false);
 	const [searchText, setSearchText] = useState("");
 	const [repetitionCounts, setRepetitionCounts] =
 		useState<FileRepetitionCounts>({
@@ -320,12 +322,17 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 		setDraggedCellId(id);
 	};
 
-	const handleDragOver = (e: React.DragEvent, id: number) => {
+	const handleDragOver = (
+		e: React.DragEvent,
+		id: number | null,
+		isDragOverAddCellContainer = false,
+	) => {
 		if (draggedCellId === null || id === draggedCellId) {
 			return;
 		}
 		e.preventDefault();
 		setDragOverCellId(id);
+		setIsDragOverAddCellContainer(isDragOverAddCellContainer);
 	};
 
 	const handleDrop = async (index: number) => {
@@ -336,6 +343,7 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 		await forceSave();
 		await retrieveSelectedFileCells();
 		setDragOverCellId(null);
+		setIsDragOverAddCellContainer(false);
 		setDraggedCellId(null);
 	};
 
@@ -485,10 +493,10 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 						))}
 
 					<AddCellContainer
-						isDragOver={dragOverCellId === cells.length}
-						onDragOver={e => handleDragOver(e, cells.length)}
+						isDragOver={isDragOverAddCellContainer}
+						onDragOver={e => handleDragOver(e, null, true)}
 						onDrop={() => void handleDrop(cells.length)}
-						onDragLeave={() => setDragOverCellId(null)}
+						onDragLeave={() => setIsDragOverAddCellContainer(false)}
 						onAddNewCell={cellType =>
 							void insertNewCell(cellType, cells.length)
 						}

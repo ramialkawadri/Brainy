@@ -77,9 +77,9 @@ function SideBar({ onHomeClick, onSettingsClick }: Props) {
 	const handleToggleSidebarClick = () => {
 		if (isSmallScreen.current) {
 			void navigate({
-                pathname: "/",
-                search: searchParams.toString(),
-            });
+				pathname: "/",
+				search: searchParams.toString(),
+			});
 		} else {
 			setIsExpanded(!isExpanded);
 		}
