@@ -9,10 +9,10 @@ import getCellIcon from "../../util/getCellIcon";
 import Icon from "@mdi/react";
 import FocusTools from "./FocusTools";
 import Repetition from "../../type/backend/entity/repetition";
-import { CELL_ID_DRAG_FORMAT } from "../Editor/Editor";
 import NewCellTypeSelector from "../Editor/NewCellTypeSelector";
 import { Editor as TipTapEditor } from "@tiptap/react";
 import useGlobalKey from "../../hooks/useGlobalKey";
+import { CELL_ID_DRAG_FORMAT } from "../Editor/EditorCells";
 
 interface Props {
 	cell: Cell;
@@ -30,6 +30,8 @@ interface Props {
 	onResetRepetitions: () => void;
 }
 
+// TODO: rename css variables
+// TODO: move to same folder as editor cells
 function CellBlock(
 	{
 		cell,

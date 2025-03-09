@@ -48,7 +48,6 @@ const clozeMark = Mark.create({
 				index =>
 				({ commands, editor }) => {
 					if (editor.isActive(clozeMarkName)) {
-						commands.extendMarkRange(clozeMarkName);
 						return commands.unsetMark(clozeMarkName);
 					}
 

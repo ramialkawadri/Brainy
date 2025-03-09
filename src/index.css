@@ -23,29 +23,8 @@ html {
 	}
 }
 
-/* Large tablets (landscape) and small desktops */
-@media (min-width: 768px) {
-	html {
-		/* 1rem = 12px */
-		font-size: calc(var(--zoom-level) * 75%);
-	}
-	body {
-		font-size: 1.6rem;
-	}
-}
 
-/* Standard desktops */
-@media (min-width: 1024px) {
-	html {
-		/* 1rem = 13px */
-		font-size: calc(var(--zoom-level) * 81.25%);
-	}
-	body {
-		font-size: 1.8rem;
-	}
-}
-
-/* Large desktops */
+/* Desktops */
 @media (min-width: 1200px) {
 	html {
 		/* 1rem = 14px */
