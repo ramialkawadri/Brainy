@@ -72,8 +72,8 @@ function SideBar({ onHomeClick, onSettingsClick }: Props) {
 		} else if (e.key === "F1") {
 			openHelpWebiste();
 		} else if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "f") {
-            void navigate("/search");
-        }
+			void navigate("/search");
+		}
 	});
 
 	const handleToggleSidebarClick = () => {
@@ -119,7 +119,7 @@ function SideBar({ onHomeClick, onSettingsClick }: Props) {
 			<button
 				className={`${
 					selectedFileId === 0 &&
-				    location.pathname.startsWith("/search")
+					location.pathname.startsWith("/search")
 						? "primary"
 						: "transparent"
 				} ${styles.row}`}

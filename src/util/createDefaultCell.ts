@@ -6,7 +6,7 @@ function createDefaultCell(cellType: CellType, fileId: number, index: number) {
 	const cell: Cell = {
 		fileId,
 		content: "",
-        searchableContent: "",
+		searchableContent: "",
 		cellType,
 		index,
 	};

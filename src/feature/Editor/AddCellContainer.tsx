@@ -10,9 +10,9 @@ interface Props {
 	isDragOver: boolean;
 	onDragOver: (e: React.DragEvent) => void;
 	onDragLeave: (e: React.DragEvent) => void;
-	onDrop: () => void;
+	onDrop: (e: React.DragEvent) => void;
 	onAddNewCell: (cellType: CellType) => void;
-	onPopupHide: () => void;
+	onPopupHide?: () => void;
 }
 
 function AddCellContainer({
@@ -26,7 +26,7 @@ function AddCellContainer({
 	const [showAddNewCellPopup, setShowAddNewCellPopup] = useState(false);
 
 	const hidePopup = () => {
-		onPopupHide();
+		if (onPopupHide) onPopupHide();
 		setShowAddNewCellPopup(false);
 	};
 

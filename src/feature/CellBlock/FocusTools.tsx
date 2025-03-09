@@ -7,7 +7,6 @@ import {
 } from "@mdi/js";
 import styles from "./styles.module.css";
 import Icon from "@mdi/react";
-import RepetitionsInfo from "./RepetitionsInfo";
 import Repetition from "../../type/backend/entity/repetition";
 import Cell from "../../type/backend/entity/cell";
 import { useRef, useState } from "react";
@@ -16,11 +15,12 @@ import ConfirmationDialog from "../../ui/ConfirmationDialog/ConfirmationDialog";
 import { resetRepetitionsForCell } from "../../api/repetitionApi";
 import errorToString from "../../util/errorToString";
 import useGlobalKey from "../../hooks/useGlobalKey";
+import RepetitionsInfo from "./RepetitionsInfo";
 
 interface Props {
 	repetitions: Repetition[];
 	cell: Cell;
-	onInsert: () => void;
+	onInsertClick: (e: React.MouseEvent) => void;
 	onDragStart: (e: React.DragEvent<HTMLButtonElement>) => void;
 	onDragEnd: (e: React.DragEvent<HTMLButtonElement>) => void;
 	onShowRepetitionsInfo: () => void;
@@ -33,7 +33,7 @@ interface Props {
 function FocusTools({
 	repetitions,
 	cell,
-	onInsert,
+	onInsertClick,
 	onDragStart,
 	onDragEnd,
 	onShowRepetitionsInfo,
@@ -113,10 +113,11 @@ function FocusTools({
 				<button
 					className="transparent"
 					title="Insert Cell (Ctrl + Shift + Enter)"
-					onClick={() => {
-						onInsert();
+					onClick={e => {
+						onInsertClick(e);
 						setShowRepetitionsInfo(false);
-					}}>
+					}}
+					onMouseDown={e => e.stopPropagation()}>
 					<Icon path={mdiPlus} size={1} />
 				</button>
 

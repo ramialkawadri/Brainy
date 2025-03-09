@@ -10,7 +10,7 @@ describe(createDefaultCell, () => {
 		const expected: Cell = {
 			cellType: "Note",
 			content: "",
-            searchableContent: "",
+			searchableContent: "",
 			fileId,
 			index,
 		};

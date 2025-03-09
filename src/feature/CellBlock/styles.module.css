@@ -1,0 +1,135 @@
+.cell {
+	padding: var(--medium-padding);
+	border-radius: var(--default-border-radius);
+	border: 1px solid transparent;
+	position: relative;
+	width: 100%;
+
+	&:hover {
+		border-color: var(--border-color);
+		box-shadow: var(--light-box-shadow);
+	}
+
+	& .focus-tools {
+		position: absolute;
+		align-items: center;
+		justify-content: center;
+		background-color: var(--default-background-color);
+		z-index: 2;
+		right: 1.2rem;
+		top: 0;
+		border-radius: var(--default-border-radius);
+		box-shadow: var(--dark-box-shadow);
+		transform: translateY(-20%);
+		display: flex;
+
+		& button {
+			padding: var(--small-padding);
+		}
+	}
+
+	& .delete * {
+		color: var(--red-color);
+	}
+
+	& .repetitions-info-button {
+		position: relative;
+	}
+
+	& .drag {
+		cursor: grab;
+	}
+
+	& .drag:hover {
+		background-color: var(--grey-background-color);
+	}
+
+	& .insert-cell-popup {
+		position: absolute;
+		top: 34px;
+		right: 1.2rem;
+		z-index: 3;
+		max-width: 20rem;
+	}
+}
+
+.cell.selected-cell {
+	border-color: var(--primary-color);
+	box-shadow: var(--darker-box-shadow);
+}
+
+.cell.dragging {
+	opacity: 0.7;
+}
+
+.cell-title {
+	text-transform: capitalize;
+	padding: var(--small-padding) var(--medium-padding);
+	border-radius: var(--default-border-radius);
+	background-color: var(--primary-color);
+	display: inline-flex;
+	gap: 4px;
+	align-items: center;
+	margin-bottom: var(--default-padding);
+
+	-webkit-user-select: none; /* Safari */
+	-moz-user-select: none; /* Firefox */
+	-ms-user-select: none; /* IE10+/Edge */
+	user-select: none; /* Standard */
+
+	& * {
+		color: #fff;
+		font-weight: 400;
+	}
+}
+
+.cell.drag-over {
+	/* NOTE: same class exists in editor css file for add button container. */
+	border-top-color: var(--primary-color);
+	box-shadow: 0 -2px 0 var(--primary-color);
+	border-radius: 0;
+
+	& * {
+		pointer-events: none;
+	}
+}
+
+.repetitions-info-container {
+	position: absolute;
+	cursor: auto;
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	align-items: start;
+	min-width: 18rem;
+	border-radius: var(--default-border-radius);
+	text-align: left;
+
+	padding: var(--medium-padding);
+	background-color: var(--default-background-color);
+	box-shadow: var(--darker-box-shadow);
+
+	top: calc(100% + 13px);
+	right: 0;
+	z-index: 1;
+}
+
+.repetitions-info-container::after {
+	content: "";
+	border: 12px solid var(--default-background-color);
+	position: absolute;
+	border-top-width: 0;
+	border-left-color: transparent;
+	border-right-color: transparent;
+	top: 0;
+	transform: translateY(-100%);
+	right: 4px;
+}
+
+.repetitions-info-box {
+	padding: 4px 0;
+}
+
+.repetitions-info-box:not(:last-child) {
+	border-bottom: 1px solid var(--hover-border-color);
+}

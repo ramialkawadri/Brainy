@@ -2,15 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import createDefaultCell from "../../util/createDefaultCell";
 import TitleBar from "./TitleBar";
 import styles from "./styles.module.css";
-import Cell, {
-	CellType,
-	cellTypesDisplayNames,
-} from "../../type/backend/entity/cell";
-import FocusTools from "./FocusTools";
-import NewCellTypeSelector from "./NewCellTypeSelector";
-import Icon from "@mdi/react";
-import getCellIcon from "../../util/getCellIcon";
-import EditorCell from "../EditorCell/EditorCell";
+import Cell, { CellType } from "../../type/backend/entity/cell";
 import FileRepetitionCounts from "../../type/backend/model/fileRepetitionCounts";
 import useBeforeUnload from "../../hooks/useBeforeUnload";
 import {
@@ -25,7 +17,6 @@ import {
 	getStudyRepetitionCounts,
 } from "../../api/repetitionApi";
 import errorToString from "../../util/errorToString";
-import { Editor as TipTapEditor } from "@tiptap/react";
 import { TauriEvent, UnlistenFn } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import UpdateCellRequest from "../../type/backend/dto/updateCellRequest";
@@ -35,22 +26,22 @@ import RenderIfVisible from "../../ui/RenderIfVisible";
 import useGlobalKey from "../../hooks/useGlobalKey";
 import { useSearchParams } from "react-router";
 import { fileIdQueryParameter } from "../../constants";
+import CellBlock from "../CellBlock/CellBlock";
 
 const autoSaveDelayInMilliSeconds = 2000;
 const oneMinuteInMilliseconds = 60 * 1000;
+export const CELL_ID_DRAG_FORMAT = "cell/id";
 
 interface Props {
 	editCellId: number | null;
+	// TODO: move to global state?
 	onError: (error: string) => void;
 	onStudyStart: () => void;
 }
 
 function Editor({ editCellId, onError, onStudyStart }: Props) {
 	// Used for the focus tools.
-	const [showInsertNewCell, setShowInsertNewCell] = useState(false);
 	const [selectedCellId, setSelectedCellId] = useState<number | null>(null);
-	const [draggedCellId, setDraggedCellId] = useState<number | null>(null);
-	const [dragOverCellId, setDragOverCellId] = useState<number | null>(null);
 	const [isDragOverAddCellContainer, setIsDragOverAddCellContainer] =
 		useState(false);
 	const [searchText, setSearchText] = useState("");
@@ -65,7 +56,6 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 	const [repetitions, setRepetitions] = useState<Repetition[]>([]);
 	// This ref is only used for keeping updated cells that are not yet saved.
 	const updatedCells = useRef(cells);
-	const tipTapEditorRef = useRef<TipTapEditor | null>(null);
 	const outerEditorContainerRef = useRef<HTMLDivElement>(null);
 	const searchInputRef = useRef<HTMLInputElement>(null);
 	const [searchParams] = useSearchParams();
@@ -102,7 +92,6 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 
 	useEffect(() => {
 		if (!searchText) {
-			tipTapEditorRef.current?.commands.focus();
 			selectedCellRef.current?.scrollIntoView();
 		}
 	}, [searchText]);
@@ -113,12 +102,7 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 	});
 
 	useGlobalKey(e => {
-		if (e.key === "Escape") {
-			tipTapEditorRef.current?.commands.focus();
-		} else if (e.ctrlKey && e.shiftKey && e.code === "Enter") {
-			setShowInsertNewCell(!showInsertNewCell);
-			if (showInsertNewCell) tipTapEditorRef.current?.commands.focus();
-		} else if (e.code === "F5") {
+		if (e.code === "F5") {
 			void startStudy();
 		} else if (e.ctrlKey && e.altKey && e.code == "ArrowDown") {
 			e.preventDefault();
@@ -141,7 +125,6 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 			);
 			selectCell(cells[Math.max(0, selectedCellIndex - 1)].id!);
 		} else if (e.ctrlKey && e.key === " ") {
-			tipTapEditorRef.current?.commands.focus();
 			selectedCellRef.current?.scrollIntoView();
 		}
 	}, "keydown");
@@ -268,7 +251,6 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 		await retrieveSelectedFileCells();
 		if (cellId) selectCell(cellId);
 		await retrieveRepetitionCounts();
-		setShowInsertNewCell(false);
 	};
 
 	const handleCellDeleteConfirm = async () => {
@@ -278,7 +260,6 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 		await retrieveRepetitionCounts();
 		await forceSave();
 		await retrieveSelectedFileCells();
-		tipTapEditorRef.current = null;
 		if (cellIndex > 0) {
 			selectCell(cellIndex > 0 ? cells[cellIndex - 1].id! : null);
 		} else if (cellIndex === 0 && cells.length > 1) {
@@ -291,7 +272,6 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 	const selectCell = useCallback(
 		(id: number | null) => {
 			if (selectedCellId !== id) {
-				setShowInsertNewCell(false);
 				setSelectedCellId(id);
 			}
 		},
@@ -314,50 +294,29 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [selectedFileId]);
 
-	const handleDragStart = (e: React.DragEvent, id: number) => {
-		e.stopPropagation();
-		// Setting anything in the data transfer so that drag over works,
-		// but the index is stored in the state.
-		e.dataTransfer.setData("tmp", "tmp");
-		setDraggedCellId(id);
-	};
-
-	const handleDragOver = (
-		e: React.DragEvent,
-		id: number | null,
-		isDragOverAddCellContainer = false,
-	) => {
-		if (draggedCellId === null || id === draggedCellId) {
+	const handleDragOverAddCellContainer = (e: React.DragEvent) => {
+		const dragCellId = Number(e.dataTransfer.getData(CELL_ID_DRAG_FORMAT));
+		if (dragCellId === null) {
 			return;
 		}
 		e.preventDefault();
-		setDragOverCellId(id);
-		setIsDragOverAddCellContainer(isDragOverAddCellContainer);
+		setIsDragOverAddCellContainer(true);
 	};
 
-	const handleDrop = async (index: number) => {
-		if (draggedCellId === null) return;
-		const draggedCellIndex = cells.findIndex(c => c.id === draggedCellId);
+	const handleDrop = async (e: React.DragEvent, index: number) => {
+		const dragCellId = Number(e.dataTransfer.getData(CELL_ID_DRAG_FORMAT));
+		if (dragCellId === null) return;
+		const draggedCellIndex = cells.findIndex(c => c.id === dragCellId);
 		if (index === draggedCellIndex) return;
-		await executeRequest(async () => await moveCell(draggedCellId, index));
+		await executeRequest(async () => await moveCell(dragCellId, index));
 		await forceSave();
 		await retrieveSelectedFileCells();
-		setDragOverCellId(null);
 		setIsDragOverAddCellContainer(false);
-		setDraggedCellId(null);
 	};
 
 	const startStudy = async () => {
 		await forceSave();
 		onStudyStart();
-	};
-
-	const handleCellClick = (cellId: number) => {
-		if (cellId === selectedCellId && tipTapEditorRef.current) {
-			tipTapEditorRef.current.commands.focus();
-		} else {
-			selectCell(cellId);
-		}
 	};
 
 	return (
@@ -388,120 +347,51 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 								defaultHeight={200}
 								stayRendered={selectedCellId === cell.id}
 								root={outerEditorContainerRef.current}>
-								<div
+								<CellBlock
 									key={cell.id}
 									ref={
 										cell.id === selectedCellId
 											? selectedCellRef
 											: null
 									}
-									onFocus={() => selectCell(cell.id!)}
-									onClick={() => handleCellClick(cell.id!)}
-									onDragOver={e =>
-										handleDragOver(e, cell.id!)
+									cell={cell}
+									onSelect={selectCell}
+									isSelected={selectedCellId === cell.id}
+									onClick={() => selectCell(cell.id!)}
+									showFocusTools={!searchText}
+									autoFocusEditor={
+										document.activeElement !=
+											searchInputRef.current &&
+										selectedCellId === cell.id
 									}
-									onDragLeave={() => setDragOverCellId(null)}
-									onDrop={() => void handleDrop(i)}
-									className={`${styles.cell}
-                            ${selectedCellId === cell.id ? styles.selectedCell : ""}
-                            ${dragOverCellId === cell.id ? styles.dragOver : ""}
-                            ${draggedCellId === cell.id ? styles.dragging : ""}`}>
-									{selectedCellId === cell.id &&
-										!searchText && (
-											<FocusTools
-												onInsert={() => {
-													setShowInsertNewCell(
-														!showInsertNewCell,
-													);
-													if (showInsertNewCell)
-														tipTapEditorRef.current?.commands.focus();
-												}}
-												onDragStart={e =>
-													handleDragStart(e, cell.id!)
-												}
-												onDragEnd={() =>
-													setDraggedCellId(null)
-												}
-												repetitions={repetitions.filter(
-													r => r.cellId === cell.id,
-												)}
-												cell={cell}
-												onShowRepetitionsInfo={() =>
-													setShowInsertNewCell(false)
-												}
-												onResetRepetitions={() =>
-													void retrieveRepetitionCounts()
-												}
-												onError={onError}
-												onCellDeleteConfirm={() =>
-													void handleCellDeleteConfirm()
-												}
-												onDeleteDialogHide={() =>
-													tipTapEditorRef.current?.commands.focus()
-												}
-											/>
-										)}
-
-									{showInsertNewCell &&
-										selectedCellId === cell.id && (
-											<NewCellTypeSelector
-												className={
-													styles.insertCellPopup
-												}
-												onClick={cellType =>
-													void insertNewCell(
-														cellType,
-														i + 1,
-													)
-												}
-												onHide={() =>
-													setShowInsertNewCell(false)
-												}
-											/>
-										)}
-
-									<div className={styles.cellTitle}>
-										<Icon
-											path={getCellIcon(cell.cellType)}
-											size={1}
-										/>
-										<span>
-											{
-												cellTypesDisplayNames[
-													cell.cellType
-												]
-											}
-										</span>
-									</div>
-
-									<EditorCell
-										cell={cell}
-										autofocus={
-											selectedCellId === cell.id &&
-											document.activeElement !=
-												searchInputRef.current
-										}
-										onUpdate={content =>
-											handleUpdate(content, cell.id!)
-										}
-										onFocus={editor =>
-											(tipTapEditorRef.current = editor)
-										}
-									/>
-								</div>
+									repetitions={repetitions.filter(
+										r => r.cellId === cell.id,
+									)}
+									onError={onError}
+									onDrop={e => void handleDrop(e, i)}
+									onUpdate={content =>
+										handleUpdate(content, cell.id!)
+									}
+									onDelete={() =>
+										void handleCellDeleteConfirm()
+									}
+									onInsertNewCell={cellType =>
+										void insertNewCell(cellType, i + 1)
+									}
+									onResetRepetitions={() =>
+										void retrieveRepetitionCounts()
+									}
+								/>
 							</RenderIfVisible>
 						))}
 
 					<AddCellContainer
 						isDragOver={isDragOverAddCellContainer}
-						onDragOver={e => handleDragOver(e, null, true)}
-						onDrop={() => void handleDrop(cells.length)}
+						onDragOver={handleDragOverAddCellContainer}
+						onDrop={e => void handleDrop(e, cells.length)}
 						onDragLeave={() => setIsDragOverAddCellContainer(false)}
 						onAddNewCell={cellType =>
 							void insertNewCell(cellType, cells.length)
-						}
-						onPopupHide={() =>
-							tipTapEditorRef.current?.commands.focus()
 						}
 					/>
 				</div>

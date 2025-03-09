@@ -138,12 +138,10 @@ function App() {
 							/>
 						}
 					/>
-                    <Route 
-                        path="/search"
-                        element={
-                            <Searcher />
-                        }
-                    />
+					<Route
+						path="/search"
+						element={<Searcher onError={setErrorMessage} />}
+					/>
 				</Routes>
 			</div>
 
