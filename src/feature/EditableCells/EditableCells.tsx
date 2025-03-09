@@ -3,7 +3,7 @@ import Cell, { CellType } from "../../type/backend/entity/cell";
 import RenderIfVisible from "../../ui/RenderIfVisible";
 import AddCellContainer from "./AddCellContainer";
 import styles from "./styles.module.css";
-import CellBlock from "../CellBlock/CellBlock";
+import CellBlock from "./CellBlock";
 import Repetition from "../../type/backend/entity/repetition";
 import { TauriEvent, UnlistenFn } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
@@ -27,7 +27,7 @@ interface Props {
 	repetitions: Repetition[];
 	editCellId: number | null;
 	fileId: number;
-    autoFocusEditor: boolean;
+	autoFocusEditor: boolean;
 	onError: (error: string) => void;
 	onCellsUpdate: () => Promise<void>;
 }
@@ -35,20 +35,20 @@ interface Props {
 export const CELL_ID_DRAG_FORMAT = "cell/id";
 
 // TODO: rename css variables
-function EditorCells({
+function EditableCells({
 	cells,
 	searchText,
 	repetitions,
 	fileId,
 	editCellId,
-    autoFocusEditor,
+	autoFocusEditor,
 	onError,
 	onCellsUpdate,
 }: Props) {
 	const [isDragOverAddCellContainer, setIsDragOverAddCellContainer] =
 		useState(false);
 	const [selectedCellId, setSelectedCellId] = useState<number | null>(null);
-	const outerEditorContainerRef = useRef<HTMLDivElement>(null);
+	const containerRef = useRef<HTMLDivElement>(null);
 	const selectedCellRef = useRef<HTMLDivElement>(null);
 	// This ref is only used for keeping updated cells that are not yet saved.
 	const updatedCells = useRef(cells);
@@ -169,19 +169,23 @@ function EditorCells({
 		})();
 	}, [cells, forceSave]);
 
-    useEffect(() => {
-        if (cells && cells.length > 0 && !cells.some(c => c.id === selectedCellId)) {
-            if (editCellId !== null && cells.some(c => c.id === editCellId))
-                selectCell(editCellId);
-            else selectCell(cells[0].id!);
-        }
-    }, [cells, selectCell, selectedCellId, fileId, editCellId]);
+	useEffect(() => {
+		if (
+			cells &&
+			cells.length > 0 &&
+			!cells.some(c => c.id === selectedCellId)
+		) {
+			if (editCellId !== null && cells.some(c => c.id === editCellId))
+				selectCell(editCellId);
+			else selectCell(cells[0].id!);
+		}
+	}, [cells, selectCell, selectedCellId, fileId, editCellId]);
 
 	const insertNewCell = async (cellType: CellType, index: number) => {
 		const cell = createDefaultCell(cellType, fileId, index);
 		const cellId = await executeRequest(async () => await createCell(cell));
 		await forceSave();
-        await onCellsUpdate();
+		await onCellsUpdate();
 		if (cellId) selectCell(cellId);
 	};
 
@@ -190,7 +194,7 @@ function EditorCells({
 		const cellIndex = cells.findIndex(c => c.id === selectedCellId);
 		await executeRequest(async () => await deleteCell(selectedCellId!));
 		await forceSave();
-        await onCellsUpdate();
+		await onCellsUpdate();
 		if (cellIndex > 0) {
 			selectCell(cellIndex > 0 ? cells[cellIndex - 1].id! : null);
 		} else if (cellIndex === 0 && cells.length > 1) {
@@ -260,75 +264,70 @@ function EditorCells({
 		if (index === draggedCellIndex) return;
 		await executeRequest(async () => await moveCell(dragCellId, index));
 		await forceSave();
-        await onCellsUpdate();
+		await onCellsUpdate();
 		setIsDragOverAddCellContainer(false);
 	};
 
 	return (
-		<div
-			className={styles.outerEditorContainer}
-			ref={outerEditorContainerRef}>
-			<div className={`${styles.editorContainer}`}>
-				{cells.length === 0 && <p>This file is empty</p>}
+		<div className={`${styles.container}`} ref={containerRef}>
+			{cells.length === 0 && <p>This file is empty</p>}
 
-				{cells
-					.filter(c =>
-						c.searchableContent.includes(searchText.toLowerCase()),
-					)
-					.map((cell, i) => (
-						<RenderIfVisible
+			{cells
+				.filter(c =>
+					c.searchableContent.includes(searchText.toLowerCase()),
+				)
+				.map((cell, i) => (
+					<RenderIfVisible
+						key={cell.id}
+						defaultHeight={200}
+						stayRendered={selectedCellId === cell.id}
+						root={containerRef.current}>
+						<CellBlock
 							key={cell.id}
-							defaultHeight={200}
-							stayRendered={selectedCellId === cell.id}
-							root={outerEditorContainerRef.current}>
-							<CellBlock
-								key={cell.id}
-								ref={
-									cell.id === selectedCellId
-										? selectedCellRef
-										: null
-								}
-								cell={cell}
-								onSelect={selectCell}
-								isSelected={selectedCellId === cell.id}
-								onClick={() => selectCell(cell.id!)}
-								showFocusTools={!searchText}
-								autoFocusEditor={
-									autoFocusEditor &&
-									selectedCellId === cell.id
-								}
-								repetitions={repetitions.filter(
-									r => r.cellId === cell.id,
-								)}
-								onError={onError}
-								onDrop={e => void handleDrop(e, i)}
-								onUpdate={content =>
-									handleUpdate(content, cell.id!)
-								}
-								onDelete={() => void handleCellDeleteConfirm()}
-								onInsertNewCell={cellType =>
-									void insertNewCell(cellType, i + 1)
-								}
-								onResetRepetitions={() => {
-                                    void forceSave();
-                                    void onCellsUpdate();
-                                }}
-							/>
-						</RenderIfVisible>
-					))}
+							ref={
+								cell.id === selectedCellId
+									? selectedCellRef
+									: null
+							}
+							cell={cell}
+							onSelect={selectCell}
+							isSelected={selectedCellId === cell.id}
+							onClick={() => selectCell(cell.id!)}
+							showFocusTools={!searchText}
+							autoFocusEditor={
+								autoFocusEditor && selectedCellId === cell.id
+							}
+							repetitions={repetitions.filter(
+								r => r.cellId === cell.id,
+							)}
+							onError={onError}
+							onDrop={e => void handleDrop(e, i)}
+							onUpdate={content =>
+								handleUpdate(content, cell.id!)
+							}
+							onDelete={() => void handleCellDeleteConfirm()}
+							onInsertNewCell={cellType =>
+								void insertNewCell(cellType, i + 1)
+							}
+							onResetRepetitions={() => {
+								void forceSave();
+								void onCellsUpdate();
+							}}
+						/>
+					</RenderIfVisible>
+				))}
 
-				<AddCellContainer
-					isDragOver={isDragOverAddCellContainer}
-					onDragOver={handleDragOverAddCellContainer}
-					onDrop={e => void handleDrop(e, cells.length)}
-					onDragLeave={() => setIsDragOverAddCellContainer(false)}
-					onAddNewCell={cellType =>
-						void insertNewCell(cellType, cells.length)
-					}
-				/>
-			</div>
+			<AddCellContainer
+				isDragOver={isDragOverAddCellContainer}
+				onDragOver={handleDragOverAddCellContainer}
+				onDrop={e => void handleDrop(e, cells.length)}
+				onDragLeave={() => setIsDragOverAddCellContainer(false)}
+				onAddNewCell={cellType =>
+					void insertNewCell(cellType, cells.length)
+				}
+			/>
 		</div>
 	);
 }
 
-export default EditorCells;
+export default EditableCells;

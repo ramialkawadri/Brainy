@@ -12,8 +12,8 @@ import errorToString from "../../util/errorToString";
 import useGlobalKey from "../../hooks/useGlobalKey";
 import { useSearchParams } from "react-router";
 import { fileIdQueryParameter } from "../../constants";
-import EditorCells from "./EditorCells";
 import Repetition from "../../type/backend/entity/repetition";
+import EditableCells from "../EditableCells/EditableCells";
 
 const oneMinuteInMilliseconds = 60 * 1000;
 
@@ -35,7 +35,7 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 		});
 	const [cells, setCells] = useState<Cell[]>([]);
 	const [searchParams] = useSearchParams();
-    const searchInputRef = useRef<HTMLInputElement>(null);
+	const searchInputRef = useRef<HTMLInputElement>(null);
 	const selectedFileId = Number(searchParams.get(fileIdQueryParameter));
 
 	useGlobalKey(e => {
@@ -115,8 +115,8 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 				searchInputRef={searchInputRef}
 			/>
 
-			<EditorCells
-                key={selectedFileId}
+			<EditableCells
+				key={selectedFileId}
 				cells={cells}
 				searchText={searchText}
 				repetitions={repetitions}
@@ -124,9 +124,9 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 				editCellId={editCellId}
 				fileId={selectedFileId}
 				onCellsUpdate={handleCellsUpdate}
-                autoFocusEditor={
-                    document.activeElement !== searchInputRef.current
-                }
+				autoFocusEditor={
+					document.activeElement !== searchInputRef.current
+				}
 			/>
 		</div>
 	);

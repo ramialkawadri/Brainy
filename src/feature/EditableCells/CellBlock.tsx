@@ -9,10 +9,10 @@ import getCellIcon from "../../util/getCellIcon";
 import Icon from "@mdi/react";
 import FocusTools from "./FocusTools";
 import Repetition from "../../type/backend/entity/repetition";
-import NewCellTypeSelector from "../Editor/NewCellTypeSelector";
+import NewCellTypeSelector from "./NewCellTypeSelector";
 import { Editor as TipTapEditor } from "@tiptap/react";
 import useGlobalKey from "../../hooks/useGlobalKey";
-import { CELL_ID_DRAG_FORMAT } from "../Editor/EditorCells";
+import { CELL_ID_DRAG_FORMAT } from "./EditableCells";
 
 interface Props {
 	cell: Cell;
@@ -31,7 +31,6 @@ interface Props {
 }
 
 // TODO: rename css variables
-// TODO: move to same folder as editor cells
 function CellBlock(
 	{
 		cell,
@@ -68,8 +67,6 @@ function CellBlock(
 
 	const handleDragStart = (e: React.DragEvent) => {
 		e.stopPropagation();
-		// Setting anything in the data transfer so that drag over works,
-		// but the index is stored in the state.
 		e.dataTransfer.setData(CELL_ID_DRAG_FORMAT, cell.id!.toString());
 		setIsDragged(true);
 	};
