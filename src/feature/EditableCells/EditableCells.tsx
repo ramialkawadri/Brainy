@@ -33,7 +33,6 @@ interface Props {
 	onCellsUpdate: () => Promise<void>;
 }
 
-// TODO: reorder functions, and try to do less renders
 function EditableCells({
 	cells,
 	searchText,
@@ -44,7 +43,11 @@ function EditableCells({
 	onError,
 	onCellsUpdate,
 }: Props) {
-	const [selectedCellId, setSelectedCellId] = useState<number | null>(null);
+	const [selectedCellId, setSelectedCellId] = useState<number | null>(() => {
+        if (cells.some(c => c.id === editCellId)) return editCellId;
+        else if (cells.length > 0) return cells[0].id!;
+        return null;
+    });
 	const containerRef = useRef<HTMLDivElement>(null);
 	const selectedCellRef = useRef<HTMLDivElement>(null);
 	// This ref is only used for keeping updated cells that are not yet saved.
@@ -110,7 +113,7 @@ function EditableCells({
 			autoSaveTimeoutId.current = null;
 		}
 
-        if (changedCellsIds.current.size === 0) return;
+		if (changedCellsIds.current.size === 0) return;
 
 		await executeRequest(async () => {
 			const requests: UpdateCellRequest[] = [];
@@ -126,17 +129,18 @@ function EditableCells({
 
 			await updateCellsContents(requests);
 			changedCellsIds.current.clear();
-			await onCellsUpdate();
 		});
+
+		await onCellsUpdate();
 	}, [executeRequest, onCellsUpdate]);
 
 	useEffect(() => {
-        updatedCells.current = cells;
+		updatedCells.current = cells;
 
 		return () => void saveChanges();
 	}, [cells, saveChanges]);
 
-    // TODO: make as custom hook
+	// TODO: make as custom hook
 	useEffect(() => {
 		let unlisten: UnlistenFn;
 
@@ -161,32 +165,19 @@ function EditableCells({
 		};
 	}, [saveChanges]);
 
-	useEffect(() => {
-		if (
-			cells &&
-			cells.length > 0
-		) {
-			if (editCellId !== null && cells.some(c => c.id === editCellId))
-				setSelectedCellId(editCellId);
-			else setSelectedCellId(cells[0].id!);
-		}
-	}, [cells, editCellId]);
-
-    // TODO: on large file maybe multiple updates
 	const insertNewCell = async (cellType: CellType, index: number) => {
 		const cell = createDefaultCell(cellType, fileId, index);
 		const cellId = await executeRequest(async () => await createCell(cell));
-        await saveChanges();
+        if (cellId) setSelectedCellId(cellId);
+        else return;
+		await saveChanges();
 		await onCellsUpdate();
-		if (cellId) setSelectedCellId(cellId);
 	};
 
 	const handleCellDeleteConfirm = async () => {
 		changedCellsIds.current.delete(selectedCellId!);
 		const cellIndex = cells.findIndex(c => c.id === selectedCellId);
 		await executeRequest(async () => await deleteCell(selectedCellId!));
-		await saveChanges();
-		await onCellsUpdate();
 		if (cellIndex > 0) {
 			setSelectedCellId(cellIndex > 0 ? cells[cellIndex - 1].id! : null);
 		} else if (cellIndex === 0 && cells.length > 1) {
@@ -194,6 +185,8 @@ function EditableCells({
 		} else {
 			setSelectedCellId(null);
 		}
+		await saveChanges();
+		await onCellsUpdate();
 	};
 
 	const handleUpdate = (content: string, id: number) => {
@@ -217,7 +210,7 @@ function EditableCells({
 			0 <= selectedCellIndex + number &&
 			selectedCellIndex + number < cells.length
 		) {
-            await saveChanges();
+			await saveChanges();
 			await executeRequest(async () => {
 				await moveCell(
 					cells[selectedCellIndex].id!,
