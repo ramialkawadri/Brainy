@@ -19,7 +19,8 @@ import {
 import errorToString from "../../util/errorToString";
 import useGlobalKey from "../../hooks/useGlobalKey";
 
-const autoSaveDelayInMilliSeconds = 2000;
+const AUTO_SAVE_DELAY_IN_MILLI_SECONDS = 2000;
+export const CELL_ID_DRAG_FORMAT = "cell/id";
 
 interface Props {
 	cells: Cell[];
@@ -32,9 +33,7 @@ interface Props {
 	onCellsUpdate: () => Promise<void>;
 }
 
-export const CELL_ID_DRAG_FORMAT = "cell/id";
-
-// TODO: rename css variables
+// TODO: reorder functions, and try to do less renders
 function EditableCells({
 	cells,
 	searchText,
@@ -45,8 +44,6 @@ function EditableCells({
 	onError,
 	onCellsUpdate,
 }: Props) {
-	const [isDragOverAddCellContainer, setIsDragOverAddCellContainer] =
-		useState(false);
 	const [selectedCellId, setSelectedCellId] = useState<number | null>(null);
 	const containerRef = useRef<HTMLDivElement>(null);
 	const selectedCellRef = useRef<HTMLDivElement>(null);
@@ -66,16 +63,16 @@ function EditableCells({
 	useGlobalKey(e => {
 		if (e.ctrlKey && e.altKey && e.code == "ArrowDown") {
 			e.preventDefault();
-			void moveCurrentCellByNumber(1);
+			void moveSelectedCellByNumber(1);
 		} else if (e.ctrlKey && e.altKey && e.code == "ArrowUp") {
 			e.preventDefault();
-			void moveCurrentCellByNumber(-1);
+			void moveSelectedCellByNumber(-1);
 		} else if (e.ctrlKey && e.code == "ArrowDown") {
 			e.preventDefault();
 			const selectedCellIndex = cells.findIndex(
 				c => c.id === selectedCellId,
 			);
-			selectCell(
+			setSelectedCellId(
 				cells[Math.min(cells.length - 1, selectedCellIndex + 1)].id!,
 			);
 		} else if (e.ctrlKey && e.code == "ArrowUp") {
@@ -83,25 +80,16 @@ function EditableCells({
 			const selectedCellIndex = cells.findIndex(
 				c => c.id === selectedCellId,
 			);
-			selectCell(cells[Math.max(0, selectedCellIndex - 1)].id!);
+			setSelectedCellId(cells[Math.max(0, selectedCellIndex - 1)].id!);
 		} else if (e.ctrlKey && e.key === " ") {
 			selectedCellRef.current?.scrollIntoView();
 		}
 	}, "keydown");
 
 	useBeforeUnload(e => {
-		void forceSave();
+		void saveChanges();
 		if (changedCellsIds.current.size > 0) e.preventDefault();
 	});
-
-	const selectCell = useCallback(
-		(id: number | null) => {
-			if (selectedCellId !== id) {
-				setSelectedCellId(id);
-			}
-		},
-		[selectedCellId],
-	);
 
 	const executeRequest = useCallback(
 		async <T,>(cb: () => Promise<T>): Promise<T | null> => {
@@ -116,25 +104,13 @@ function EditableCells({
 		[onError],
 	);
 
-	const moveCurrentCellByNumber = async (number: number) => {
-		const selectedCellIndex = cells.findIndex(c => c.id === selectedCellId);
-		if (
-			0 <= selectedCellIndex + number &&
-			selectedCellIndex + number < cells.length
-		) {
-			await executeRequest(async () => {
-				await moveCell(
-					cells[selectedCellIndex].id!,
-					selectedCellIndex + (number > 0 ? number + 1 : number),
-				);
-			});
-			await forceSave();
-			await onCellsUpdate();
-		}
-	};
-
 	const saveChanges = useCallback(async () => {
-		if (changedCellsIds.current.size === 0) return;
+		if (autoSaveTimeoutId.current !== null) {
+			clearTimeout(autoSaveTimeoutId.current);
+			autoSaveTimeoutId.current = null;
+		}
+
+        if (changedCellsIds.current.size === 0) return;
 
 		await executeRequest(async () => {
 			const requests: UpdateCellRequest[] = [];
@@ -154,53 +130,69 @@ function EditableCells({
 		});
 	}, [executeRequest, onCellsUpdate]);
 
-	const forceSave = useCallback(async () => {
-		if (autoSaveTimeoutId.current !== null) {
-			clearTimeout(autoSaveTimeoutId.current);
-			autoSaveTimeoutId.current = null;
-		}
-		await saveChanges();
-	}, [saveChanges]);
-
 	useEffect(() => {
+        updatedCells.current = cells;
+
+		return () => void saveChanges();
+	}, [cells, saveChanges]);
+
+    // TODO: make as custom hook
+	useEffect(() => {
+		let unlisten: UnlistenFn;
+
 		void (async () => {
-			await forceSave();
-			updatedCells.current = cells;
+			unlisten = await getCurrentWindow().listen(
+				TauriEvent.WINDOW_CLOSE_REQUESTED,
+				() => {
+					if (changedCellsIds.current.size > 0) {
+						void (async () => {
+							await saveChanges();
+							await getCurrentWindow().destroy();
+						})();
+					} else {
+						void getCurrentWindow().destroy();
+					}
+				},
+			);
 		})();
-	}, [cells, forceSave]);
+
+		return () => {
+			if (unlisten) void unlisten();
+		};
+	}, [saveChanges]);
 
 	useEffect(() => {
 		if (
 			cells &&
-			cells.length > 0 &&
-			!cells.some(c => c.id === selectedCellId)
+			cells.length > 0
 		) {
 			if (editCellId !== null && cells.some(c => c.id === editCellId))
-				selectCell(editCellId);
-			else selectCell(cells[0].id!);
+				setSelectedCellId(editCellId);
+			else setSelectedCellId(cells[0].id!);
 		}
-	}, [cells, selectCell, selectedCellId, fileId, editCellId]);
+	}, [cells, editCellId]);
 
+    // TODO: on large file maybe multiple updates
 	const insertNewCell = async (cellType: CellType, index: number) => {
 		const cell = createDefaultCell(cellType, fileId, index);
 		const cellId = await executeRequest(async () => await createCell(cell));
-		await forceSave();
+        await saveChanges();
 		await onCellsUpdate();
-		if (cellId) selectCell(cellId);
+		if (cellId) setSelectedCellId(cellId);
 	};
 
 	const handleCellDeleteConfirm = async () => {
 		changedCellsIds.current.delete(selectedCellId!);
 		const cellIndex = cells.findIndex(c => c.id === selectedCellId);
 		await executeRequest(async () => await deleteCell(selectedCellId!));
-		await forceSave();
+		await saveChanges();
 		await onCellsUpdate();
 		if (cellIndex > 0) {
-			selectCell(cellIndex > 0 ? cells[cellIndex - 1].id! : null);
+			setSelectedCellId(cellIndex > 0 ? cells[cellIndex - 1].id! : null);
 		} else if (cellIndex === 0 && cells.length > 1) {
-			selectCell(cells[1].id!);
+			setSelectedCellId(cells[1].id!);
 		} else {
-			selectCell(null);
+			setSelectedCellId(null);
 		}
 	};
 
@@ -216,45 +208,24 @@ function EditableCells({
 		}
 		autoSaveTimeoutId.current = setTimeout(() => {
 			void saveChanges();
-			autoSaveTimeoutId.current = null;
-		}, autoSaveDelayInMilliSeconds);
+		}, AUTO_SAVE_DELAY_IN_MILLI_SECONDS);
 	};
 
-	useEffect(() => {
-		return () => void forceSave();
-	}, [forceSave]);
-
-	useEffect(() => {
-		let unlisten: UnlistenFn;
-
-		void (async () => {
-			unlisten = await getCurrentWindow().listen(
-				TauriEvent.WINDOW_CLOSE_REQUESTED,
-				() => {
-					if (changedCellsIds.current.size > 0) {
-						void (async () => {
-							await forceSave();
-							await getCurrentWindow().destroy();
-						})();
-					} else {
-						void getCurrentWindow().destroy();
-					}
-				},
-			);
-		})();
-
-		return () => {
-			if (unlisten) void unlisten();
-		};
-	}, [forceSave]);
-
-	const handleDragOverAddCellContainer = (e: React.DragEvent) => {
-		const dragCellId = Number(e.dataTransfer.getData(CELL_ID_DRAG_FORMAT));
-		if (dragCellId === null) {
-			return;
+	const moveSelectedCellByNumber = async (number: number) => {
+		const selectedCellIndex = cells.findIndex(c => c.id === selectedCellId);
+		if (
+			0 <= selectedCellIndex + number &&
+			selectedCellIndex + number < cells.length
+		) {
+            await saveChanges();
+			await executeRequest(async () => {
+				await moveCell(
+					cells[selectedCellIndex].id!,
+					selectedCellIndex + (number > 0 ? number + 1 : number),
+				);
+			});
+			await onCellsUpdate();
 		}
-		e.preventDefault();
-		setIsDragOverAddCellContainer(true);
 	};
 
 	const handleDrop = async (e: React.DragEvent, index: number) => {
@@ -263,13 +234,12 @@ function EditableCells({
 		const draggedCellIndex = cells.findIndex(c => c.id === dragCellId);
 		if (index === draggedCellIndex) return;
 		await executeRequest(async () => await moveCell(dragCellId, index));
-		await forceSave();
+		await saveChanges();
 		await onCellsUpdate();
-		setIsDragOverAddCellContainer(false);
 	};
 
 	return (
-		<div className={`${styles.container}`} ref={containerRef}>
+		<div className={styles.container} ref={containerRef}>
 			{cells.length === 0 && <p>This file is empty</p>}
 
 			{cells
@@ -290,9 +260,9 @@ function EditableCells({
 									: null
 							}
 							cell={cell}
-							onSelect={selectCell}
+							onSelect={setSelectedCellId}
 							isSelected={selectedCellId === cell.id}
-							onClick={() => selectCell(cell.id!)}
+							onClick={() => setSelectedCellId(cell.id!)}
 							showFocusTools={!searchText}
 							autoFocusEditor={
 								autoFocusEditor && selectedCellId === cell.id
@@ -310,7 +280,7 @@ function EditableCells({
 								void insertNewCell(cellType, i + 1)
 							}
 							onResetRepetitions={() => {
-								void forceSave();
+								void saveChanges();
 								void onCellsUpdate();
 							}}
 						/>
@@ -318,10 +288,7 @@ function EditableCells({
 				))}
 
 			<AddCellContainer
-				isDragOver={isDragOverAddCellContainer}
-				onDragOver={handleDragOverAddCellContainer}
 				onDrop={e => void handleDrop(e, cells.length)}
-				onDragLeave={() => setIsDragOverAddCellContainer(false)}
 				onAddNewCell={cellType =>
 					void insertNewCell(cellType, cells.length)
 				}

@@ -40,7 +40,7 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 
 	useGlobalKey(e => {
 		if (e.code === "F5") {
-			void startStudy();
+			onStudyStart();
 		}
 	}, "keydown");
 
@@ -90,26 +90,18 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 			await retrieveSelectedFileCells();
 			setSearchText("");
 		})();
-
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [selectedFileId]);
-
-	const startStudy = () => {
-		onStudyStart();
-	};
+	}, [retrieveSelectedFileCells, retrieveRepetitionCounts]);
 
 	const handleCellsUpdate = useCallback(async () => {
 		await retrieveSelectedFileCells();
 		await retrieveRepetitionCounts();
-		const fetchedRepetitions = await getFileRepetitions(selectedFileId);
-		setRepetitions(fetchedRepetitions);
-	}, [retrieveRepetitionCounts, retrieveSelectedFileCells, selectedFileId]);
+	}, [retrieveRepetitionCounts, retrieveSelectedFileCells]);
 
 	return (
 		<div className={styles.container} key={selectedFileId}>
 			<TitleBar
 				repetitionCounts={repetitionCounts}
-				onStudyButtonClick={() => void startStudy()}
+				onStudyButtonClick={onStudyStart}
 				searchText={searchText}
 				onSearchTextChange={setSearchText}
 				searchInputRef={searchInputRef}

@@ -30,7 +30,6 @@ interface Props {
 	onResetRepetitions: () => void;
 }
 
-// TODO: rename css variables
 function CellBlock(
 	{
 		cell,
@@ -49,7 +48,7 @@ function CellBlock(
 	}: Props,
 	ref: ForwardedRef<HTMLDivElement>,
 ) {
-	const [isDragged, setIsDragged] = useState(false);
+	const [isDragging, setIsDragging] = useState(false);
 	const [isDragOver, setIsDragOver] = useState(false);
 	const [showInsertNewCell, setShowInsertNewCell] = useState(false);
 	const tipTapEditorRef = useRef<TipTapEditor>(null);
@@ -68,7 +67,7 @@ function CellBlock(
 	const handleDragStart = (e: React.DragEvent) => {
 		e.stopPropagation();
 		e.dataTransfer.setData(CELL_ID_DRAG_FORMAT, cell.id!.toString());
-		setIsDragged(true);
+		setIsDragging(true);
 	};
 
 	const handleDragOver = (e: React.DragEvent) => {
@@ -110,15 +109,15 @@ function CellBlock(
 			onDragOver={handleDragOver}
 			onDragLeave={() => setIsDragOver(false)}
 			onDrop={handleDrop}
-			className={`${styles.cell}
+			className={`${styles.cellBlock}
                 ${isSelected ? styles.selectedCell : ""}
                 ${isDragOver ? styles.dragOver : ""}
-                ${isDragged ? styles.dragging : ""}`}>
+                ${isDragging ? styles.dragging : ""}`}>
 			{isSelected && showFocusTools && (
 				<FocusTools
 					onInsertClick={handleFocusToolsInsertNewCellClick}
 					onDragStart={e => handleDragStart(e)}
-					onDragEnd={() => setIsDragged(false)}
+					onDragEnd={() => setIsDragging(false)}
 					cell={cell}
 					repetitions={repetitions}
 					onShowRepetitionsInfo={() => setShowInsertNewCell(false)}

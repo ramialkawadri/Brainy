@@ -5,30 +5,17 @@ import NewCellTypeSelector from "./NewCellTypeSelector";
 import { useState } from "react";
 import { CellType } from "../../type/backend/entity/cell";
 import useGlobalKey from "../../hooks/useGlobalKey";
+import { CELL_ID_DRAG_FORMAT } from "./EditableCells";
 
 interface Props {
-	isDragOver: boolean;
-	onDragOver: (e: React.DragEvent) => void;
-	onDragLeave: (e: React.DragEvent) => void;
 	onDrop: (e: React.DragEvent) => void;
 	onAddNewCell: (cellType: CellType) => void;
 	onPopupHide?: () => void;
 }
 
-function AddCellContainer({
-	isDragOver,
-	onDragOver,
-	onDrop,
-	onDragLeave,
-	onAddNewCell,
-	onPopupHide,
-}: Props) {
+function AddCellContainer({ onDrop, onAddNewCell, onPopupHide }: Props) {
 	const [showAddNewCellPopup, setShowAddNewCellPopup] = useState(false);
-
-	const hidePopup = () => {
-		if (onPopupHide) onPopupHide();
-		setShowAddNewCellPopup(false);
-	};
+	const [isDragOver, setIsDragOver] = useState(false);
 
 	useGlobalKey(e => {
 		if (e.key === "Escape") {
@@ -38,14 +25,33 @@ function AddCellContainer({
 		}
 	}, "keydown");
 
+	const hidePopup = () => {
+		if (onPopupHide) onPopupHide();
+		setShowAddNewCellPopup(false);
+	};
+
+	const handleDragOver = (e: React.DragEvent) => {
+		const dragCellId = Number(e.dataTransfer.getData(CELL_ID_DRAG_FORMAT));
+		if (dragCellId === null) {
+			return;
+		}
+		e.preventDefault();
+		setIsDragOver(true);
+	};
+
+	const handleDrop = (e: React.DragEvent) => {
+		setIsDragOver(false);
+		onDrop(e);
+	};
+
 	return (
 		<>
 			<div
 				className={`${styles.addButtonContainer}
                     ${isDragOver ? styles.dragOver : ""}`}
-				onDragOver={onDragOver}
-				onDrop={onDrop}
-				onDragLeave={onDragLeave}>
+				onDragOver={handleDragOver}
+				onDrop={handleDrop}
+				onDragLeave={() => setIsDragOver(false)}>
 				<button
 					className={`${styles.addButton} grey-button`}
 					onClick={() => setShowAddNewCellPopup(true)}>

@@ -34,7 +34,7 @@ const RenderIfVisible = ({
 					window.requestIdleCallback(
 						() => setIsVisible(entries[0].isIntersecting),
 						{
-							timeout: 600,
+							timeout: 250,
 						},
 					);
 				} else {
@@ -43,8 +43,8 @@ const RenderIfVisible = ({
 			},
 			{
 				root,
-				rootMargin: `${visibleOffset}px 0px ${visibleOffset}px 0px`,
-				threshold: 0.1,
+				rootMargin: `${visibleOffset}px 0px`,
+				threshold: 0.3,
 			},
 		);
 
