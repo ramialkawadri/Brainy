@@ -29,8 +29,9 @@ interface Props {
 	editCellId: number | null;
 	fileId?: number;
 	autoFocusEditor?: boolean;
+    // TODO: merge with next parameter?
 	showAddNewCellContainer?: boolean;
-	showFileSpecificFocusTools?: boolean;
+	enableFileSpecificFunctionality?: boolean;
 	onError: (error: string) => void;
 	onCellsUpdate: () => Promise<void>;
 }
@@ -43,7 +44,7 @@ function EditableCells({
 	editCellId,
 	autoFocusEditor,
 	showAddNewCellContainer = true,
-	showFileSpecificFocusTools = true,
+	enableFileSpecificFunctionality = true,
 	onError,
 	onCellsUpdate,
 }: Props) {
@@ -144,7 +145,6 @@ function EditableCells({
 		return () => void saveChanges();
 	}, [cells, saveChanges]);
 
-	// TODO: make as custom hook
 	useEffect(() => {
 		let unlisten: UnlistenFn;
 
@@ -209,8 +209,7 @@ function EditableCells({
 	};
 
 	const moveSelectedCellByNumber = async (number: number) => {
-        // TODO: rename to enableFileSpecificFunctionality
-        if (!showFileSpecificFocusTools) return;
+		if (!enableFileSpecificFunctionality) return;
 
 		const selectedCellIndex = cells.findIndex(c => c.id === selectedCellId);
 		if (
@@ -263,7 +262,6 @@ function EditableCells({
 						onSelect={setSelectedCellId}
 						isSelected={selectedCellId === cell.id}
 						onClick={() => setSelectedCellId(cell.id!)}
-						showFocusTools={!searchText}
 						autoFocusEditor={
 							autoFocusEditor && selectedCellId === cell.id
 						}
@@ -281,7 +279,9 @@ function EditableCells({
 							void saveChanges();
 							void onCellsUpdate();
 						}}
-						showFileSpecificFocusTools={showFileSpecificFocusTools}
+						enableFileSpecificFunctionality={
+							enableFileSpecificFunctionality
+						}
 					/>
 				</RenderIfVisible>
 			))}

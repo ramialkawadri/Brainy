@@ -20,7 +20,7 @@ import RepetitionsInfo from "./RepetitionsInfo";
 interface Props {
 	repetitions: Repetition[];
 	cell: Cell;
-	showFileSpecificFocusTools: boolean;
+	enableFileSpecificFunctionality: boolean;
 	onInsertClick: (e: React.MouseEvent) => void;
 	onDragStart: (e: React.DragEvent<HTMLButtonElement>) => void;
 	onDragEnd: (e: React.DragEvent<HTMLButtonElement>) => void;
@@ -34,7 +34,7 @@ interface Props {
 function FocusTools({
 	repetitions,
 	cell,
-	showFileSpecificFocusTools,
+	enableFileSpecificFunctionality,
 	onInsertClick,
 	onDragStart,
 	onDragEnd,
@@ -112,7 +112,7 @@ function FocusTools({
 			<div
 				className={styles.focusTools}
 				onClick={e => e.stopPropagation()}>
-				{showFileSpecificFocusTools && (
+				{enableFileSpecificFunctionality && (
 					<button
 						className="transparent"
 						title="Insert Cell (Ctrl + Shift + Enter)"
@@ -161,7 +161,7 @@ function FocusTools({
 					<Icon path={mdiDeleteOutline} size={1} />
 				</button>
 
-				{showFileSpecificFocusTools && (
+				{enableFileSpecificFunctionality && (
 					<button
 						tabIndex={-1}
 						className={styles.drag}

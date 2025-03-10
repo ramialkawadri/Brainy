@@ -121,6 +121,8 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 					autoFocusEditor={
 						document.activeElement !== searchInputRef.current
 					}
+                    enableFileSpecificFunctionality={searchText !== null && searchText.length === 0}
+                    showAddNewCellContainer={!searchText}
 				/>
 			)}
 		</div>

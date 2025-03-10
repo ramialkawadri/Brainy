@@ -1,12 +1,12 @@
 import { mdiMagnify } from "@mdi/js";
 import InputWithIcon from "../../ui/InputWithIcon/InputWithIcon";
 import styles from "./styles.module.css";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { searchCells } from "../../api/cellApi";
-import Cell from "../../type/backend/entity/cell";
 import useGlobalKey from "../../hooks/useGlobalKey";
 import errorToString from "../../util/errorToString";
 import EditableCells from "../EditableCells/EditableCells";
+import SearchResult from "../../type/backend/dto/searchResult";
 
 interface Props {
 	onError: (error: string) => void;
@@ -14,18 +14,18 @@ interface Props {
 
 function Searcher({ onError }: Props) {
 	const [searchText, setSearchText] = useState("");
-	const [cells, setCells] = useState<Cell[]>([]);
+	const [searchResult, setSearchResult] = useState<SearchResult | null>(null);
 	const searchInputRef = useRef<HTMLInputElement>(null);
 
-    const retrieveSearchResult = async () => {
+	const retrieveSearchResult = async () => {
 		try {
-			const retrivedCells = await searchCells(searchText);
-			setCells(retrivedCells);
+			const result = await searchCells(searchText);
+			setSearchResult(result);
 		} catch (e) {
 			console.error(e);
 			onError(errorToString(e));
 		}
-    };
+	};
 
 	useGlobalKey(e => {
 		if (e.ctrlKey && !e.shiftKey && e.key.toLowerCase() === "f") {
@@ -34,20 +34,13 @@ function Searcher({ onError }: Props) {
 		}
 	}, "keydown");
 
-    useEffect(() => {
-        void retrieveSearchResult();
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
-        await retrieveSearchResult();
+		await retrieveSearchResult();
 	};
 
+	// TODO: add edit in file button to focus tools
 	// TODO: paging
-	// TODO: show cells
-	// TODO: repetitions
 	return (
 		<div className={styles.container}>
 			<form onSubmit={e => void handleSubmit(e)}>
@@ -62,16 +55,26 @@ function Searcher({ onError }: Props) {
 				/>
 			</form>
 
-			{cells.length > 0 && (
+			{!searchResult && (
+				<p className={styles.noSearchLabel}>
+					Type something and press Enter.
+				</p>
+			)}
+
+			{searchResult?.cells.length === 0 && (
+				<p className={styles.noSearchLabel}>No result found!</p>
+			)}
+
+			{searchResult && searchResult.cells.length > 0 && (
 				<EditableCells
-					cells={cells}
+					cells={searchResult.cells}
 					onError={onError}
 					autoFocusEditor={true}
 					onCellsUpdate={retrieveSearchResult}
-					repetitions={[]}
+					repetitions={searchResult.repetitions}
 					editCellId={null}
 					showAddNewCellContainer={false}
-					showFileSpecificFocusTools={false}
+					enableFileSpecificFunctionality={false}
 				/>
 			)}
 		</div>

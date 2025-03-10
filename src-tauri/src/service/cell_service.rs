@@ -1,6 +1,6 @@
 use crate::{
-    dto::update_cell_request::UpdateCellRequest,
-    entity::cell::{self, CellType},
+    dto::{search_result::SearchResult, update_cell_request::UpdateCellRequest},
+    entity::{cell::{self, CellType}, repetition},
     model::{flash_card::FlashCard, true_false::TrueFalse},
 };
 
@@ -251,18 +251,30 @@ pub async fn get_cells_for_files(
     Ok(cells)
 }
 
-// TODO: test, paging
-pub async fn search_cells(db_conn: &DbConn, search_text: &str) -> Result<Vec<cell::Model>, String> {
-    let result = cell::Entity::find()
+// TODO: test
+pub async fn search_cells(db_conn: &DbConn, search_text: &str) -> Result<SearchResult, String> {
+    let result = cell::Entity::find().find_with_related(repetition::Entity)
         .filter(cell::Column::SearchableContent.contains(search_text.to_lowercase()))
-        .limit(50)
+        .limit(150)
         .all(db_conn)
         .await;
 
-    match result {
-        Ok(result) => Ok(result),
-        Err(err) => Err(err.to_string()),
+    let rows = match result {
+        Ok(rows) => rows,
+        Err(err) => return Err(err.to_string()),
+    };
+
+    let mut cells: Vec<cell::Model> = vec![];
+    let mut repetitions: Vec<repetition::Model> = vec![];
+
+    for (cell, mut repetition) in rows {
+        cells.push(cell);
+        repetitions.append(&mut repetition);
     }
+
+    Ok(SearchResult {
+        cells, repetitions
+    })
 }
 
 #[cfg(test)]

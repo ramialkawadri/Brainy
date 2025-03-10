@@ -17,10 +17,10 @@ import { CELL_ID_DRAG_FORMAT } from "./EditableCells";
 interface Props {
 	cell: Cell;
 	isSelected: boolean;
-	showFocusTools: boolean;
 	autoFocusEditor?: boolean;
 	repetitions: Repetition[];
-	showFileSpecificFocusTools: boolean;
+    // TODO: better name
+	enableFileSpecificFunctionality: boolean;
 	onSelect: (id: number) => void;
 	onClick: (id: number) => void;
 	onError: (error: string) => void;
@@ -35,10 +35,9 @@ function CellBlock(
 	{
 		cell,
 		isSelected,
-		showFocusTools,
 		autoFocusEditor,
 		repetitions,
-		showFileSpecificFocusTools,
+		enableFileSpecificFunctionality,
 		onError,
 		onSelect,
 		onClick,
@@ -115,7 +114,7 @@ function CellBlock(
                 ${isSelected ? styles.selectedCell : ""}
                 ${isDragOver ? styles.dragOver : ""}
                 ${isDragging ? styles.dragging : ""}`}>
-			{isSelected && showFocusTools && (
+			{isSelected && (
 				<FocusTools
 					onInsertClick={handleFocusToolsInsertNewCellClick}
 					onDragStart={e => handleDragStart(e)}
@@ -129,17 +128,21 @@ function CellBlock(
 					onDeleteDialogHide={() =>
 						tipTapEditorRef.current?.commands.focus()
 					}
-					showFileSpecificFocusTools={showFileSpecificFocusTools}
+					enableFileSpecificFunctionality={
+						enableFileSpecificFunctionality
+					}
 				/>
 			)}
 
-			{showInsertNewCell && showFileSpecificFocusTools && isSelected && (
-				<NewCellTypeSelector
-					className={styles.insertCellPopup}
-					onClick={handleInsertNewCell}
-					onHide={() => setShowInsertNewCell(false)}
-				/>
-			)}
+			{showInsertNewCell &&
+				enableFileSpecificFunctionality &&
+				isSelected && (
+					<NewCellTypeSelector
+						className={styles.insertCellPopup}
+						onClick={handleInsertNewCell}
+						onHide={() => setShowInsertNewCell(false)}
+					/>
+				)}
 
 			<div className={styles.cellTitle}>
 				<Icon path={getCellIcon(cell.cellType)} size={1} />

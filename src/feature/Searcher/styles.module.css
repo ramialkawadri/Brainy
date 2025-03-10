@@ -14,5 +14,10 @@
 }
 
 .search-input {
-	padding: var(--large-padding);
+	padding: var(--default-padding);
+}
+
+.no-search-label {
+	text-align: center;
+	margin-top: 1rem;
 }
