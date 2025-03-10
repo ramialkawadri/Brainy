@@ -1,11 +1,12 @@
 import { mdiMagnify } from "@mdi/js";
 import InputWithIcon from "../../ui/InputWithIcon/InputWithIcon";
 import styles from "./styles.module.css";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { searchCells } from "../../api/cellApi";
 import Cell from "../../type/backend/entity/cell";
 import useGlobalKey from "../../hooks/useGlobalKey";
 import errorToString from "../../util/errorToString";
+import EditableCells from "../EditableCells/EditableCells";
 
 interface Props {
 	onError: (error: string) => void;
@@ -16,9 +17,7 @@ function Searcher({ onError }: Props) {
 	const [cells, setCells] = useState<Cell[]>([]);
 	const searchInputRef = useRef<HTMLInputElement>(null);
 
-	const handleSubmit = async (e: React.FormEvent) => {
-		e.preventDefault();
-
+    const retrieveSearchResult = async () => {
 		try {
 			const retrivedCells = await searchCells(searchText);
 			setCells(retrivedCells);
@@ -26,7 +25,7 @@ function Searcher({ onError }: Props) {
 			console.error(e);
 			onError(errorToString(e));
 		}
-	};
+    };
 
 	useGlobalKey(e => {
 		if (e.ctrlKey && !e.shiftKey && e.key.toLowerCase() === "f") {
@@ -35,8 +34,20 @@ function Searcher({ onError }: Props) {
 		}
 	}, "keydown");
 
+    useEffect(() => {
+        void retrieveSearchResult();
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+	const handleSubmit = async (e: React.FormEvent) => {
+		e.preventDefault();
+        await retrieveSearchResult();
+	};
+
 	// TODO: paging
 	// TODO: show cells
+	// TODO: repetitions
 	return (
 		<div className={styles.container}>
 			<form onSubmit={e => void handleSubmit(e)}>
@@ -51,9 +62,18 @@ function Searcher({ onError }: Props) {
 				/>
 			</form>
 
-			{cells.map(cell => (
-				<p key={cell.id}>{cell.id}</p>
-			))}
+			{cells.length > 0 && (
+				<EditableCells
+					cells={cells}
+					onError={onError}
+					autoFocusEditor={true}
+					onCellsUpdate={retrieveSearchResult}
+					repetitions={[]}
+					editCellId={null}
+					showAddNewCellContainer={false}
+					showFileSpecificFocusTools={false}
+				/>
+			)}
 		</div>
 	);
 }

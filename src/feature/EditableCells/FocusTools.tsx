@@ -20,6 +20,7 @@ import RepetitionsInfo from "./RepetitionsInfo";
 interface Props {
 	repetitions: Repetition[];
 	cell: Cell;
+	showFileSpecificFocusTools: boolean;
 	onInsertClick: (e: React.MouseEvent) => void;
 	onDragStart: (e: React.DragEvent<HTMLButtonElement>) => void;
 	onDragEnd: (e: React.DragEvent<HTMLButtonElement>) => void;
@@ -33,6 +34,7 @@ interface Props {
 function FocusTools({
 	repetitions,
 	cell,
+	showFileSpecificFocusTools,
 	onInsertClick,
 	onDragStart,
 	onDragEnd,
@@ -110,16 +112,18 @@ function FocusTools({
 			<div
 				className={styles.focusTools}
 				onClick={e => e.stopPropagation()}>
-				<button
-					className="transparent"
-					title="Insert Cell (Ctrl + Shift + Enter)"
-					onClick={e => {
-						onInsertClick(e);
-						setShowRepetitionsInfo(false);
-					}}
-					onMouseDown={e => e.stopPropagation()}>
-					<Icon path={mdiPlus} size={1} />
-				</button>
+				{showFileSpecificFocusTools && (
+					<button
+						className="transparent"
+						title="Insert Cell (Ctrl + Shift + Enter)"
+						onClick={e => {
+							onInsertClick(e);
+							setShowRepetitionsInfo(false);
+						}}
+						onMouseDown={e => e.stopPropagation()}>
+						<Icon path={mdiPlus} size={1} />
+					</button>
+				)}
 
 				{cell.cellType !== "Note" && (
 					<>
@@ -157,15 +161,17 @@ function FocusTools({
 					<Icon path={mdiDeleteOutline} size={1} />
 				</button>
 
-				<button
-					tabIndex={-1}
-					className={styles.drag}
-					title="Drag cell"
-					draggable
-					onDragStart={onDragStart}
-					onDragEnd={onDragEnd}>
-					<Icon path={mdiDrag} size={1} />
-				</button>
+				{showFileSpecificFocusTools && (
+					<button
+						tabIndex={-1}
+						className={styles.drag}
+						title="Drag cell"
+						draggable
+						onDragStart={onDragStart}
+						onDragEnd={onDragEnd}>
+						<Icon path={mdiDrag} size={1} />
+					</button>
+				)}
 			</div>
 		</>
 	);

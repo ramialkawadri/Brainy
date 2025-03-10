@@ -18,8 +18,9 @@ interface Props {
 	cell: Cell;
 	isSelected: boolean;
 	showFocusTools: boolean;
-	autoFocusEditor: boolean;
+	autoFocusEditor?: boolean;
 	repetitions: Repetition[];
+	showFileSpecificFocusTools: boolean;
 	onSelect: (id: number) => void;
 	onClick: (id: number) => void;
 	onError: (error: string) => void;
@@ -37,6 +38,7 @@ function CellBlock(
 		showFocusTools,
 		autoFocusEditor,
 		repetitions,
+		showFileSpecificFocusTools,
 		onError,
 		onSelect,
 		onClick,
@@ -127,10 +129,11 @@ function CellBlock(
 					onDeleteDialogHide={() =>
 						tipTapEditorRef.current?.commands.focus()
 					}
+					showFileSpecificFocusTools={showFileSpecificFocusTools}
 				/>
 			)}
 
-			{showInsertNewCell && isSelected && (
+			{showInsertNewCell && showFileSpecificFocusTools && isSelected && (
 				<NewCellTypeSelector
 					className={styles.insertCellPopup}
 					onClick={handleInsertNewCell}
@@ -145,7 +148,7 @@ function CellBlock(
 
 			<EditorCell
 				cell={cell}
-				autofocus={autoFocusEditor}
+				autofocus={autoFocusEditor ?? false}
 				onUpdate={onUpdate}
 				onFocus={editor => (tipTapEditorRef.current = editor)}
 			/>

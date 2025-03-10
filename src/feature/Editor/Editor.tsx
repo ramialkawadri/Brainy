@@ -35,7 +35,7 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 		});
 	const [cells, setCells] = useState<Cell[]>([]);
 	const [searchParams] = useSearchParams();
-    const isCellsLoaded = useRef(false);
+	const isCellsLoaded = useRef(false);
 	const searchInputRef = useRef<HTMLInputElement>(null);
 	const selectedFileId = Number(searchParams.get(fileIdQueryParameter));
 
@@ -86,10 +86,10 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 
 	useEffect(() => {
 		void (async () => {
-            isCellsLoaded.current = false;
+			isCellsLoaded.current = false;
 			await retrieveRepetitionCounts();
 			await retrieveSelectedFileCells();
-            isCellsLoaded.current = true;
+			isCellsLoaded.current = true;
 			setSearchText("");
 		})();
 	}, [retrieveSelectedFileCells, retrieveRepetitionCounts]);
@@ -109,18 +109,20 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 				searchInputRef={searchInputRef}
 			/>
 
-            {isCellsLoaded.current && <EditableCells
-				cells={cells}
-				searchText={searchText}
-				repetitions={repetitions}
-				onError={onError}
-				editCellId={editCellId}
-				fileId={selectedFileId}
-				onCellsUpdate={handleCellsUpdate}
-				autoFocusEditor={
-					document.activeElement !== searchInputRef.current
-				}
-			/>}
+			{isCellsLoaded.current && (
+				<EditableCells
+					cells={cells}
+					searchText={searchText}
+					repetitions={repetitions}
+					onError={onError}
+					editCellId={editCellId}
+					fileId={selectedFileId}
+					onCellsUpdate={handleCellsUpdate}
+					autoFocusEditor={
+						document.activeElement !== searchInputRef.current
+					}
+				/>
+			)}
 		</div>
 	);
 }

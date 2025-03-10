@@ -24,11 +24,13 @@ export const CELL_ID_DRAG_FORMAT = "cell/id";
 
 interface Props {
 	cells: Cell[];
-	searchText: string;
+	searchText?: string;
 	repetitions: Repetition[];
 	editCellId: number | null;
-	fileId: number;
-	autoFocusEditor: boolean;
+	fileId?: number;
+	autoFocusEditor?: boolean;
+	showAddNewCellContainer?: boolean;
+	showFileSpecificFocusTools?: boolean;
 	onError: (error: string) => void;
 	onCellsUpdate: () => Promise<void>;
 }
@@ -40,14 +42,16 @@ function EditableCells({
 	fileId,
 	editCellId,
 	autoFocusEditor,
+	showAddNewCellContainer = true,
+	showFileSpecificFocusTools = true,
 	onError,
 	onCellsUpdate,
 }: Props) {
 	const [selectedCellId, setSelectedCellId] = useState<number | null>(() => {
-        if (cells.some(c => c.id === editCellId)) return editCellId;
-        else if (cells.length > 0) return cells[0].id!;
-        return null;
-    });
+		if (cells.some(c => c.id === editCellId)) return editCellId;
+		else if (cells.length > 0) return cells[0].id!;
+		return null;
+	});
 	const containerRef = useRef<HTMLDivElement>(null);
 	const selectedCellRef = useRef<HTMLDivElement>(null);
 	// This ref is only used for keeping updated cells that are not yet saved.
@@ -166,10 +170,10 @@ function EditableCells({
 	}, [saveChanges]);
 
 	const insertNewCell = async (cellType: CellType, index: number) => {
-		const cell = createDefaultCell(cellType, fileId, index);
+		const cell = createDefaultCell(cellType, fileId!, index);
 		const cellId = await executeRequest(async () => await createCell(cell));
-        if (cellId) setSelectedCellId(cellId);
-        else return;
+		if (cellId) setSelectedCellId(cellId);
+		else return;
 		await saveChanges();
 		await onCellsUpdate();
 	};
@@ -205,6 +209,9 @@ function EditableCells({
 	};
 
 	const moveSelectedCellByNumber = async (number: number) => {
+        // TODO: rename to enableFileSpecificFunctionality
+        if (!showFileSpecificFocusTools) return;
+
 		const selectedCellIndex = cells.findIndex(c => c.id === selectedCellId);
 		if (
 			0 <= selectedCellIndex + number &&
@@ -231,61 +238,62 @@ function EditableCells({
 		await onCellsUpdate();
 	};
 
+	const filteredCells = searchText
+		? cells.filter(c =>
+				c.searchableContent.includes(searchText.toLowerCase()),
+			)
+		: cells;
+
 	return (
 		<div className={styles.container} ref={containerRef}>
 			{cells.length === 0 && <p>This file is empty</p>}
 
-			{cells
-				.filter(c =>
-					c.searchableContent.includes(searchText.toLowerCase()),
-				)
-				.map((cell, i) => (
-					<RenderIfVisible
+			{filteredCells.map((cell, i) => (
+				<RenderIfVisible
+					key={cell.id}
+					defaultHeight={200}
+					stayRendered={selectedCellId === cell.id}
+					root={containerRef.current}>
+					<CellBlock
 						key={cell.id}
-						defaultHeight={200}
-						stayRendered={selectedCellId === cell.id}
-						root={containerRef.current}>
-						<CellBlock
-							key={cell.id}
-							ref={
-								cell.id === selectedCellId
-									? selectedCellRef
-									: null
-							}
-							cell={cell}
-							onSelect={setSelectedCellId}
-							isSelected={selectedCellId === cell.id}
-							onClick={() => setSelectedCellId(cell.id!)}
-							showFocusTools={!searchText}
-							autoFocusEditor={
-								autoFocusEditor && selectedCellId === cell.id
-							}
-							repetitions={repetitions.filter(
-								r => r.cellId === cell.id,
-							)}
-							onError={onError}
-							onDrop={e => void handleDrop(e, i)}
-							onUpdate={content =>
-								handleUpdate(content, cell.id!)
-							}
-							onDelete={() => void handleCellDeleteConfirm()}
-							onInsertNewCell={cellType =>
-								void insertNewCell(cellType, i + 1)
-							}
-							onResetRepetitions={() => {
-								void saveChanges();
-								void onCellsUpdate();
-							}}
-						/>
-					</RenderIfVisible>
-				))}
+						ref={
+							cell.id === selectedCellId ? selectedCellRef : null
+						}
+						cell={cell}
+						onSelect={setSelectedCellId}
+						isSelected={selectedCellId === cell.id}
+						onClick={() => setSelectedCellId(cell.id!)}
+						showFocusTools={!searchText}
+						autoFocusEditor={
+							autoFocusEditor && selectedCellId === cell.id
+						}
+						repetitions={repetitions.filter(
+							r => r.cellId === cell.id,
+						)}
+						onError={onError}
+						onDrop={e => void handleDrop(e, i)}
+						onUpdate={content => handleUpdate(content, cell.id!)}
+						onDelete={() => void handleCellDeleteConfirm()}
+						onInsertNewCell={cellType =>
+							void insertNewCell(cellType, i + 1)
+						}
+						onResetRepetitions={() => {
+							void saveChanges();
+							void onCellsUpdate();
+						}}
+						showFileSpecificFocusTools={showFileSpecificFocusTools}
+					/>
+				</RenderIfVisible>
+			))}
 
-			<AddCellContainer
-				onDrop={e => void handleDrop(e, cells.length)}
-				onAddNewCell={cellType =>
-					void insertNewCell(cellType, cells.length)
-				}
-			/>
+			{showAddNewCellContainer && (
+				<AddCellContainer
+					onDrop={e => void handleDrop(e, cells.length)}
+					onAddNewCell={cellType =>
+						void insertNewCell(cellType, cells.length)
+					}
+				/>
+			)}
 		</div>
 	);
 }
