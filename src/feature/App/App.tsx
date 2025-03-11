@@ -25,14 +25,13 @@ import Searcher from "../Searcher/Searcher";
 function App() {
 	const [showSettings, setShowSettings] = useState(false);
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const [searchParams] = useSearchParams();
 	const studyFileIds = useRef<number[]>([]);
-	// TODO: find a way to remove this, maybe initial state value from url search parameter
 	const editCellId = useRef<number | null>(null);
-	const dispatch = useAppDispatch();
-	const navigate = useNavigate();
-	const [searchParams] = useSearchParams();
 	const selectedFileId = Number(searchParams.get(fileIdQueryParameter));
 	const location = useLocation();
+	const dispatch = useAppDispatch();
+	const navigate = useNavigate();
 
 	const handleEditorStudyClick = () => {
 		studyFileIds.current = [selectedFileId];
