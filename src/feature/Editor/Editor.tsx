@@ -124,7 +124,6 @@ function Editor({ editCellId, onError, onStudyStart }: Props) {
 					enableFileSpecificFunctionality={
 						searchText !== null && searchText.length === 0
 					}
-					showAddNewCellContainer={!searchText}
 				/>
 			)}
 		</div>

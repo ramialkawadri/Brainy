@@ -32,7 +32,7 @@ interface Props {
 	enableFileSpecificFunctionality?: boolean;
 	onError: (error: string) => void;
 	onCellsUpdate: () => Promise<void>;
-	onEditButtonClick: (fileId: number, cellId: number) => void;
+	onEditButtonClick?: (fileId: number, cellId: number) => void;
 }
 
 function EditableCells({
