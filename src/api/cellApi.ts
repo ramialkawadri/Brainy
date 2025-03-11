@@ -1,7 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 import Cell from "../type/backend/entity/cell";
 import UpdateCellRequest from "../type/backend/dto/updateCellRequest";
-import SearchResult from "../type/backend/dto/searchResult";
 
 export function getFileCellsOrderedByIndex(fileId: number): Promise<Cell[]> {
 	return invoke("get_file_cells_ordered_by_index", {
@@ -30,8 +29,4 @@ export function moveCell(cellId: number, newIndex: number) {
 
 export function getCellsForFiles(fileIds: number[]): Promise<Cell[]> {
 	return invoke("get_cells_for_files", { fileIds });
-}
-
-export function searchCells(searchText: string): Promise<SearchResult> {
-	return invoke("search_cells", { searchText });
 }

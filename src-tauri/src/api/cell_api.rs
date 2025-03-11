@@ -1,5 +1,5 @@
 use crate::{
-    dto::{search_result::SearchResult, update_cell_request::UpdateCellRequest},
+    dto::update_cell_request::UpdateCellRequest,
     entity::cell::{self, CellType},
     service::cell_service,
 };
@@ -60,14 +60,4 @@ pub async fn get_cells_for_files(
 ) -> Result<Vec<cell::Model>, String> {
     let db_conn = db_conn.lock().await;
     cell_service::get_cells_for_files(&db_conn, file_ids).await
-}
-
-// TODO: move to own file?
-#[tauri::command]
-pub async fn search_cells(
-    db_conn: State<'_, Mutex<DbConn>>,
-    search_text: String,
-) -> Result<SearchResult, String> {
-    let db_conn = db_conn.lock().await;
-    cell_service::search_cells(&db_conn, &search_text).await
 }

@@ -2,17 +2,18 @@ import { mdiMagnify } from "@mdi/js";
 import InputWithIcon from "../../ui/InputWithIcon/InputWithIcon";
 import styles from "./styles.module.css";
 import { useRef, useState } from "react";
-import { searchCells } from "../../api/cellApi";
 import useGlobalKey from "../../hooks/useGlobalKey";
 import errorToString from "../../util/errorToString";
 import EditableCells from "../EditableCells/EditableCells";
 import SearchResult from "../../type/backend/dto/searchResult";
+import { searchCells } from "../../api/searchApi";
 
 interface Props {
 	onError: (error: string) => void;
+	onEditButtonClick: (fileId: number, cellId: number) => void;
 }
 
-function Searcher({ onError }: Props) {
+function Searcher({ onError, onEditButtonClick }: Props) {
 	const [searchText, setSearchText] = useState("");
 	const [searchResult, setSearchResult] = useState<SearchResult | null>(null);
 	const searchInputRef = useRef<HTMLInputElement>(null);
@@ -39,8 +40,6 @@ function Searcher({ onError }: Props) {
 		await retrieveSearchResult();
 	};
 
-	// TODO: add edit in file button to focus tools
-	// TODO: paging
 	return (
 		<div className={styles.container}>
 			<form onSubmit={e => void handleSubmit(e)}>
@@ -73,8 +72,8 @@ function Searcher({ onError }: Props) {
 					onCellsUpdate={retrieveSearchResult}
 					repetitions={searchResult.repetitions}
 					editCellId={null}
-					showAddNewCellContainer={false}
 					enableFileSpecificFunctionality={false}
+					onEditButtonClick={onEditButtonClick}
 				/>
 			)}
 		</div>

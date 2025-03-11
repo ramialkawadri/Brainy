@@ -2,6 +2,7 @@ pub mod cell_service;
 pub mod export_import_service;
 pub mod file_service;
 pub mod repetition_service;
+pub mod search_service;
 pub mod settings_service;
 
 #[cfg(test)]
@@ -16,6 +17,12 @@ mod tests {
         let connection = Database::connect("sqlite::memory:").await.unwrap();
         crate::migration::setup_schema(&connection).await.unwrap();
         connection
+    }
+
+    pub async fn create_file(db_conn: &DbConn, path: &str) -> i32 {
+        file_service::create_file(db_conn, path.to_string())
+            .await
+            .unwrap()
     }
 
     pub async fn create_file_cell(db_conn: &DbConn, file_name: &str) -> (i32, i32) {

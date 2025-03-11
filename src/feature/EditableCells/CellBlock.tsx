@@ -19,7 +19,6 @@ interface Props {
 	isSelected: boolean;
 	autoFocusEditor?: boolean;
 	repetitions: Repetition[];
-    // TODO: better name
 	enableFileSpecificFunctionality: boolean;
 	onSelect: (id: number) => void;
 	onClick: (id: number) => void;
@@ -29,6 +28,7 @@ interface Props {
 	onDelete: () => void;
 	onInsertNewCell: (cellType: CellType) => void;
 	onResetRepetitions: () => void;
+	onEditButtonClick?: (fileId: number, cellId: number) => void;
 }
 
 function CellBlock(
@@ -46,6 +46,7 @@ function CellBlock(
 		onDelete,
 		onInsertNewCell,
 		onResetRepetitions,
+		onEditButtonClick,
 	}: Props,
 	ref: ForwardedRef<HTMLDivElement>,
 ) {
@@ -131,6 +132,7 @@ function CellBlock(
 					enableFileSpecificFunctionality={
 						enableFileSpecificFunctionality
 					}
+					onEditButtonClick={onEditButtonClick}
 				/>
 			)}
 

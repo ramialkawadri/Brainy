@@ -2,6 +2,7 @@ import {
 	mdiDeleteOutline,
 	mdiDrag,
 	mdiInformationOutline,
+	mdiPencilOutline,
 	mdiPlus,
 	mdiRestore,
 } from "@mdi/js";
@@ -29,6 +30,7 @@ interface Props {
 	onError: (error: string) => void;
 	onCellDeleteConfirm: () => void;
 	onDeleteDialogHide: () => void;
+	onEditButtonClick?: (fileId: number, cellId: number) => void;
 }
 
 function FocusTools({
@@ -43,6 +45,7 @@ function FocusTools({
 	onCellDeleteConfirm,
 	onDeleteDialogHide,
 	onError,
+	onEditButtonClick,
 }: Props) {
 	const [showRepetitionsInfo, setShowRepetitionsInfo] = useState(false);
 	const [showResetRepetitionsDialog, setShowResetRepetitionsDialog] =
@@ -89,6 +92,10 @@ function FocusTools({
 		}
 	});
 
+	const handleEditInFileClick = () => {
+		if (onEditButtonClick) onEditButtonClick(cell.fileId, cell.id!);
+	};
+
 	return (
 		<>
 			{showDeleteDialog && (
@@ -112,6 +119,15 @@ function FocusTools({
 			<div
 				className={styles.focusTools}
 				onClick={e => e.stopPropagation()}>
+				{!enableFileSpecificFunctionality && (
+					<button
+						className="transparent"
+						title="Edit in file"
+						onClick={handleEditInFileClick}>
+						<Icon path={mdiPencilOutline} size={1} />
+					</button>
+				)}
+
 				{enableFileSpecificFunctionality && (
 					<button
 						className="transparent"

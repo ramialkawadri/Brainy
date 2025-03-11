@@ -26,6 +26,7 @@ function App() {
 	const [showSettings, setShowSettings] = useState(false);
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 	const studyFileIds = useRef<number[]>([]);
+	// TODO: find a way to remove this, maybe initial state value from url search parameter
 	const editCellId = useRef<number | null>(null);
 	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
@@ -140,7 +141,12 @@ function App() {
 					/>
 					<Route
 						path="/search"
-						element={<Searcher onError={setErrorMessage} />}
+						element={
+							<Searcher
+								onError={setErrorMessage}
+								onEditButtonClick={handleEditButtonClick}
+							/>
+						}
 					/>
 				</Routes>
 			</div>

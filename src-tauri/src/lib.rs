@@ -43,7 +43,9 @@ pub async fn run() -> Result<(), String> {
             app.manage(Mutex::new(db_conn));
             #[cfg(dev)]
             {
-                let _ = app.get_webview_window("main").expect("no main window")
+                let _ = app
+                    .get_webview_window("main")
+                    .expect("no main window")
                     .set_title("Brainy - development");
             }
             Ok(())
@@ -55,8 +57,9 @@ pub async fn run() -> Result<(), String> {
             get_cells_for_files,
             get_file_cells_ordered_by_index,
             move_cell,
-            search_cells,
             update_cells_contents,
+            // Search
+            search_cells,
             // Files & Folders
             create_file,
             create_folder,

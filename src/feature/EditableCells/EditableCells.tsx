@@ -29,11 +29,10 @@ interface Props {
 	editCellId: number | null;
 	fileId?: number;
 	autoFocusEditor?: boolean;
-    // TODO: merge with next parameter?
-	showAddNewCellContainer?: boolean;
 	enableFileSpecificFunctionality?: boolean;
 	onError: (error: string) => void;
 	onCellsUpdate: () => Promise<void>;
+	onEditButtonClick: (fileId: number, cellId: number) => void;
 }
 
 function EditableCells({
@@ -43,10 +42,10 @@ function EditableCells({
 	fileId,
 	editCellId,
 	autoFocusEditor,
-	showAddNewCellContainer = true,
 	enableFileSpecificFunctionality = true,
 	onError,
 	onCellsUpdate,
+	onEditButtonClick,
 }: Props) {
 	const [selectedCellId, setSelectedCellId] = useState<number | null>(() => {
 		if (cells.some(c => c.id === editCellId)) return editCellId;
@@ -282,11 +281,12 @@ function EditableCells({
 						enableFileSpecificFunctionality={
 							enableFileSpecificFunctionality
 						}
+						onEditButtonClick={onEditButtonClick}
 					/>
 				</RenderIfVisible>
 			))}
 
-			{showAddNewCellContainer && (
+			{enableFileSpecificFunctionality && (
 				<AddCellContainer
 					onDrop={e => void handleDrop(e, cells.length)}
 					onAddNewCell={cellType =>

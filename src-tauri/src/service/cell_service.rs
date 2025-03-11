@@ -1,6 +1,6 @@
 use crate::{
-    dto::{search_result::SearchResult, update_cell_request::UpdateCellRequest},
-    entity::{cell::{self, CellType}, repetition},
+    dto::update_cell_request::UpdateCellRequest,
+    entity::cell::{self, CellType},
     model::{flash_card::FlashCard, true_false::TrueFalse},
 };
 
@@ -251,48 +251,16 @@ pub async fn get_cells_for_files(
     Ok(cells)
 }
 
-// TODO: test
-pub async fn search_cells(db_conn: &DbConn, search_text: &str) -> Result<SearchResult, String> {
-    let result = cell::Entity::find().find_with_related(repetition::Entity)
-        .filter(cell::Column::SearchableContent.contains(search_text.to_lowercase()))
-        .limit(150)
-        .all(db_conn)
-        .await;
-
-    let rows = match result {
-        Ok(rows) => rows,
-        Err(err) => return Err(err.to_string()),
-    };
-
-    let mut cells: Vec<cell::Model> = vec![];
-    let mut repetitions: Vec<repetition::Model> = vec![];
-
-    for (cell, mut repetition) in rows {
-        cells.push(cell);
-        repetitions.append(&mut repetition);
-    }
-
-    Ok(SearchResult {
-        cells, repetitions
-    })
-}
-
 #[cfg(test)]
 mod tests {
     use repetition_service::get_file_repetitions;
 
     use crate::{
         entity::cell,
-        service::{file_service, tests::get_db},
+        service::{tests::create_file, tests::get_db},
     };
 
     use super::*;
-
-    async fn create_file(db_conn: &DbConn, path: &str) -> i32 {
-        file_service::create_file(db_conn, path.to_string())
-            .await
-            .unwrap()
-    }
 
     #[tokio::test]
     async fn create_cell_valid_input_created_cells() {
