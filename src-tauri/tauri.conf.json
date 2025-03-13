@@ -24,6 +24,9 @@
     }
   },
   "bundle": {
+    "windows": {
+        "signCommand": "relic sign --file %1 --key azure --config relic.conf"
+    },
     "active": true,
     "targets": "all",
     "icon": [
