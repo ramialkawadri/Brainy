@@ -21,11 +21,12 @@ import {
 import { fileIdQueryParameter } from "../../constants";
 import FromRouteState from "../../type/fromRouteState";
 import Searcher from "../Searcher/Searcher";
+import Updater from "../Updater/Updater";
 
 function App() {
 	const [showSettings, setShowSettings] = useState(false);
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
-    const [searchParams] = useSearchParams();
+	const [searchParams] = useSearchParams();
 	const studyFileIds = useRef<number[]>([]);
 	const editCellId = useRef<number | null>(null);
 	const selectedFileId = Number(searchParams.get(fileIdQueryParameter));
@@ -93,6 +94,8 @@ function App() {
 
 	return (
 		<div className={`${styles.workspace}`}>
+			<Updater />
+
 			{errorMessage && (
 				<div className={styles.errorDialog}>
 					<ErrorBox

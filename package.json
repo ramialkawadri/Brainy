@@ -21,6 +21,8 @@
 		"@tauri-apps/api": "2.3.0",
 		"@tauri-apps/plugin-dialog": "2.2.0",
 		"@tauri-apps/plugin-opener": "^2.2.6",
+		"@tauri-apps/plugin-process": "^2.2.0",
+		"@tauri-apps/plugin-updater": "^2.6.0",
 		"@tauri-apps/plugin-window-state": "^2.2.1",
 		"@tiptap/extension-subscript": "2.11.5",
 		"@tiptap/extension-superscript": "2.11.5",

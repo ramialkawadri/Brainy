@@ -23,10 +23,19 @@
       "csp": null
     }
   },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDFDMDNCMjYyQURFRDY0NEQKUldSTlpPMnRZcklESE5pTEdlL1NxSHVtcEkydUpnQXQ2Zjd3RVNURFNrNnRreHVaa1JJcnYxTmoK",
+      "endpoints": [
+        "https://cdn-brainy-updater.azureedge.net/updater.json"
+      ]
+    }
+  },
   "bundle": {
     "windows": {
         "signCommand": "relic sign --file %1 --key azure --config relic.conf"
     },
+    "createUpdaterArtifacts": true,
     "active": true,
     "targets": "all",
     "icon": [
