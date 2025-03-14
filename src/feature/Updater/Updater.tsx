@@ -2,6 +2,7 @@ import styles from "./styles.module.css";
 import { useEffect, useState } from "react";
 import { check } from "@tauri-apps/plugin-updater";
 import { relaunch } from "@tauri-apps/plugin-process";
+import { ask } from "@tauri-apps/plugin-dialog";
 
 function Updater() {
 	const [isUpdating, setIsUpdating] = useState(false);
@@ -12,12 +13,11 @@ function Updater() {
 			const update = await check();
 			if (!update) return;
 
-			if (
-				!confirm(
-					"Do you want to update the application to the latest version?",
-				)
-			)
-				return;
+			const confirm = await ask(
+				"Do you want to update the application to the latest version?",
+			);
+			if (!confirm) return;
+
 			setIsUpdating(true);
 
 			let downloaded = 0;

@@ -6,6 +6,8 @@ use crate::dto::exported_item::{ExportedCell, ExportedItem, ExportedItemType};
 
 use super::{cell_service, file_service};
 
+use html_purifier::{Settings as PurifierSettings, purifier};
+
 pub async fn export(db_conn: &DbConn, item_id: i32, export_path: String) -> Result<(), String> {
     let item = file_service::get_by_id(db_conn, item_id).await?;
     let slash_index = item.path.rfind('/');
@@ -146,7 +148,7 @@ async fn import_file_from_exported_item(
             cell_service::create_cell_no_transaction(
                 db_conn,
                 file_id,
-                &cell.content,
+                &purifier(&cell.content, PurifierSettings::default()),
                 &cell.cell_type,
                 i as i32,
             )
