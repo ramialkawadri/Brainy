@@ -1,32 +1,44 @@
 import { mdiMagnify } from "@mdi/js";
 import InputWithIcon from "../../ui/InputWithIcon/InputWithIcon";
 import styles from "./styles.module.css";
-import { useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import useGlobalKey from "../../hooks/useGlobalKey";
 import errorToString from "../../util/errorToString";
 import EditableCells from "../EditableCells/EditableCells";
 import SearchResult from "../../type/backend/dto/searchResult";
 import { searchCells } from "../../api/searchApi";
+import { useSearchParams } from "react-router";
 
 interface Props {
 	onError: (error: string) => void;
 	onEditButtonClick: (fileId: number, cellId: number) => void;
 }
 
+// TODO: better name
+const searchTextQueryParameter = "searchText";
+
 function Searcher({ onError, onEditButtonClick }: Props) {
 	const [searchText, setSearchText] = useState("");
 	const [searchResult, setSearchResult] = useState<SearchResult | null>(null);
+    const [searchParams, setSearchParams] = useSearchParams();
 	const searchInputRef = useRef<HTMLInputElement>(null);
+    // TODO: better name
+    const searchParamsSearchText = searchParams.get(searchTextQueryParameter) ?? "";
 
-	const retrieveSearchResult = async () => {
+	const retrieveSearchResult = useCallback(async () => {
 		try {
-			const result = await searchCells(searchText);
+			const result = await searchCells(searchParamsSearchText);
 			setSearchResult(result);
 		} catch (e) {
 			console.error(e);
 			onError(errorToString(e));
 		}
-	};
+	}, [onError, searchParamsSearchText]);
+
+    useEffect(() => {
+        void retrieveSearchResult();
+        setSearchText(searchParamsSearchText);
+    }, [retrieveSearchResult, searchParamsSearchText]);
 
 	useGlobalKey(e => {
 		if (e.ctrlKey && !e.shiftKey && e.key.toLowerCase() === "f") {
@@ -35,14 +47,15 @@ function Searcher({ onError, onEditButtonClick }: Props) {
 		}
 	}, "keydown");
 
-	const handleSubmit = async (e: React.FormEvent) => {
+	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
-		await retrieveSearchResult();
+        searchParams.set(searchTextQueryParameter, searchText);
+        setSearchParams(searchParams);
 	};
 
 	return (
 		<div className={styles.container}>
-			<form onSubmit={e => void handleSubmit(e)}>
+			<form onSubmit={e => handleSubmit(e)}>
 				<InputWithIcon
 					iconName={mdiMagnify}
 					placeholder="Search (Ctrl + f)"
