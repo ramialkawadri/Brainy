@@ -5,8 +5,8 @@ use sea_orm::{DbConn, query::*};
 use crate::dto::exported_item::{ExportedCell, ExportedItem, ExportedItemType};
 
 use super::{cell_service, file_service};
-
-use html_purifier::{Settings as PurifierSettings, purifier};
+use lol_html::html_content::Element;
+use lol_html::{RewriteStrSettings, element, rewrite_str};
 
 pub async fn export(db_conn: &DbConn, item_id: i32, export_path: String) -> Result<(), String> {
     let item = file_service::get_by_id(db_conn, item_id).await?;
@@ -148,7 +148,7 @@ async fn import_file_from_exported_item(
             cell_service::create_cell_no_transaction(
                 db_conn,
                 file_id,
-                &purifier(&cell.content, PurifierSettings::default()),
+                &purify_html(&cell.content),
                 &cell.cell_type,
                 i as i32,
             )
@@ -157,6 +157,30 @@ async fn import_file_from_exported_item(
     }
 
     Ok(())
+}
+
+fn purify_html(html: &str) -> String {
+    let handler = |el: &mut Element| {
+        if el.tag_name().to_lowercase() == "script"
+            || el
+                .attributes()
+                .iter()
+                .any(|attr| attr.name().to_lowercase().starts_with("on"))
+        {
+            el.remove();
+        }
+
+        Ok(())
+    };
+
+    rewrite_str(
+        html,
+        RewriteStrSettings {
+            element_content_handlers: vec![element!("*", handler)],
+            ..RewriteStrSettings::default()
+        },
+    )
+    .unwrap()
 }
 
 async fn import_folder_from_exported_item(
@@ -437,5 +461,63 @@ mod tests {
             .await
             .unwrap();
         assert_eq!(file1_repetitions.len(), 1);
+    }
+
+    #[tokio::test]
+    async fn import_input_that_contains_javascript_removed_javascript() {
+        // Arrange
+
+        let db_conn = get_db().await;
+        let folder_id = file_service::create_folder(&db_conn, "folder".into())
+            .await
+            .unwrap();
+        let file_cell_content = serde_json::to_string(&FlashCard {
+            question:
+                "content<script>alert('hello')</script><button onLoad='alert'>button</button>"
+                    .into(),
+            ..Default::default()
+        })
+        .unwrap();
+        create_file_cell_with_cell_type_and_content(
+            &db_conn,
+            "folder/file",
+            CellType::FlashCard,
+            &file_cell_content,
+        )
+        .await;
+
+        let import_folder_id = file_service::create_folder(&db_conn, "import folder".into())
+            .await
+            .unwrap();
+
+        let export_path = get_random_file_path();
+        export(&db_conn, folder_id, export_path.to_str().unwrap().into())
+            .await
+            .unwrap();
+
+        // Act
+
+        import(
+            &db_conn,
+            export_path.to_str().unwrap().into(),
+            import_folder_id,
+        )
+        .await
+        .unwrap();
+
+        // Assert
+
+        let imported_file_id =
+            file_service::list_folder_children_recursively(&db_conn, import_folder_id)
+                .await
+                .unwrap()[0]
+                .id;
+        let cells = cell_service::get_file_cells_ordered_by_index(&db_conn, imported_file_id)
+            .await
+            .unwrap();
+        let is_javascript_existing = cells
+            .iter()
+            .any(|c| c.content.contains("script") || c.content.contains("onLoad"));
+        assert!(!is_javascript_existing);
     }
 }
