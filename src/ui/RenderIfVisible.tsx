@@ -10,7 +10,7 @@ interface Props {
 
 const RenderIfVisible = ({
 	defaultHeight = 300,
-	visibleOffset = 600,
+	visibleOffset = 400,
 	children,
 	stayRendered = false,
 	root = null,
