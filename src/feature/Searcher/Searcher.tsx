@@ -14,7 +14,6 @@ interface Props {
 	onEditButtonClick: (fileId: number, cellId: number) => void;
 }
 
-// TODO: better name
 const searchTextQueryParameter = "searchText";
 
 function Searcher({ onError, onEditButtonClick }: Props) {
@@ -22,7 +21,6 @@ function Searcher({ onError, onEditButtonClick }: Props) {
 	const [searchResult, setSearchResult] = useState<SearchResult | null>(null);
     const [searchParams, setSearchParams] = useSearchParams();
 	const searchInputRef = useRef<HTMLInputElement>(null);
-    // TODO: better name
     const searchParamsSearchText = searchParams.get(searchTextQueryParameter) ?? "";
 
 	const retrieveSearchResult = useCallback(async () => {

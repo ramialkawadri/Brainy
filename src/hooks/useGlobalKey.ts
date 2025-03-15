@@ -5,13 +5,9 @@ function useGlobalKey(
 	eventName: "keyup" | "keydown" = "keyup",
 ) {
 	useEffect(() => {
-		function handleKeyUp(e: KeyboardEvent) {
-			cb(e);
-		}
-
-		document.addEventListener(eventName, handleKeyUp);
+		document.addEventListener(eventName, cb);
 		return () => {
-			document.removeEventListener(eventName, handleKeyUp);
+			document.removeEventListener(eventName, cb);
 		};
 	}, [cb, eventName]);
 }
