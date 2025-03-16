@@ -1,10 +1,9 @@
 <h1 align="center" style="border-bottom: none">
     <b>
         🧠 Brainy<br/>
-    </br>
+    </b>
     Free and open source learning app 
     <br>
-    <hr>
 </h1>
 
 <p align="center">Brainy is a learning app with focus on active repetitions, and spaced learning.</p>
