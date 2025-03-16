@@ -2,7 +2,7 @@ name: "publish"
 
 on:
   push:
-    branches: ["release", "main"]
+    branches: ["release"]
 
 jobs:
   publish-tauri:

@@ -1,24 +1,42 @@
-# Running unit tests
+<h1 align="center" style="border-bottom: none">
+    <b>
+        🧠 Brainy<br/>
+    </br>
+    Free and open source learning app 
+    <br>
+    <hr>
+</h1>
 
-Install `nextest` and to run the test `cargo nextest run`.
+<p align="center">Brainy is a learning app with focus on active repetitions, and spaced learning.</p>
+![Screenshot 1](screenshots/screenshot1.png)
+![Screenshot 1](screenshots/screenshot2.png)
+![Screenshot 1](screenshots/screenshot3.png)
+![Screenshot 1](screenshots/screenshot4.png)
 
-# Release steps
+## Key features:
 
-1. Update `./src-tauri/tauri.conf.json` version
-1. Update `./package.json` version
-1. Set environment variables
-    - `AZURE_CLIENT_ID`
-    - `AZURE_TENANT_ID`
-    - `AZURE_CLIENT_SECRET`
-    - `TAURI_SIGNING_PRIVATE_KEY`
-    - `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`
-1. Run `npm run tauri build`
-1. Update `updater.json` on storage account, update the following properties:
-    - `signature`
-    - `pub_date`: [RFC 3339 format](https://www.utctime.net/)
-    - `version`
-    - `notes`
-1. Update `brainy.msi` on storage account
-1. Purge the following CDN endpoints:
-    - `/updater/updater.json`
-    - `/updater/brainy.msi`
+- **Notebook Style Files:** Seamlessly organize notes and ideas all in one
+place.
+  
+- **Structured Folders and Files:** Easily manage and access your study 
+materials with robust organization.
+  
+- **Active Learning and Spaced Repetitions:** Retain knowledge effectively 
+with scientifically-backed methods.
+  
+- **Interactive Tools:** Dive into flash cards and cloze exercises for dynamic 
+study sessions.
+
+- **Efficient Keyboard Shortcuts:** Navigate the app quickly to enhance your 
+learning experience.
+
+- **Advanced File Management:** Efficiently store and organize your notes and 
+files using our sophisticated file management system.
+
+## User installation
+[Download Brainy Desktop (Windows, macOS and Linux)](https://github.com/ramialkawadri/Brainy/releases)
+
+## Roadmap
+
+Brainy is still in beta phase until it has been tested thoroughly and all 
+bugs found are fixed.
