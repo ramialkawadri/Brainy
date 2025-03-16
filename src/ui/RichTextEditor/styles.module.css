@@ -27,7 +27,7 @@
 
 	ul,
 	ol {
-		margin-left: var(--xxl-padding);
+		margin-left: 24px;
 	}
 
 	a {

@@ -13,7 +13,7 @@ import Superscript from "@tiptap/extension-superscript";
 import ImageResize from "tiptap-extension-resize-image";
 import BubbleMenuCommand, { Command } from "./Command";
 import { defaultCommands } from "./defaultCommands";
-import { useEffect, useRef } from "react";
+import { useEffect, useState } from "react";
 
 const extensions = [
 	StarterKit,
@@ -37,30 +37,44 @@ interface Props {
 	onBlur?: () => void;
 }
 
-function RichTextEditor({ editable, ...props }: Props) {
-	const wasEditable = useRef(editable);
+function RichTextEditor({ editable: initialEditable, ...props }: Props) {
+	const [editable, setEditable] = useState(initialEditable);
 
-	if (editable) wasEditable.current = true;
+	useEffect(() => {
+		if (initialEditable) setEditable(true);
+	}, [initialEditable]);
 
+	// TiptapEditor is slow on rendring, therefor showing a div element
+	// instead until there is a need to render the editor.
 	return (
 		<>
 			{props.title && <p className={styles.title}>{props.title}</p>}
 			<div className={styles.innerEditor}>
-				{!editable && !wasEditable.current && (
+				{!initialEditable && !editable && (
 					<div className={`${styles.editor}`}>
 						<div
 							dangerouslySetInnerHTML={{
 								__html: props.initialContent,
 							}}
+							onMouseMove={() => setEditable(true)}
 						/>
 					</div>
 				)}
-				{(editable || wasEditable.current) && (
-					<TiptapEditor {...props} editable={editable} />
-				)}
+				{editable && <TiptapEditor {...props} />}
 			</div>
 		</>
 	);
+}
+
+interface TiptapEditorProps {
+	initialContent: string;
+	title?: string;
+	extraExtensions?: AnyExtension[];
+	commands?: Command[];
+	autofocus?: boolean;
+	onUpdate: (html: string) => void;
+	onFocus?: (editor: Editor) => void;
+	onBlur?: () => void;
 }
 
 function TiptapEditor({
@@ -71,7 +85,7 @@ function TiptapEditor({
 	onUpdate,
 	onFocus,
 	onBlur,
-}: Props) {
+}: TiptapEditorProps) {
 	const editor = useEditor(
 		{
 			extensions: [...extensions, ...(extraExtensions ?? [])],
