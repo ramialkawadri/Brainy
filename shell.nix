@@ -10,6 +10,8 @@ pkgs.mkShell {
     cargo-tauri
     nodejs
     rustc
+    flatpak
+    flatpak-builder
   ];
 
   buildInputs = with pkgs; [
