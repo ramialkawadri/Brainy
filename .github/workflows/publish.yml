@@ -47,7 +47,7 @@ jobs:
         run: |
           mkdir "C:\relic"
           curl "https://github.com/sassoftware/relic/releases/download/v8.2.0/relic-windows-amd64.exe" --output "C:\relic\relic.exe"
-          echo "C:\relic" >> "$GITHUB_PATH"
+          echo "C:\relic" | Out-File -Append -FilePath $env:GITHUB_PATH -Encoding utf8
 
       - name: testing relic
         if: matrix.platform == 'windows-latest'
