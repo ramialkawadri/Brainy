@@ -8,10 +8,10 @@
 </h1>
 
 <p align="center">Brainy is a learning app with focus on active repetitions, and spaced learning.</p>
-<img src="https://github.com/ramialkawadri/Brainy/blob/main/screenshots/screenshot1.png" alt="Screenshot 1">
-<img src="https://github.com/ramialkawadri/Brainy/blob/main/screenshots/screenshot2.png" alt="Screenshot 2">
-<img src="https://github.com/ramialkawadri/Brainy/blob/main/screenshots/screenshot3.png" alt="Screenshot 3">
-<img src="https://github.com/ramialkawadri/Brainy/blob/main/screenshots/screenshot4.png" alt="Screenshot 5">
+<img src="https://github.com/ramialkawadri/Brainy/blob/main/screenshots/screenshot1.png" alt="Screenshot 1" width="1040px">
+<img src="https://github.com/ramialkawadri/Brainy/blob/main/screenshots/screenshot2.png" alt="Screenshot 2" width="1040px">
+<img src="https://github.com/ramialkawadri/Brainy/blob/main/screenshots/screenshot3.png" alt="Screenshot 3" width="1040px">
+<img src="https://github.com/ramialkawadri/Brainy/blob/main/screenshots/screenshot4.png" alt="Screenshot 4" width="1040px">
 
 ## Key features:
 
