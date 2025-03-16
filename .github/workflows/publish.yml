@@ -27,6 +27,7 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: '^1.22.0'
+          targets: ${{ matrix.platform == 'windows-latest' || '' }}
 
       - name: setup node
         uses: actions/setup-node@v4
@@ -49,11 +50,6 @@ jobs:
         if: matrix.platform == 'windows-latest'
         run: |
           go install github.com/sassoftware/relic/v8@latest
-
-      - name: testing relic
-        if: matrix.platform == 'windows-latest'
-        run: |
-          relic help
 
       - name: install frontend dependencies
         run: npm i
