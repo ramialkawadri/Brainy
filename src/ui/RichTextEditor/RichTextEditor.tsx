@@ -56,7 +56,7 @@ function RichTextEditor({ editable: initialEditable, ...props }: Props) {
 							dangerouslySetInnerHTML={{
 								__html: props.initialContent,
 							}}
-							onMouseMove={() => setEditable(true)}
+							onMouseEnter={() => setEditable(true)}
 						/>
 					</div>
 				)}
