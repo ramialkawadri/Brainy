@@ -11,13 +11,14 @@ import clozeMark, { clozeMarkName } from "./clozeMark";
 interface Props {
 	cell: Cell;
 	autofocus: boolean;
+	editable: boolean;
 	onUpdate: (content: string) => void;
 	onFocus: (editor: Editor) => void;
 }
 
 const regexp = /<cloze[^>]*index="(\d+)"[^>]*>/g;
 
-function ClozeCell({ cell, autofocus, onUpdate, onFocus }: Props) {
+function ClozeCell({ cell, autofocus, editable, onUpdate, onFocus }: Props) {
 	const handleToggleCloze = (commands: ChainedCommands) => {
 		const matches = cell.content.matchAll(regexp);
 		let newClozeIndex = 1;
@@ -30,6 +31,7 @@ function ClozeCell({ cell, autofocus, onUpdate, onFocus }: Props) {
 	return (
 		<RichTextEditor
 			extraExtensions={[clozeMark]}
+			editable={editable}
 			commands={[
 				{
 					name: clozeMarkName,

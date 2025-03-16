@@ -13,7 +13,7 @@ import Superscript from "@tiptap/extension-superscript";
 import ImageResize from "tiptap-extension-resize-image";
 import BubbleMenuCommand, { Command } from "./Command";
 import { defaultCommands } from "./defaultCommands";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 const extensions = [
 	StarterKit,
@@ -31,13 +31,39 @@ interface Props {
 	extraExtensions?: AnyExtension[];
 	commands?: Command[];
 	autofocus?: boolean;
+	editable: boolean;
 	onUpdate: (html: string) => void;
 	onFocus?: (editor: Editor) => void;
 	onBlur?: () => void;
 }
 
-function RichTextEditor({
-	title,
+function RichTextEditor({ editable, ...props }: Props) {
+	const wasEditable = useRef(editable);
+
+	if (editable) wasEditable.current = true;
+
+	return (
+		<>
+			{props.title && <p className={styles.title}>{props.title}</p>}
+			<div className={styles.innerEditor}>
+				{!editable && !wasEditable.current && (
+					<div className={`${styles.editor}`}>
+						<div
+							dangerouslySetInnerHTML={{
+								__html: props.initialContent,
+							}}
+						/>
+					</div>
+				)}
+				{(editable || wasEditable.current) && (
+					<TiptapEditor {...props} editable={editable} />
+				)}
+			</div>
+		</>
+	);
+}
+
+function TiptapEditor({
 	initialContent,
 	extraExtensions,
 	commands,
@@ -68,41 +94,39 @@ function RichTextEditor({
 		},
 		[],
 	);
+
 	useEffect(() => {
 		if (autofocus && editor) editor.commands.focus();
 	}, [autofocus, editor]);
 
 	return (
 		<>
-			{title && <p className={styles.title}>{title}</p>}
-			<div className={styles.innerEditor}>
-				{editor && (
-					<BubbleMenu
-						editor={editor}
-						tippyOptions={{ duration: 100 }}
-						className={styles.bubbleMenu}>
-						{commands?.map(c => (
-							<BubbleMenuCommand
-								key={c.name}
-								command={c}
-								editor={editor}
-							/>
-						))}
-						{commands && commands.length > 0 && (
-							<div className={styles.verticalBorder} />
-						)}
+			{editor && (
+				<BubbleMenu
+					editor={editor}
+					tippyOptions={{ duration: 100 }}
+					className={styles.bubbleMenu}>
+					{commands?.map(c => (
+						<BubbleMenuCommand
+							key={c.name}
+							command={c}
+							editor={editor}
+						/>
+					))}
+					{commands && commands.length > 0 && (
+						<div className={styles.verticalBorder} />
+					)}
 
-						{defaultCommands.map(c => (
-							<BubbleMenuCommand
-								key={c.name}
-								command={c}
-								editor={editor}
-							/>
-						))}
-					</BubbleMenu>
-				)}
-				<EditorContent editor={editor} className={styles.editor} />
-			</div>
+					{defaultCommands.map(c => (
+						<BubbleMenuCommand
+							key={c.name}
+							command={c}
+							editor={editor}
+						/>
+					))}
+				</BubbleMenu>
+			)}
+			<EditorContent editor={editor} className={styles.editor} />
 		</>
 	);
 }

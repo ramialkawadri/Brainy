@@ -156,6 +156,7 @@ function CellBlock(
 				autofocus={autoFocusEditor ?? false}
 				onUpdate={onUpdate}
 				onFocus={editor => (tipTapEditorRef.current = editor)}
+				editable={isSelected}
 			/>
 		</div>
 	);

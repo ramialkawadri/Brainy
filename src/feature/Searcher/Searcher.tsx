@@ -19,9 +19,10 @@ const searchTextQueryParameter = "searchText";
 function Searcher({ onError, onEditButtonClick }: Props) {
 	const [searchText, setSearchText] = useState("");
 	const [searchResult, setSearchResult] = useState<SearchResult | null>(null);
-    const [searchParams, setSearchParams] = useSearchParams();
+	const [searchParams, setSearchParams] = useSearchParams();
 	const searchInputRef = useRef<HTMLInputElement>(null);
-    const searchParamsSearchText = searchParams.get(searchTextQueryParameter) ?? "";
+	const searchParamsSearchText =
+		searchParams.get(searchTextQueryParameter) ?? "";
 
 	const retrieveSearchResult = useCallback(async () => {
 		try {
@@ -33,10 +34,10 @@ function Searcher({ onError, onEditButtonClick }: Props) {
 		}
 	}, [onError, searchParamsSearchText]);
 
-    useEffect(() => {
-        void retrieveSearchResult();
-        setSearchText(searchParamsSearchText);
-    }, [retrieveSearchResult, searchParamsSearchText]);
+	useEffect(() => {
+		void retrieveSearchResult();
+		setSearchText(searchParamsSearchText);
+	}, [retrieveSearchResult, searchParamsSearchText]);
 
 	useGlobalKey(e => {
 		if (e.ctrlKey && !e.shiftKey && e.key.toLowerCase() === "f") {
@@ -47,8 +48,8 @@ function Searcher({ onError, onEditButtonClick }: Props) {
 
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
-        searchParams.set(searchTextQueryParameter, searchText);
-        setSearchParams(searchParams);
+		searchParams.set(searchTextQueryParameter, searchText);
+		setSearchParams(searchParams);
 	};
 
 	return (

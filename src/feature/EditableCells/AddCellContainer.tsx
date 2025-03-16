@@ -10,25 +10,19 @@ import { CELL_ID_DRAG_FORMAT } from "./EditableCells";
 interface Props {
 	onDrop: (e: React.DragEvent) => void;
 	onAddNewCell: (cellType: CellType) => void;
-	onPopupHide?: () => void;
 }
 
-function AddCellContainer({ onDrop, onAddNewCell, onPopupHide }: Props) {
+function AddCellContainer({ onDrop, onAddNewCell }: Props) {
 	const [showAddNewCellPopup, setShowAddNewCellPopup] = useState(false);
 	const [isDragOver, setIsDragOver] = useState(false);
 
 	useGlobalKey(e => {
 		if (e.key === "Escape") {
-			hidePopup();
+			setShowAddNewCellPopup(false);
 		} else if (e.ctrlKey && !e.shiftKey && e.code === "Enter") {
 			setShowAddNewCellPopup(true);
 		}
 	}, "keydown");
-
-	const hidePopup = () => {
-		if (onPopupHide) onPopupHide();
-		setShowAddNewCellPopup(false);
-	};
 
 	const handleDragOver = (e: React.DragEvent) => {
 		const dragCellId = Number(e.dataTransfer.getData(CELL_ID_DRAG_FORMAT));
@@ -66,9 +60,9 @@ function AddCellContainer({ onDrop, onAddNewCell, onPopupHide }: Props) {
 						className={styles.overlayCellSelector}
 						onClick={cellType => {
 							onAddNewCell(cellType);
-							hidePopup();
+							setShowAddNewCellPopup(false);
 						}}
-						onHide={hidePopup}
+						onHide={() => setShowAddNewCellPopup(false)}
 					/>
 				</div>
 			)}

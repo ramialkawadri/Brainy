@@ -8,11 +8,18 @@ import { useState } from "react";
 interface Props {
 	cell: Cell;
 	autofocus: boolean;
+	editable: boolean;
 	onUpdate: (content: string) => void;
 	onFocus: (editor: Editor) => void;
 }
 
-export function TrueFalseCell({ cell, autofocus, onUpdate, onFocus }: Props) {
+export function TrueFalseCell({
+	cell,
+	autofocus,
+	editable,
+	onUpdate,
+	onFocus,
+}: Props) {
 	const trueFalse = JSON.parse(cell.content) as TrueFalse;
 
 	const [question, setQuestion] = useState(trueFalse.question);
@@ -46,6 +53,7 @@ export function TrueFalseCell({ cell, autofocus, onUpdate, onFocus }: Props) {
 				onUpdate={handleQuestionUpdate}
 				autofocus={autofocus}
 				onFocus={onFocus}
+				editable={editable}
 			/>
 			<div className={styles.buttonsRow}>
 				<button

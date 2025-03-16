@@ -8,11 +8,18 @@ import { Editor } from "@tiptap/react";
 interface Props {
 	cell: Cell;
 	autofocus: boolean;
+	editable: boolean;
 	onUpdate: (content: string) => void;
 	onFocus: (editor: Editor) => void;
 }
 
-function FlashCardCell({ cell, autofocus, onUpdate, onFocus }: Props) {
+function FlashCardCell({
+	cell,
+	autofocus,
+	editable,
+	onUpdate,
+	onFocus,
+}: Props) {
 	const flashCard = JSON.parse(cell.content) as FlashCard;
 
 	const question = useRef(flashCard.question);
@@ -47,6 +54,7 @@ function FlashCardCell({ cell, autofocus, onUpdate, onFocus }: Props) {
 				onUpdate={handleQuestionUpdate}
 				autofocus={autofocus && !isAnswerEditorFocused.current}
 				onFocus={onFocus}
+				editable={editable}
 			/>
 			<RichTextEditor
 				title="Answer"
@@ -58,6 +66,7 @@ function FlashCardCell({ cell, autofocus, onUpdate, onFocus }: Props) {
 					onFocus(e);
 				}}
 				onBlur={() => (isAnswerEditorFocused.current = false)}
+				editable={editable}
 			/>
 		</div>
 	);

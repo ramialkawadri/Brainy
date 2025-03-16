@@ -8,11 +8,12 @@ import TrueFalseCell from "./TrueFalseCell";
 interface Props {
 	cell: Cell;
 	autofocus: boolean;
+	editable: boolean;
 	onUpdate: (content: string) => void;
 	onFocus: (editor: Editor) => void;
 }
 
-function EditorCell({ cell, autofocus, onUpdate, onFocus }: Props) {
+function EditorCell({ cell, autofocus, editable, onUpdate, onFocus }: Props) {
 	switch (cell.cellType) {
 		case "FlashCard":
 			return (
@@ -21,14 +22,16 @@ function EditorCell({ cell, autofocus, onUpdate, onFocus }: Props) {
 					autofocus={autofocus}
 					onUpdate={onUpdate}
 					onFocus={onFocus}
+					editable={editable}
 				/>
 			);
 		case "Note":
 			return (
 				<RichTextEditor
 					initialContent={cell.content}
-					onUpdate={onUpdate}
 					autofocus={autofocus}
+					editable={editable}
+					onUpdate={onUpdate}
 					onFocus={onFocus}
 				/>
 			);
@@ -37,6 +40,7 @@ function EditorCell({ cell, autofocus, onUpdate, onFocus }: Props) {
 				<ClozeCell
 					cell={cell}
 					autofocus={autofocus}
+					editable={editable}
 					onUpdate={onUpdate}
 					onFocus={onFocus}
 				/>
@@ -44,6 +48,7 @@ function EditorCell({ cell, autofocus, onUpdate, onFocus }: Props) {
 		case "TrueFalse":
 			return (
 				<TrueFalseCell
+					editable={editable}
 					cell={cell}
 					autofocus={autofocus}
 					onUpdate={onUpdate}

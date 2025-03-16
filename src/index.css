@@ -151,6 +151,7 @@ button.link:active {
 	color: var(--link-color-shade-20);
 }
 
+.input,
 input,
 select {
 	border-radius: var(--default-border-radius);
@@ -164,11 +165,13 @@ select {
 	-webkit-appearance: none;
 }
 
+.input:hover,
 input:hover,
 select:hover {
 	border-color: var(--hover-border-color);
 }
 
+.input:focus,
 input:focus,
 select:focus {
 	border-color: var(--primary-color);
