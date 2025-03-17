@@ -107,8 +107,12 @@ function Reviewer({ fileIds, onEditButtonClick, onError }: Props) {
 				dueToday[currentCellIndex].cellId,
 				dueToday[currentCellIndex].additionalContent,
 			);
-			await registerReview(newRepetition, gradeToRating(grade), studyTime.current);
-            studyTime.current = 0;
+			await registerReview(
+				newRepetition,
+				gradeToRating(grade),
+				studyTime.current,
+			);
+			studyTime.current = 0;
 		} catch (e) {
 			onError("An error happened!");
 			console.error(e);
@@ -306,7 +310,10 @@ function Reviewer({ fileIds, onEditButtonClick, onError }: Props) {
 					</div>
 				)}
 
-				<Timer key={dueToday[currentCellIndex]?.cellId ?? 0} onTimeUpdate={handleTimeUpdate} />
+				<Timer
+					key={dueToday[currentCellIndex]?.id ?? 0}
+					onTimeUpdate={handleTimeUpdate}
+				/>
 			</div>
 		</div>
 	);

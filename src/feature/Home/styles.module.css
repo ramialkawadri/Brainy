@@ -6,6 +6,7 @@
 	max-width: 600px;
 	width: 100%;
 	margin: 0 auto;
+	gap: 1.2rem;
 }
 
 .box {
@@ -80,6 +81,11 @@
 			background-color: var(--grey-background-color);
 		}
 	}
+}
+
+.reviews-overview {
+	text-align: center;
+	font-size: 1.2rem;
 }
 
 .reviwer-heatmap {

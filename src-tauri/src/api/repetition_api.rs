@@ -26,6 +26,7 @@ pub async fn get_file_repetitions(
     repetition_service::get_file_repetitions(&db_conn, file_id).await
 }
 
+// TODO: move to review_api
 #[tauri::command]
 pub async fn register_review(
     db_conn: State<'_, Mutex<DbConn>>,

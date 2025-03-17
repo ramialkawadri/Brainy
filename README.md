@@ -12,7 +12,7 @@
 <img src="https://github.com/ramialkawadri/Brainy/blob/main/screenshots/screenshot3.png" alt="Screenshot 3" width="1040px">
 <img src="https://github.com/ramialkawadri/Brainy/blob/main/screenshots/screenshot4.png" alt="Screenshot 4" width="1040px">
 
-## Key features:
+## Key features
 
 - **Notebook Style Files:** Seamlessly organize notes and ideas all in one
   place.

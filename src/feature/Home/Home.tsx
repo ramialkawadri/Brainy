@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import useAppDispatch from "../../hooks/useAppDispatch";
 import useAppSelector from "../../hooks/useAppSelector";
 import { fetchFiles } from "../../store/actions/fileSystemActions";
@@ -7,18 +7,29 @@ import ReviewTree from "./ReviewTree";
 import styles from "./styles.module.css";
 import ParsedFolder from "../../type/parsedFolder";
 import ReviwerHeatmap from "./ReviewHeatmap";
+import { getTodaysReviewStatistics } from "../../api/reviewApi";
+import ReviewStatistics from "../../type/backend/dto/reviewStatistics";
 
 interface Props {
 	onStudyClick: (fileIds: number[]) => void;
 }
 
 function Home({ onStudyClick }: Props) {
+	const [reviewStatistics, setReviewStatistics] =
+		useState<ReviewStatistics | null>(null);
 	const dispatch = useAppDispatch();
 	const rootFolder = useAppSelector(selectRootFolder);
 
 	useEffect(() => {
 		void dispatch(fetchFiles());
 	}, [dispatch]);
+
+	useEffect(() => {
+		void (async () => {
+			// TODO: error handling
+			setReviewStatistics(await getTodaysReviewStatistics());
+		})();
+	}, []);
 
 	const handleFolderClick = (folder: ParsedFolder) => {
 		const fileIds = [];
@@ -59,6 +70,18 @@ function Home({ onStudyClick }: Props) {
 					/>
 				)}
 			</div>
+
+			{reviewStatistics && (
+				<p className={styles.reviewsOverview}>
+					Studied {reviewStatistics.numberOfReviews} cards in{" "}
+					{reviewStatistics.totalTime} seconds today (
+					{(
+						reviewStatistics.totalTime /
+						reviewStatistics.numberOfReviews
+					).toFixed(1)}{" "}
+					s/card){" "}
+				</p>
+			)}
 
 			<ReviwerHeatmap />
 		</div>
