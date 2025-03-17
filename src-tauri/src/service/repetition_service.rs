@@ -8,6 +8,7 @@ use sea_orm::{DbConn, Set};
 
 use crate::entity::cell::CellType;
 use crate::entity::repetition::{self, State};
+use crate::entity::review::{self, Rating};
 use crate::model::file_repetitions_count::FileRepetitionCounts;
 
 use sea_orm::{entity::*, query::*};
@@ -175,26 +176,49 @@ pub async fn get_file_repetitions(
     }
 }
 
-pub async fn update_repetition(
+pub async fn register_review(
     db_conn: &DbConn,
-    repetition: repetition::Model,
+    new_repetition: repetition::Model,
+    rating: Rating,
+    study_time: i32,
 ) -> Result<(), String> {
-    let active_entity = repetition::ActiveModel {
-        id: Set(repetition.id),
-        file_id: Set(repetition.file_id),
-        cell_id: Set(repetition.cell_id),
-        due: Set(repetition.due),
-        stability: Set(repetition.stability),
-        difficulty: Set(repetition.difficulty),
-        elapsed_days: Set(repetition.elapsed_days),
-        scheduled_days: Set(repetition.scheduled_days),
-        reps: Set(repetition.reps),
-        lapses: Set(repetition.lapses),
-        state: Set(repetition.state),
-        last_review: Set(repetition.last_review),
-        additional_content: Set(repetition.additional_content),
+    let repetition_active_entity = repetition::ActiveModel {
+        id: Set(new_repetition.id),
+        file_id: Set(new_repetition.file_id),
+        cell_id: Set(new_repetition.cell_id),
+        due: Set(new_repetition.due),
+        stability: Set(new_repetition.stability),
+        difficulty: Set(new_repetition.difficulty),
+        elapsed_days: Set(new_repetition.elapsed_days),
+        scheduled_days: Set(new_repetition.scheduled_days),
+        reps: Set(new_repetition.reps),
+        lapses: Set(new_repetition.lapses),
+        state: Set(new_repetition.state),
+        last_review: Set(new_repetition.last_review),
+        additional_content: Set(new_repetition.additional_content),
     };
-    let result = active_entity.update(db_conn).await;
+    let txn = match db_conn.begin().await {
+        Ok(txn) => txn,
+        Err(err) => return Err(err.to_string()),
+    };
+
+    if let Err(err) = repetition_active_entity.update(&txn).await {
+        return Err(err.to_string());
+    }
+
+    // TODO: test
+    let review_active_entity = review::ActiveModel {
+        cell_id: Set(new_repetition.cell_id),
+        date: Set(Utc::now().to_utc()),
+        rating: Set(rating),
+        study_time: Set(study_time),
+        ..Default::default()
+    };
+    if let Err(err) = review_active_entity.insert(&txn).await {
+        return Err(err.to_string());
+    }
+
+    let result = txn.commit().await;
     match result {
         Ok(_) => Ok(()),
         Err(err) => Err(err.to_string()),
@@ -427,7 +451,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn update_repetition_valid_input_updated_repetition() {
+    async fn register_review_valid_input_updated_repetition() {
         // Arrange
 
         let db_conn = get_db().await;
@@ -467,7 +491,7 @@ mod tests {
 
         // Act
 
-        update_repetition(&db_conn, repetition.clone())
+        register_review(&db_conn, repetition.clone(), Rating::Again, 0)
             .await
             .unwrap();
 
@@ -556,7 +580,7 @@ mod tests {
         )
         .await;
         let repetition_id = get_repetitions_by_cell_id(&db_conn, cell_id).await.unwrap()[0].id;
-        update_repetition(
+        register_review(
             &db_conn,
             repetition::Model {
                 id: repetition_id,
@@ -566,6 +590,8 @@ mod tests {
                 scheduled_days: 100,
                 ..Default::default()
             },
+            Rating::Again,
+            0,
         )
         .await
         .unwrap();

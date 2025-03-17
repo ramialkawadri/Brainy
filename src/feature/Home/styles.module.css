@@ -1,10 +1,14 @@
 .home {
+	display: flex;
+	flex-direction: column;
 	padding: 2.4rem 1.2rem;
+	min-width: 30rem;
+	max-width: 600px;
+	width: 100%;
+	margin: 0 auto;
 }
 
 .box {
-	min-width: 30rem;
-	max-width: 600px;
 	width: 100%;
 	background: var(--default-background-color);
 	margin: 0 auto;
@@ -76,4 +80,8 @@
 			background-color: var(--grey-background-color);
 		}
 	}
+}
+
+.reviwer-heatmap {
+	width: 100%;
 }

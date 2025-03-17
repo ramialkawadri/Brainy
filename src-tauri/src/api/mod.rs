@@ -7,7 +7,7 @@ mod settings_api;
 
 pub use repetition_api::{
     get_file_repetitions, get_repetitions_for_files, get_study_repetition_counts,
-    reset_repetitions_for_cell, update_repetition,
+    reset_repetitions_for_cell, register_review,
 };
 
 pub use cell_api::{

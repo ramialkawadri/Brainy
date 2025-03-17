@@ -1,4 +1,5 @@
 use crate::entity::repetition;
+use crate::entity::review::Rating;
 use crate::model::file_repetitions_count::FileRepetitionCounts;
 use crate::service::repetition_service;
 use sea_orm::DbConn;
@@ -26,12 +27,14 @@ pub async fn get_file_repetitions(
 }
 
 #[tauri::command]
-pub async fn update_repetition(
+pub async fn register_review(
     db_conn: State<'_, Mutex<DbConn>>,
-    repetition: repetition::Model,
+    new_repetition: repetition::Model,
+    rating: Rating,
+    study_time: i32,
 ) -> Result<(), String> {
     let db_conn = db_conn.lock().await;
-    repetition_service::update_repetition(&db_conn, repetition).await
+    repetition_service::register_review(&db_conn, new_repetition, rating, study_time).await
 }
 
 #[tauri::command]

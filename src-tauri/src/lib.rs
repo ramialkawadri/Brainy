@@ -76,8 +76,8 @@ pub async fn run() -> Result<(), String> {
             get_file_repetitions,
             get_repetitions_for_files,
             get_study_repetition_counts,
+            register_review,
             reset_repetitions_for_cell,
-            update_repetition,
             // Settings
             get_settings,
             update_settings,

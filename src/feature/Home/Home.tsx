@@ -6,6 +6,7 @@ import { selectRootFolder } from "../../store/selectors/fileSystemSelectors";
 import ReviewTree from "./ReviewTree";
 import styles from "./styles.module.css";
 import ParsedFolder from "../../type/parsedFolder";
+import ReviwerHeatmap from "./ReviewHeatmap";
 
 interface Props {
 	onStudyClick: (fileIds: number[]) => void;
@@ -58,6 +59,8 @@ function Home({ onStudyClick }: Props) {
 					/>
 				)}
 			</div>
+
+			<ReviwerHeatmap />
 		</div>
 	);
 }
