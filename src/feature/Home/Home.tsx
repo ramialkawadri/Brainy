@@ -9,12 +9,14 @@ import ParsedFolder from "../../type/parsedFolder";
 import ReviwerHeatmap from "./ReviewHeatmap";
 import { getTodaysReviewStatistics } from "../../api/reviewApi";
 import ReviewStatistics from "../../type/backend/dto/reviewStatistics";
+import errorToString from "../../util/errorToString";
 
 interface Props {
 	onStudyClick: (fileIds: number[]) => void;
+	onError: (message: string) => void;
 }
 
-function Home({ onStudyClick }: Props) {
+function Home({ onStudyClick, onError }: Props) {
 	const [reviewStatistics, setReviewStatistics] =
 		useState<ReviewStatistics | null>(null);
 	const dispatch = useAppDispatch();
@@ -26,10 +28,14 @@ function Home({ onStudyClick }: Props) {
 
 	useEffect(() => {
 		void (async () => {
-			// TODO: error handling
-			setReviewStatistics(await getTodaysReviewStatistics());
+            try {
+                setReviewStatistics(await getTodaysReviewStatistics());
+            } catch (e) {
+                console.error(e);
+                onError(errorToString(e));
+            }
 		})();
-	}, []);
+	}, [onError]);
 
 	const handleFolderClick = (folder: ParsedFolder) => {
 		const fileIds = [];
@@ -44,6 +50,7 @@ function Home({ onStudyClick }: Props) {
 		onStudyClick(fileIds);
 	};
 
+    // TODO: format time statistics better
 	return (
 		<div className={styles.home}>
 			<div className={styles.box}>

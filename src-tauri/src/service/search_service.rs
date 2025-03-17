@@ -36,7 +36,7 @@ mod tests {
         model::flash_card::FlashCard,
         service::{
             cell_service::create_cell,
-            repetition_service::register_review,
+            review_service::register_review,
             tests::{create_file, get_db},
         },
     };
@@ -85,6 +85,7 @@ mod tests {
                 ..Default::default()
             },
             Rating::Again,
+            10
         )
         .await
         .unwrap();

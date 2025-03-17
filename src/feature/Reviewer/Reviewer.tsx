@@ -12,7 +12,6 @@ import createRepetitionFromCard from "../../util/createRepetitionFromCard";
 import Cell from "../../type/backend/entity/cell";
 import {
 	getRepetitionsForFiles,
-	registerReview,
 } from "../../api/repetitionApi";
 import Timer from "./Timer";
 import { Navigate, useLocation, useNavigate } from "react-router";
@@ -20,6 +19,7 @@ import FromRouteState from "../../type/fromRouteState";
 import { getCellsForFiles } from "../../api/cellApi";
 import errorToString from "../../util/errorToString";
 import gradeToRating from "../../util/gradeToRating";
+import { registerReview } from "../../api/reviewApi";
 
 interface Props {
 	fileIds: number[];

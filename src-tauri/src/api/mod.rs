@@ -7,7 +7,7 @@ mod search_api;
 mod settings_api;
 
 pub use repetition_api::{
-    get_file_repetitions, get_repetitions_for_files, get_study_repetition_counts, register_review,
+    get_file_repetitions, get_repetitions_for_files, get_study_repetition_counts,
     reset_repetitions_for_cell,
 };
 
@@ -27,4 +27,4 @@ pub use export_import_api::{export, import};
 
 pub use settings_api::{get_settings, update_settings};
 
-pub use review_api::get_todays_review_statistics;
+pub use review_api::{get_todays_review_statistics, register_review};

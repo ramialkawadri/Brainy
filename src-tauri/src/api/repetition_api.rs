@@ -1,5 +1,4 @@
 use crate::entity::repetition;
-use crate::entity::review::Rating;
 use crate::model::file_repetitions_count::FileRepetitionCounts;
 use crate::service::repetition_service;
 use sea_orm::DbConn;
@@ -24,18 +23,6 @@ pub async fn get_file_repetitions(
 ) -> Result<Vec<repetition::Model>, String> {
     let db_conn = db_conn.lock().await;
     repetition_service::get_file_repetitions(&db_conn, file_id).await
-}
-
-// TODO: move to review_api
-#[tauri::command]
-pub async fn register_review(
-    db_conn: State<'_, Mutex<DbConn>>,
-    new_repetition: repetition::Model,
-    rating: Rating,
-    study_time: i32,
-) -> Result<(), String> {
-    let db_conn = db_conn.lock().await;
-    repetition_service::register_review(&db_conn, new_repetition, rating, study_time).await
 }
 
 #[tauri::command]
