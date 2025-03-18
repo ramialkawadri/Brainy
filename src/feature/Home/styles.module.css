@@ -1,9 +1,11 @@
 .home {
 	display: flex;
 	flex-direction: column;
+	justify-content: center;
+	align-items: center;
 	padding: 2.4rem 1.2rem;
 	min-width: 30rem;
-	max-width: 600px;
+	max-width: 700px;
 	width: 100%;
 	margin: 0 auto;
 	gap: 1.2rem;
@@ -89,5 +91,58 @@
 }
 
 .reviwer-heatmap {
-	width: 100%;
+	display: flex;
+	gap: 2px;
+
+	& .reviwer-heatmap-column {
+		display: flex;
+		flex-direction: column;
+		width: fit-content;
+		gap: 2px;
+
+		.heatmap-box {
+			padding: 4px;
+			border: 1px solid transparent;
+			background-color: var(--grey-background-color-shade-10);
+            position: relative;
+
+            & .heatmap-popup {
+                position: absolute;
+                display: none;
+                z-index: 2;
+                background-color: var(--text-color);
+                color: var(--default-background-color);
+                font-size: 1.2rem;
+                padding: var(--default-padding);
+                top: -12px;
+                left: 50%;
+                transform: translateY(-100%) translateX(-50%);
+                border-radius: var(--default-border-radius);
+                
+                &::after {
+                    content: "";
+                    border: 12px solid var(--text-color);
+                    position: absolute;
+                    border-bottom-width: 0;
+                    border-left-color: transparent;
+                    border-right-color: transparent;
+                    bottom: 0;
+                    transform: translateY(90%) translateX(-50%);
+                    left: 50%;
+                }
+            }
+
+			&:hover {
+                & .heatmap-popup {
+                    display: block;
+                }
+				border-color: var(--text-color);
+			}
+
+			&.hidden {
+				visibility: hidden;
+			}
+
+		}
+	}
 }

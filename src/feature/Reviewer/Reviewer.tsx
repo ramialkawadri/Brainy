@@ -10,9 +10,7 @@ import useGlobalKey from "../../hooks/useGlobalKey";
 import Repetition from "../../type/backend/entity/repetition";
 import createRepetitionFromCard from "../../util/createRepetitionFromCard";
 import Cell from "../../type/backend/entity/cell";
-import {
-	getRepetitionsForFiles,
-} from "../../api/repetitionApi";
+import { getRepetitionsForFiles } from "../../api/repetitionApi";
 import Timer from "./Timer";
 import { Navigate, useLocation, useNavigate } from "react-router";
 import FromRouteState from "../../type/fromRouteState";

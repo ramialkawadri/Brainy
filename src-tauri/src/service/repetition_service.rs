@@ -218,7 +218,15 @@ mod tests {
     use chrono::Duration;
 
     use crate::{
-        entity::review::Rating, model::flash_card::FlashCard, service::{review_service::register_review, tests::{create_file_cell, create_file_cell_with_cell_type_and_content, get_db, insert_repetitions}}
+        entity::review::Rating,
+        model::flash_card::FlashCard,
+        service::{
+            review_service::register_review,
+            tests::{
+                create_file_cell, create_file_cell_with_cell_type_and_content, get_db,
+                insert_repetitions,
+            },
+        },
     };
 
     use super::*;

@@ -7,9 +7,13 @@ import ReviewTree from "./ReviewTree";
 import styles from "./styles.module.css";
 import ParsedFolder from "../../type/parsedFolder";
 import ReviwerHeatmap from "./ReviewHeatmap";
-import { getTodaysReviewStatistics } from "../../api/reviewApi";
+import {
+	getRepetitionCountsForEveryDayOfYear,
+	getTodaysReviewStatistics,
+} from "../../api/reviewApi";
 import ReviewStatistics from "../../type/backend/dto/reviewStatistics";
 import errorToString from "../../util/errorToString";
+import secondsToLongString from "../../util/secondsToLongString";
 
 interface Props {
 	onStudyClick: (fileIds: number[]) => void;
@@ -28,12 +32,14 @@ function Home({ onStudyClick, onError }: Props) {
 
 	useEffect(() => {
 		void (async () => {
-            try {
-                setReviewStatistics(await getTodaysReviewStatistics());
-            } catch (e) {
-                console.error(e);
-                onError(errorToString(e));
-            }
+			try {
+				setReviewStatistics(await getTodaysReviewStatistics());
+				// TODO
+				console.log(await getRepetitionCountsForEveryDayOfYear());
+			} catch (e) {
+				console.error(e);
+				onError(errorToString(e));
+			}
 		})();
 	}, [onError]);
 
@@ -50,7 +56,11 @@ function Home({ onStudyClick, onError }: Props) {
 		onStudyClick(fileIds);
 	};
 
-    // TODO: format time statistics better
+	const secondsPerCard =
+		reviewStatistics && reviewStatistics.numberOfReviews > 0
+			? reviewStatistics.totalTime / reviewStatistics.numberOfReviews
+			: 0;
+
 	return (
 		<div className={styles.home}>
 			<div className={styles.box}>
@@ -80,13 +90,10 @@ function Home({ onStudyClick, onError }: Props) {
 
 			{reviewStatistics && (
 				<p className={styles.reviewsOverview}>
-					Studied {reviewStatistics.numberOfReviews} cards in{" "}
-					{reviewStatistics.totalTime} seconds today (
-					{(
-						reviewStatistics.totalTime /
-						reviewStatistics.numberOfReviews
-					).toFixed(1)}{" "}
-					s/card){" "}
+					Studied {reviewStatistics.numberOfReviews} cards in
+					{" " + secondsToLongString(reviewStatistics.totalTime)}{" "}
+					today ({secondsPerCard.toFixed(1) + " "}
+					s/card)
 				</p>
 			)}
 

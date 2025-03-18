@@ -85,7 +85,7 @@ mod tests {
                 ..Default::default()
             },
             Rating::Again,
-            10
+            10,
         )
         .await
         .unwrap();

@@ -117,7 +117,10 @@ function App() {
 							key={path}
 							path={path}
 							element={
-								<Home onStudyClick={handleHomeStudyClick} onError={setErrorMessage} />
+								<Home
+									onStudyClick={handleHomeStudyClick}
+									onError={setErrorMessage}
+								/>
 							}
 						/>
 					))}

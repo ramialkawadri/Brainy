@@ -27,4 +27,6 @@ pub use export_import_api::{export, import};
 
 pub use settings_api::{get_settings, update_settings};
 
-pub use review_api::{get_todays_review_statistics, register_review};
+pub use review_api::{
+    get_repetition_counts_for_every_day_of_year, get_todays_review_statistics, register_review,
+};

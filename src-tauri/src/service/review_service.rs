@@ -1,9 +1,16 @@
-use chrono::{NaiveTime, Utc};
-use sea_orm::{DbConn, entity::*, query::*};
+use std::collections::HashMap;
 
-use crate::{dto::review_statistics::ReviewStatistics, entity::{repetition, review::{self, Rating}}};
+use chrono::{Datelike, NaiveTime, Utc, naive::NaiveDate};
+use sea_orm::{entity::*, prelude::*, query::*, sea_query::{Alias, Expr, Func}, DbConn};
 
-// TODO: test
+use crate::{
+    dto::review_statistics::ReviewStatistics,
+    entity::{
+        repetition,
+        review::{self, Rating},
+    }, util::database_util::DateTimeToDate,
+};
+
 pub async fn get_todays_review_statistics(db_conn: &DbConn) -> Result<ReviewStatistics, String> {
     let start_of_today = Utc::now()
         .with_time(NaiveTime::from_hms_opt(0, 0, 0).unwrap())
@@ -26,12 +33,12 @@ pub async fn get_todays_review_statistics(db_conn: &DbConn) -> Result<ReviewStat
     let total_time = match filter
         .select_only()
         .column_as(review::Column::StudyTime.sum(), "sum")
-        .into_tuple::<i32>()
+        .into_tuple::<Option<i32>>()
         .one(db_conn)
         .await
     {
         Err(err) => return Err(err.to_string()),
-        Ok(total_time) => total_time.unwrap(),
+        Ok(total_time) => total_time.unwrap_or(Some(0)).unwrap_or(0),
     };
 
     Ok(ReviewStatistics {
@@ -88,11 +95,116 @@ pub async fn register_review(
     }
 }
 
+// TODO: test
+pub async fn get_repetition_counts_for_every_day_of_year(
+    db_conn: &DbConn,
+) -> Result<HashMap<NaiveDate, i32>, String> {
+    let start_of_year = Utc::now().with_month(1).unwrap().with_day(1).unwrap();
+    let end_of_year = Utc::now().with_month(12).unwrap().with_day(31).unwrap();
+
+    let result = review::Entity::find()
+        .filter(review::Column::Date.between(start_of_year, end_of_year))
+        .select_only()
+        .expr_as(Func::cust(DateTimeToDate).arg(Expr::col(review::Column::Date)), "only_date")
+        .expr(review::Column::Id.count())
+        .group_by(Expr::col(Alias::new("only_date")))
+        .into_tuple::<(NaiveDate, i32)>()
+        .all(db_conn)
+        .await;
+
+    if let Err(err) = result {
+        return Err(err.to_string());
+    }
+
+    let mut hash_map = HashMap::with_capacity(365);
+    for (date, count) in result.unwrap() {
+        hash_map.insert(date, count);
+    }
+
+    Ok(hash_map)
+}
+
 #[cfg(test)]
 mod tests {
-    use crate::{entity::repetition::State, service::tests::{create_file_cell, get_db, insert_repetitions}};
+    use chrono::Duration;
+
+    use crate::{
+        entity::repetition::State,
+        service::tests::{create_file_cell, get_db, insert_repetitions},
+    };
 
     use super::*;
+
+    #[tokio::test]
+    async fn get_todays_review_statistics_no_reviews_returned_zero() {
+        // Arrange
+
+        let db_conn = get_db().await;
+
+        // Act
+
+        let actual = get_todays_review_statistics(&db_conn).await.unwrap();
+
+        // Assert
+
+        assert_eq!(0, actual.number_of_reviews);
+        assert_eq!(0, actual.total_time);
+    }
+
+    #[tokio::test]
+    async fn get_todays_review_statistics_with_reviews_returned_correct_statistics() {
+        // Arrange
+
+        let db_conn = get_db().await;
+        let (file_id, cell_id) = create_file_cell(&db_conn, "file 1").await;
+        insert_repetitions(
+            &db_conn,
+            vec![repetition::ActiveModel {
+                file_id: Set(file_id),
+                cell_id: Set(cell_id),
+                ..Default::default()
+            }],
+        )
+        .await
+        .unwrap();
+        let repetition_id = repetition::Entity::find()
+            .one(&db_conn)
+            .await
+            .unwrap()
+            .unwrap()
+            .id;
+        let repetition = repetition::Model {
+            id: repetition_id,
+            file_id,
+            cell_id,
+            due: Utc::now().to_utc(),
+            last_review: Utc::now().to_utc(),
+            ..Default::default()
+        };
+        register_review(&db_conn, repetition.clone(), Rating::Good, 15)
+            .await
+            .unwrap();
+        register_review(&db_conn, repetition.clone(), Rating::Again, 10)
+            .await
+            .unwrap();
+        let review = review::ActiveModel {
+            cell_id: Set(cell_id),
+            study_time: Set(12),
+            date: Set(Utc::now().to_utc() - Duration::days(1)),
+            rating: Set(Rating::Again),
+            ..Default::default()
+        };
+        review.insert(&db_conn).await.unwrap();
+
+        // Act
+
+        let actual = get_todays_review_statistics(&db_conn).await.unwrap();
+
+        // Assert
+
+        assert_eq!(2, actual.number_of_reviews);
+        assert_eq!(25, actual.total_time);
+    }
 
     #[tokio::test]
     async fn register_review_valid_input_registered_review_and_update_repetition() {
@@ -159,10 +271,7 @@ mod tests {
         assert_eq!(actual_repetition.state, repetition.state);
         assert_eq!(actual_repetition.last_review, repetition.last_review);
 
-        let actual_review = review::Entity::find().one(&db_conn)
-            .await
-            .unwrap()
-            .unwrap();
+        let actual_review = review::Entity::find().one(&db_conn).await.unwrap().unwrap();
         assert_eq!(actual_review.cell_id, repetition.cell_id);
         assert!((actual_review.date - Utc::now().to_utc()).num_minutes() < 1);
         assert_eq!(actual_review.rating, Rating::Again);

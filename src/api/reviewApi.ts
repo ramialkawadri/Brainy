@@ -14,3 +14,7 @@ export function registerReview(
 export function getTodaysReviewStatistics(): Promise<ReviewStatistics> {
 	return invoke("get_todays_review_statistics");
 }
+
+export function getRepetitionCountsForEveryDayOfYear() {
+	return invoke("get_repetition_counts_for_every_day_of_year");
+}
