@@ -15,6 +15,8 @@ export function getTodaysReviewStatistics(): Promise<ReviewStatistics> {
 	return invoke("get_todays_review_statistics");
 }
 
-export function getRepetitionCountsForEveryDayOfYear() {
-	return invoke("get_repetition_counts_for_every_day_of_year");
+export function getReviewCountsForEveryDayOfYear(): Promise<
+	Record<string, number>
+> {
+	return invoke("get_review_counts_for_every_day_of_year");
 }

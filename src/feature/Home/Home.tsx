@@ -7,10 +7,7 @@ import ReviewTree from "./ReviewTree";
 import styles from "./styles.module.css";
 import ParsedFolder from "../../type/parsedFolder";
 import ReviwerHeatmap from "./ReviewHeatmap";
-import {
-	getRepetitionCountsForEveryDayOfYear,
-	getTodaysReviewStatistics,
-} from "../../api/reviewApi";
+import { getTodaysReviewStatistics } from "../../api/reviewApi";
 import ReviewStatistics from "../../type/backend/dto/reviewStatistics";
 import errorToString from "../../util/errorToString";
 import secondsToLongString from "../../util/secondsToLongString";
@@ -34,8 +31,6 @@ function Home({ onStudyClick, onError }: Props) {
 		void (async () => {
 			try {
 				setReviewStatistics(await getTodaysReviewStatistics());
-				// TODO
-				console.log(await getRepetitionCountsForEveryDayOfYear());
 			} catch (e) {
 				console.error(e);
 				onError(errorToString(e));
@@ -97,7 +92,7 @@ function Home({ onStudyClick, onError }: Props) {
 				</p>
 			)}
 
-			<ReviwerHeatmap />
+			<ReviwerHeatmap onError={onError} />
 		</div>
 	);
 }

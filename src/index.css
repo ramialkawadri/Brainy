@@ -24,7 +24,7 @@ html {
 }
 
 /* Desktops */
-@media (min-width: 1200px) {
+@media (min-width: 1100px) {
 	html {
 		/* 1rem = 14px */
 		font-size: calc(var(--zoom-level) * 87.5%);

@@ -5,6 +5,7 @@
 	background-color: var(--side-bar-background-color);
 	width: 26rem;
 	transition: 0.15s all;
+	max-width: 100%;
 
 	& * {
 		font-size: 1.2rem;

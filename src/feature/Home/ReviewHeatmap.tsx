@@ -1,14 +1,27 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import ReviwerHeatmapColumn from "./ReviewHeatmapColumn";
 import styles from "./styles.module.css";
+import { getReviewCountsForEveryDayOfYear } from "../../api/reviewApi";
+import errorToString from "../../util/errorToString";
 
-function ReviwerHeatmap() {
+interface Props {
+	onError: (message: string) => void;
+}
+
+function ReviwerHeatmap({onError}: Props) {
+	const [reviewCounts, setReviewCounts] = useState<Record<
+		string,
+		number
+	> | null>(null);
+
 	const weeksOfYear = useMemo(() => {
 		const dates = [];
 		const currentYear = new Date().getFullYear();
+		const initialDate = new Date(new Date().getFullYear(), 0, 1);
+		initialDate.setDate(initialDate.getDate() - initialDate.getDay());
 
 		for (
-			let date = new Date(new Date().getFullYear(), 0, 1);
+			let date = initialDate;
 			date.getFullYear() <= currentYear;
 			date.setDate(date.getDate() + (7 - date.getDay()))
 		) {
@@ -17,15 +30,28 @@ function ReviwerHeatmap() {
 		return dates;
 	}, []);
 
+	useEffect(() => {
+		void (async () => {
+            try {
+                setReviewCounts(await getReviewCountsForEveryDayOfYear());
+            } catch (e) {
+                console.error(e);
+                onError(errorToString(e));
+            }
+		})();
+	}, [onError]);
+
 	return (
 		<div className={styles.reviwerHeatmap}>
-			{weeksOfYear.map((week, i) => (
-				<ReviwerHeatmapColumn
-					currentYear={new Date().getFullYear()}
-					key={i}
-					date={week}
-				/>
-			))}
+			{reviewCounts &&
+				weeksOfYear.map((week, i) => (
+					<ReviwerHeatmapColumn
+						currentYear={new Date().getFullYear()}
+						key={i}
+						date={week}
+						reviewCounts={reviewCounts}
+					/>
+				))}
 		</div>
 	);
 }

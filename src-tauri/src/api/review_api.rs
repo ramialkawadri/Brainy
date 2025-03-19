@@ -29,9 +29,9 @@ pub async fn register_review(
 }
 
 #[tauri::command]
-pub async fn get_repetition_counts_for_every_day_of_year(
+pub async fn get_review_counts_for_every_day_of_year(
     db_conn: State<'_, Mutex<DbConn>>,
 ) -> Result<HashMap<NaiveDate, i32>, String> {
     let db_conn = db_conn.lock().await;
-    review_service::get_repetition_counts_for_every_day_of_year(&db_conn).await
+    review_service::get_review_counts_for_every_day_of_year(&db_conn).await
 }

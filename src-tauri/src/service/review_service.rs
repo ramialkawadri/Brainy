@@ -1,26 +1,31 @@
 use std::collections::HashMap;
 
 use chrono::{Datelike, NaiveTime, Utc, naive::NaiveDate};
-use sea_orm::{entity::*, prelude::*, query::*, sea_query::{Alias, Expr, Func}, DbConn};
+use sea_orm::{
+    DbConn,
+    entity::*,
+    prelude::*,
+    query::*,
+    sea_query::{Alias, Expr, Func},
+};
 
 use crate::{
     dto::review_statistics::ReviewStatistics,
     entity::{
         repetition,
         review::{self, Rating},
-    }, util::database_util::DateTimeToDate,
+    },
+    util::database_util::DateTimeToDate,
 };
 
 pub async fn get_todays_review_statistics(db_conn: &DbConn) -> Result<ReviewStatistics, String> {
     let start_of_today = Utc::now()
         .with_time(NaiveTime::from_hms_opt(0, 0, 0).unwrap())
-        .unwrap()
-        .to_utc();
+        .unwrap();
 
     let end_of_today = Utc::now()
         .with_time(NaiveTime::from_hms_opt(23, 59, 59).unwrap())
-        .unwrap()
-        .to_utc();
+        .unwrap();
 
     let filter =
         review::Entity::find().filter(review::Column::Date.between(start_of_today, end_of_today));
@@ -96,16 +101,31 @@ pub async fn register_review(
 }
 
 // TODO: test
-pub async fn get_repetition_counts_for_every_day_of_year(
+pub async fn get_review_counts_for_every_day_of_year(
     db_conn: &DbConn,
 ) -> Result<HashMap<NaiveDate, i32>, String> {
-    let start_of_year = Utc::now().with_month(1).unwrap().with_day(1).unwrap();
-    let end_of_year = Utc::now().with_month(12).unwrap().with_day(31).unwrap();
+    let start_of_year = Utc::now()
+        .with_month(1)
+        .unwrap()
+        .with_day(1)
+        .unwrap()
+        .with_time(NaiveTime::from_hms_opt(0, 0, 0).unwrap())
+        .unwrap();
+    let end_of_year = Utc::now()
+        .with_month(12)
+        .unwrap()
+        .with_day(31)
+        .unwrap()
+        .with_time(NaiveTime::from_hms_opt(11, 59, 59).unwrap())
+        .unwrap();
 
     let result = review::Entity::find()
         .filter(review::Column::Date.between(start_of_year, end_of_year))
         .select_only()
-        .expr_as(Func::cust(DateTimeToDate).arg(Expr::col(review::Column::Date)), "only_date")
+        .expr_as(
+            Func::cust(DateTimeToDate).arg(Expr::col(review::Column::Date)),
+            "only_date",
+        )
         .expr(review::Column::Id.count())
         .group_by(Expr::col(Alias::new("only_date")))
         .into_tuple::<(NaiveDate, i32)>()
