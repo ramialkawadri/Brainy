@@ -1,10 +1,16 @@
 .home {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
 	padding: 2.4rem 1.2rem;
+	max-width: 700px;
+	width: 100%;
+	margin: 0 auto;
+	gap: 1.2rem;
 }
 
 .box {
-	min-width: 30rem;
-	max-width: 600px;
 	width: 100%;
 	background: var(--default-background-color);
 	margin: 0 auto;
@@ -74,6 +80,46 @@
 		&:focus-within,
 		&:hover {
 			background-color: var(--grey-background-color);
+		}
+	}
+}
+
+.reviews-overview {
+	text-align: center;
+	font-size: 1.2rem;
+}
+
+.review-heatmap {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 2px;
+	margin: 0 auto;
+
+	& .review-heatmap-column {
+		display: flex;
+		flex-direction: column;
+		width: fit-content;
+		gap: 2px;
+		margin: 4px 0;
+
+		& .tooltip {
+			z-index: 2;
+			font-size: 1.2rem;
+		}
+
+		.heatmap-box {
+			padding: 4px;
+			border: 1px solid transparent;
+			background-color: var(--grey-background-color-shade-10);
+			position: relative;
+
+			&:hover {
+				border-color: var(--text-color);
+			}
+
+			&.hidden {
+				visibility: hidden;
+			}
 		}
 	}
 }
