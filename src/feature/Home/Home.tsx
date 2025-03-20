@@ -6,11 +6,11 @@ import { selectRootFolder } from "../../store/selectors/fileSystemSelectors";
 import ReviewTree from "./ReviewTree";
 import styles from "./styles.module.css";
 import ParsedFolder from "../../type/parsedFolder";
-import ReviwerHeatmap from "./ReviewHeatmap";
-import { getTodaysReviewStatistics } from "../../api/reviewApi";
-import ReviewStatistics from "../../type/backend/dto/reviewStatistics";
+import ReviewHeatmap from "./ReviewHeatmap";
+import HomeStatistics from "../../type/backend/dto/homeStatistics";
 import errorToString from "../../util/errorToString";
 import secondsToLongString from "../../util/secondsToLongString";
+import { getHomeStatistics } from "../../api/reviewApi";
 
 interface Props {
 	onStudyClick: (fileIds: number[]) => void;
@@ -18,8 +18,9 @@ interface Props {
 }
 
 function Home({ onStudyClick, onError }: Props) {
-	const [reviewStatistics, setReviewStatistics] =
-		useState<ReviewStatistics | null>(null);
+	const [homeStatistics, setHomeStatistics] = useState<HomeStatistics | null>(
+		null,
+	);
 	const dispatch = useAppDispatch();
 	const rootFolder = useAppSelector(selectRootFolder);
 
@@ -30,7 +31,7 @@ function Home({ onStudyClick, onError }: Props) {
 	useEffect(() => {
 		void (async () => {
 			try {
-				setReviewStatistics(await getTodaysReviewStatistics());
+				setHomeStatistics(await getHomeStatistics());
 			} catch (e) {
 				console.error(e);
 				onError(errorToString(e));
@@ -52,8 +53,8 @@ function Home({ onStudyClick, onError }: Props) {
 	};
 
 	const secondsPerCard =
-		reviewStatistics && reviewStatistics.numberOfReviews > 0
-			? reviewStatistics.totalTime / reviewStatistics.numberOfReviews
+		homeStatistics && homeStatistics.numberOfReviews > 0
+			? homeStatistics.totalTime / homeStatistics.numberOfReviews
 			: 0;
 
 	return (
@@ -83,16 +84,18 @@ function Home({ onStudyClick, onError }: Props) {
 				)}
 			</div>
 
-			{reviewStatistics && (
-				<p className={styles.reviewsOverview}>
-					Studied {reviewStatistics.numberOfReviews} cards in
-					{" " + secondsToLongString(reviewStatistics.totalTime)}{" "}
-					today ({secondsPerCard.toFixed(1) + " "}
-					s/card)
-				</p>
+			{homeStatistics && (
+				<>
+					<p className={styles.reviewsOverview}>
+						Studied {homeStatistics.numberOfReviews} cards in
+						{" " +
+							secondsToLongString(homeStatistics.totalTime)}{" "}
+						today ({secondsPerCard.toFixed(1) + " "}
+						s/card)
+					</p>
+					<ReviewHeatmap homeStatistics={homeStatistics} />
+				</>
 			)}
-
-			<ReviwerHeatmap onError={onError} />
 		</div>
 	);
 }

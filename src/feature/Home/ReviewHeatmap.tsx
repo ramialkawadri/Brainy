@@ -1,18 +1,20 @@
 import { useEffect, useMemo, useState } from "react";
-import ReviwerHeatmapColumn from "./ReviewHeatmapColumn";
+import ReviewHeatmapColumn from "./ReviewHeatmapColumn";
 import styles from "./styles.module.css";
-import { getReviewCountsForEveryDayOfYear } from "../../api/reviewApi";
-import errorToString from "../../util/errorToString";
+import HomeStatistics from "../../type/backend/dto/homeStatistics";
+import Settings from "../../type/backend/model/settings";
+import { getSettings } from "../../api/settingsApi";
 
 interface Props {
-	onError: (message: string) => void;
+	homeStatistics: HomeStatistics;
 }
 
-function ReviwerHeatmap({onError}: Props) {
-	const [reviewCounts, setReviewCounts] = useState<Record<
-		string,
-		number
-	> | null>(null);
+function ReviewHeatmap({ homeStatistics }: Props) {
+	const [setting, setSettings] = useState<Settings | null>(null);
+
+	useEffect(() => {
+		void (async () => setSettings(await getSettings()))();
+	});
 
 	const weeksOfYear = useMemo(() => {
 		const dates = [];
@@ -30,30 +32,20 @@ function ReviwerHeatmap({onError}: Props) {
 		return dates;
 	}, []);
 
-	useEffect(() => {
-		void (async () => {
-            try {
-                setReviewCounts(await getReviewCountsForEveryDayOfYear());
-            } catch (e) {
-                console.error(e);
-                onError(errorToString(e));
-            }
-		})();
-	}, [onError]);
-
 	return (
-		<div className={styles.reviwerHeatmap}>
-			{reviewCounts &&
+		<div className={styles.reviewHeatmap}>
+			{setting &&
 				weeksOfYear.map((week, i) => (
-					<ReviwerHeatmapColumn
+					<ReviewHeatmapColumn
 						currentYear={new Date().getFullYear()}
 						key={i}
 						date={week}
-						reviewCounts={reviewCounts}
+						homeStatistics={homeStatistics}
+						isDarkTheme={setting.theme === "Dark"}
 					/>
 				))}
 		</div>
 	);
 }
 
-export default ReviwerHeatmap;
+export default ReviewHeatmap;

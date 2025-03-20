@@ -78,8 +78,7 @@ pub async fn run() -> Result<(), String> {
             get_study_repetition_counts,
             reset_repetitions_for_cell,
             // Review
-            get_review_counts_for_every_day_of_year,
-            get_todays_review_statistics,
+            get_home_statistics,
             register_review,
             // Settings
             get_settings,

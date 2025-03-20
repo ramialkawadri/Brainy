@@ -6,11 +6,11 @@ use sea_orm::{
     entity::*,
     prelude::*,
     query::*,
-    sea_query::{Alias, Expr, Func},
+    sea_query::{Alias, Expr, Func, IntoColumnRef},
 };
 
 use crate::{
-    dto::review_statistics::ReviewStatistics,
+    dto::home_statistics::HomeStatistics,
     entity::{
         repetition,
         review::{self, Rating},
@@ -18,7 +18,8 @@ use crate::{
     util::database_util::DateTimeToDate,
 };
 
-pub async fn get_todays_review_statistics(db_conn: &DbConn) -> Result<ReviewStatistics, String> {
+// TODO: test
+pub async fn get_home_statistics(db_conn: &DbConn) -> Result<HomeStatistics, String> {
     let start_of_today = Utc::now()
         .with_time(NaiveTime::from_hms_opt(0, 0, 0).unwrap())
         .unwrap();
@@ -46,10 +47,72 @@ pub async fn get_todays_review_statistics(db_conn: &DbConn) -> Result<ReviewStat
         Ok(total_time) => total_time.unwrap_or(Some(0)).unwrap_or(0),
     };
 
-    Ok(ReviewStatistics {
+    Ok(HomeStatistics {
         number_of_reviews,
         total_time,
+        review_counts: group_by_date_and_filter_this_year_and_get_counts(
+            db_conn,
+            review::Entity::find(),
+            review::Column::Date,
+            review::Column::Id,
+        ).await?,
+        due_counts: group_by_date_and_filter_this_year_and_get_counts(
+            db_conn,
+            repetition::Entity::find(),
+            repetition::Column::Due,
+            repetition::Column::Id,
+        )
+        .await?,
     })
+}
+
+async fn group_by_date_and_filter_this_year_and_get_counts<E>(
+    db_conn: &DbConn,
+    select: Select<E>,
+    date_column: impl IntoColumnRef + ColumnTrait,
+    id_column: impl IntoColumnRef + ColumnTrait,
+) -> Result<HashMap<NaiveDate, i32>, String>
+where
+    E: EntityTrait,
+{
+    let start_of_year = Utc::now()
+        .with_month(1)
+        .unwrap()
+        .with_day(1)
+        .unwrap()
+        .with_time(NaiveTime::from_hms_opt(0, 0, 0).unwrap())
+        .unwrap();
+    let end_of_year = Utc::now()
+        .with_month(12)
+        .unwrap()
+        .with_day(31)
+        .unwrap()
+        .with_time(NaiveTime::from_hms_opt(11, 59, 59).unwrap())
+        .unwrap();
+
+    let result = select
+        .filter(date_column.between(start_of_year, end_of_year))
+        .select_only()
+        .expr_as(
+            Func::cust(DateTimeToDate).arg(Expr::col(date_column)),
+            "only_date",
+        )
+        .expr(id_column.count())
+        .group_by(Expr::col(Alias::new("only_date")))
+        .into_tuple::<(NaiveDate, i32)>()
+        .all(db_conn)
+        .await;
+
+    if let Err(err) = result {
+        return Err(err.to_string());
+    }
+
+    let mut hash_map = HashMap::with_capacity(365);
+    for (date, count) in result.unwrap() {
+        hash_map.insert(date, count);
+    }
+
+    Ok(hash_map)
 }
 
 pub async fn register_review(
@@ -100,50 +163,6 @@ pub async fn register_review(
     }
 }
 
-// TODO: test
-pub async fn get_review_counts_for_every_day_of_year(
-    db_conn: &DbConn,
-) -> Result<HashMap<NaiveDate, i32>, String> {
-    let start_of_year = Utc::now()
-        .with_month(1)
-        .unwrap()
-        .with_day(1)
-        .unwrap()
-        .with_time(NaiveTime::from_hms_opt(0, 0, 0).unwrap())
-        .unwrap();
-    let end_of_year = Utc::now()
-        .with_month(12)
-        .unwrap()
-        .with_day(31)
-        .unwrap()
-        .with_time(NaiveTime::from_hms_opt(11, 59, 59).unwrap())
-        .unwrap();
-
-    let result = review::Entity::find()
-        .filter(review::Column::Date.between(start_of_year, end_of_year))
-        .select_only()
-        .expr_as(
-            Func::cust(DateTimeToDate).arg(Expr::col(review::Column::Date)),
-            "only_date",
-        )
-        .expr(review::Column::Id.count())
-        .group_by(Expr::col(Alias::new("only_date")))
-        .into_tuple::<(NaiveDate, i32)>()
-        .all(db_conn)
-        .await;
-
-    if let Err(err) = result {
-        return Err(err.to_string());
-    }
-
-    let mut hash_map = HashMap::with_capacity(365);
-    for (date, count) in result.unwrap() {
-        hash_map.insert(date, count);
-    }
-
-    Ok(hash_map)
-}
-
 #[cfg(test)]
 mod tests {
     use chrono::Duration;
@@ -163,7 +182,7 @@ mod tests {
 
         // Act
 
-        let actual = get_todays_review_statistics(&db_conn).await.unwrap();
+        let actual = get_home_statistics(&db_conn).await.unwrap();
 
         // Assert
 
@@ -218,7 +237,7 @@ mod tests {
 
         // Act
 
-        let actual = get_todays_review_statistics(&db_conn).await.unwrap();
+        let actual = get_home_statistics(&db_conn).await.unwrap();
 
         // Assert
 

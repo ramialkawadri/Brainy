@@ -1,7 +1,7 @@
 use std::fmt::Write;
 
-use sea_orm::{Database, DatabaseConnection};
 use sea_orm::sea_query::Iden;
+use sea_orm::{Database, DatabaseConnection};
 
 use crate::migration;
 
